@@ -19,18 +19,25 @@ export interface WalkEntry {
   value: TokenLeafInput
 }
 
+/** Единственные ключи, допустимые в TextStyleValue (types.ts) — иначе это подгруппа. */
+const TEXT_STYLE_KEYS = new Set(['size', 'lineHeight'])
+
 /**
  * Лист = НЕ вложенная подгруппа. Три случая листа:
  *  - примитив (string/number) — `typeof !== 'object'`;
  *  - Token (в т.ч. ссылка на другой токен) — по бренд-символу;
- *  - TextStyleValue — объект-композит, опознаётся по строковому полю `size`.
- * Всё остальное (обычный объект без `size`) — подгруппа, в неё надо спускаться.
+ *  - TextStyleValue — объект-композит с обязательным строковым `size` и ключами ⊆
+ *    {size, lineHeight}. Строгий allowlist ключей нужен, иначе любой объект-подгруппа
+ *    с полем `size` (частый ключ компонентного sizing) молча теряет соседние ключи
+ *    (P1.2 code-review HIGH: `{ size, radius }` схлопывался в один Token без radius).
+ * Всё остальное (объект без `size` или с посторонними ключами) — подгруппа, в неё
+ * надо спускаться.
  */
 export function isLeaf(v: unknown): v is TokenLeafInput {
   if (typeof v !== 'object' || v === null) return true
   if (isToken(v)) return true
-  // TextStyleValue: единственный «объект-лист» — распознаём по обязательному size:string.
-  return typeof (v as { size?: unknown }).size === 'string'
+  if (typeof (v as { size?: unknown }).size !== 'string') return false
+  return Object.keys(v).every((k) => TEXT_STYLE_KEYS.has(k))
 }
 
 /**

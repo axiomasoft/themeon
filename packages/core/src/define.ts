@@ -51,13 +51,17 @@ const GROUP_TYPE_MAP: Readonly<Record<string, TokenType>> = {
   breakpoint: 'dimension',
 }
 
-/** TextStyleValue — объект-композит с обязательным строковым size (не Token). */
+/** Единственные ключи, допустимые в TextStyleValue (types.ts) — держим в синхроне с walk.ts. */
+const TEXT_STYLE_KEYS = new Set(['size', 'lineHeight'])
+
+/** TextStyleValue — объект-композит с обязательным строковым size, ключи ⊆ {size,lineHeight} (не Token). */
 function isTextStyleValue(v: TokenLeafInput): v is TextStyleValue {
   return (
     typeof v === 'object' &&
     v !== null &&
     !isToken(v) &&
-    typeof (v as { size?: unknown }).size === 'string'
+    typeof (v as { size?: unknown }).size === 'string' &&
+    Object.keys(v).every((k) => TEXT_STYLE_KEYS.has(k))
   )
 }
 
@@ -92,8 +96,9 @@ function inferByValue(value: TokenLeafInput, path: readonly string[]): TokenType
  *  - иначе → эвристика по значению.
  */
 function inferTokenType(group: string, value: TokenLeafInput, path: readonly string[]): TokenType {
-  const known = GROUP_TYPE_MAP[group]
-  if (known) return known
+  // Object.hasOwn (не `in`/индексация) — иначе группа с именем прототип-члена
+  // (`toString`, `constructor`, ...) читает функцию из Object.prototype как "known".
+  if (Object.hasOwn(GROUP_TYPE_MAP, group)) return GROUP_TYPE_MAP[group]!
   if (isToken(value)) return value.type
   return inferByValue(value, path)
 }
@@ -116,7 +121,9 @@ function assignByPath(root: Record<string, unknown>, path: string[], leaf: unkno
   let node = root
   for (let i = 0; i < path.length - 1; i++) {
     const key = path[i]!
-    if (!(key in node)) node[key] = {}
+    // Object.hasOwn — `in` читает через прототип-цепочку: ключ `__proto__`/`constructor`
+    // резолвится на Object.prototype и открывает prototype pollution / молчаливую порчу дерева.
+    if (!Object.hasOwn(node, key)) node[key] = {}
     node = node[key] as Record<string, unknown>
   }
   node[path[path.length - 1]!] = leaf
@@ -214,7 +221,9 @@ function validatePatchPaths(
   for (const { path } of walkTree(patch)) {
     let node: unknown = base
     for (const key of path) {
-      if (typeof node !== 'object' || node === null || !(key in node)) {
+      // Object.hasOwn — `in` пропускает ключи-имена прототип-членов (toString, constructor)
+      // мимо гейта UNKNOWN_PATH, потому что они существуют унаследованно от Object.prototype.
+      if (typeof node !== 'object' || node === null || !Object.hasOwn(node, key)) {
         const validKeys = typeof node === 'object' && node !== null ? Object.keys(node) : []
         throw new ThemeonError(
           'UNKNOWN_PATH',
