@@ -11,7 +11,7 @@
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck",
     "lint": "oxlint",
-    "check:pack": "pnpm -r --filter \"./packages/*\" exec publint && pnpm -r --filter \"./packages/*\" exec attw --pack"
+    "check:pack": "pnpm -r --filter \"./packages/*\" exec publint && pnpm -r --filter \"./packages/*\" exec attw --pack --profile esm-only"
   },
   "devDependencies": {
     "typescript": "catalog:",
@@ -19,6 +19,7 @@
     "@vitest/coverage-v8": "catalog:",
     "oxlint": "catalog:",
     "publint": "catalog:",
-    "@arethetypeswrong/cli": "catalog:"
+    "@arethetypeswrong/cli": "catalog:",
+    "@changesets/cli": "catalog:"
   }
 }
