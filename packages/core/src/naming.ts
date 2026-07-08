@@ -60,8 +60,8 @@ export function kebabSegment(segment: string): string {
     const ch = separated[i]!
     const prev = i > 0 ? separated[i - 1]! : ''
     if (prev) {
-      // camelCase: строчная/цифра, за которой Прописная.
-      const camel = /[a-z0-9]/.test(prev) && /[A-Z]/.test(ch)
+      // camelCase: строчная, за которой Прописная (цифра→Прописная — БЕЗ дефиса, см. п.2).
+      const camel = /[a-z]/.test(prev) && /[A-Z]/.test(ch)
       // буква→цифра (только это направление; цифра→буква дефиса не даёт — канон Tailwind).
       const letterToDigit = /[A-Za-z]/.test(prev) && /[0-9]/.test(ch)
       if (camel || letterToDigit) out += '-'
