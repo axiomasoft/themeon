@@ -1,6 +1,9 @@
 packages:
   - packages/*
   - apps/*
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
 catalog:
   typescript: 6.0.3
   tsdown: 0.22.3
