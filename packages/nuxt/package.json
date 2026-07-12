@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@nuxt/kit": "catalog:",
+    "@themeon/core": "workspace:*",
     "@themeon/css": "workspace:*",
     "@themeon/vue": "workspace:*"
   },

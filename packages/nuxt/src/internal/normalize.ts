@@ -1,3 +1,4 @@
+import type { ThemeInitScriptOptions } from '@themeon/vue/anti-fouc'
 import type { ModuleOptions, ModulePublicRuntimeConfig } from '../types'
 
 /** Пути CSS-фундамента пакета, вставляемые первыми (порядок tokens → index, P2.7). */
@@ -28,5 +29,22 @@ export function toPublicRuntimeConfig(options: ModuleOptions): ModulePublicRunti
     default: options.default,
     themes: [...(options.themes ?? MODULE_DEFAULTS.themes)],
     attribute: options.attribute ?? MODULE_DEFAULTS.attribute,
+  }
+}
+
+/**
+ * Чистая нормализация опций модуля → опции `themeInitScript` (анти-FOUC IIFE, P3.4).
+ * `storageKey`/`attribute` — ОДИН источник с `toPublicRuntimeConfig`/`useTheme()` (D6): анти-
+ * FOUC скрипт и клиентский `init()` обязаны читать/писать один и тот же ключ/атрибут, иначе
+ * скрипт выставляет тему до гидрации, а `useTheme` — другую после (видимая вспышка).
+ * `darkTheme`/`lightTheme` не пробрасываются намеренно — `ModuleOptions` их не различает
+ * (только `themes`/`default`), `themeInitScript()` использует свои дефолты `'dark'`/`'light'`,
+ * совпадающие с дефолтами `@themeon/vue`.
+ */
+export function buildFoucScriptOptions(options: ModuleOptions): ThemeInitScriptOptions {
+  return {
+    storageKey: options.storageKey ?? MODULE_DEFAULTS.storageKey,
+    attribute: options.attribute ?? MODULE_DEFAULTS.attribute,
+    default: options.default,
   }
 }

@@ -1,8 +1,34 @@
-import { addImports, addPlugin, createResolver, defineNuxtModule } from '@nuxt/kit'
-import { FOUNDATION_CSS, MODULE_DEFAULTS, shouldPushCss, toPublicRuntimeConfig } from './internal/normalize'
+import {
+  addImports,
+  addPlugin,
+  addTemplate,
+  createResolver,
+  defineNuxtModule,
+  importModule,
+  resolvePath,
+  updateTemplates,
+} from '@nuxt/kit'
+import { resolveTheme, serializeThemeCss, type ThemeDefinition } from '@themeon/core'
+import { themeInitScript } from '@themeon/vue/anti-fouc'
+import { dirname, resolve as resolveAbs } from 'node:path'
+import { hashDir } from './internal/hash-dir'
+import {
+  buildFoucScriptOptions,
+  FOUNDATION_CSS,
+  MODULE_DEFAULTS,
+  shouldPushCss,
+  toPublicRuntimeConfig,
+} from './internal/normalize'
 import type { ModuleOptions } from './types'
 
 export type { ModuleOptions } from './types'
+
+/** Контракт файла пользовательской темы (`options.theme`, codegen P3.4). */
+interface ThemeModuleExports {
+  default?: ThemeDefinition
+  theme?: ThemeDefinition
+  defaultTheme?: ThemeDefinition
+}
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
@@ -19,7 +45,7 @@ export default defineNuxtModule<ModuleOptions>({
     // при отсутствии пользовательской опции уже даёт toPublicRuntimeConfig.
     themes: undefined,
   },
-  setup(options, nuxt) {
+  async setup(options, nuxt) {
     const resolver = createResolver(import.meta.url)
 
     // Фундамент пакета первым — объявляет sys-переменные до всего остального CSS
@@ -37,7 +63,78 @@ export default defineNuxtModule<ModuleOptions>({
 
     addPlugin({ src: resolver.resolve('./runtime/plugin'), mode: 'all' })
 
-    // Анти-FOUC head-скрипт, codegen пользовательской темы, dev-watcher по хэшу
-    // директории (D13) — P3.4, ещё не реализованы в этом item'е.
+    // ── Анти-FOUC head-скрипт (D6, P-D24) ──
+    // ОДИН генератор `themeInitScript`, переиспользован из `@themeon/vue/anti-fouc` (pure,
+    // без vue в графе). Маршрут A — статический тег в `<head>`, не per-request nitro-инъекция
+    // (маршрут B — задел P6, намеренно не строится здесь).
+    if (options.fouc !== false) {
+      nuxt.options.app.head ||= {}
+      nuxt.options.app.head.script ||= []
+      nuxt.options.app.head.script.push({
+        key: 'themeon-fouc',
+        innerHTML: themeInitScript(buildFoucScriptOptions(options)),
+        tagPosition: 'head',
+        tagPriority: 'critical',
+      })
+    }
+
+    // ── Codegen пользовательской темы + dev-watcher по хэшу директории (D13) ──
+    if (options.theme) {
+      // `resolvePath` (не `resolver.resolvePath`!) резолвит от `nuxt.options.rootDir` —
+      // `options.theme` это путь пользовательского проекта, не путь внутри этого пакета.
+      const themePath = await resolvePath(options.theme)
+      const themeModule = await importModule<ThemeModuleExports>(themePath)
+      const theme = themeModule.default ?? themeModule.theme ?? themeModule.defaultTheme
+      if (!theme) {
+        throw new Error(
+          `[themeon] module: файл темы "${options.theme}" должен экспортировать тему ` +
+            `(default export либо именованный "theme"/"defaultTheme")`,
+        )
+      }
+
+      const template = addTemplate({
+        filename: 'themeon-tokens.css',
+        write: true,
+        getContents: () => {
+          try {
+            return serializeThemeCss(resolveTheme(theme))
+          } catch (err) {
+            // Fail loud (Rule 5): циклы/коллизии в пользовательской теме не должны молча
+            // деградировать в пустой/старый CSS.
+            console.error('[themeon] module: не удалось сериализовать пользовательскую тему:', err)
+            throw err
+          }
+        },
+      })
+
+      // Сгенерированный CSS занимает МЕСТО статического tokens.css (тот же порядок
+      // tokens→index), либо встаёт первым, если фундамент не подключался (`css:false`).
+      const tokensIndex = nuxt.options.css.indexOf('@themeon/css/tokens.css')
+      if (tokensIndex !== -1) nuxt.options.css[tokensIndex] = template.dst
+      else nuxt.options.css.unshift(template.dst)
+
+      if (nuxt.options.dev) {
+        const tokensDir = options.tokensDir ? await resolvePath(options.tokensDir) : dirname(themePath)
+
+        // Регистрация watch вне srcDir — Nuxt 4 поддерживает абсолютные пути в `watch`.
+        nuxt.options.watch.push(tokensDir)
+
+        let lastHash = hashDir(tokensDir)
+        nuxt.hook('builder:watch', async (_event, path) => {
+          // Nuxt 4 отдаёт `path` уже абсолютным (R-13 §3.4) — `resolve` относительно
+          // `rootDir` идемпотентен для абс.путей, страхует от гипотетического относительного.
+          const abs = resolveAbs(nuxt.options.rootDir, path)
+          if (!abs.startsWith(tokensDir)) return
+
+          // Хэш ДИРЕКТОРИИ, не хардкод-список файлов (D13-фикс донор-бага vintera
+          // `SOURCE_REL` — список указывал на несуществующий путь, HMR был мёртв).
+          const nextHash = hashDir(tokensDir)
+          if (nextHash === lastHash) return
+          lastHash = nextHash
+
+          await updateTemplates({ filter: (t) => t.filename === 'themeon-tokens.css' })
+        })
+      }
+    }
   },
 })

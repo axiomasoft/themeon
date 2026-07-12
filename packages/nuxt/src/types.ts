@@ -1,7 +1,7 @@
 /**
  * Публичные опции модуля `@themeon/nuxt` (`configKey: 'themeon'`). Поля `theme`/`tokensDir`
- * codegen'а и dev-watcher'а (D13) объявлены здесь заранее (P3.3), но реализуются в P3.4 —
- * в P3.3 их значение читается только для проброса в рантайм-конфиг, `undefined` = выключено.
+ * запускают codegen пользовательской темы + dev-watcher по хэшу директории (D13), `fouc` —
+ * анти-FOUC head-скрипт (`@themeon/vue/anti-fouc`, P3.4).
  */
 export interface ModuleOptions {
   /** Подключать статический CSS-фундамент пакета (`tokens.css`+`index.css`). Default `true`. */
@@ -14,11 +14,15 @@ export interface ModuleOptions {
   themes?: readonly string[]
   /** DOM-атрибут переключения. Default `'data-theme'` (D6). */
   attribute?: string
-  /** Вставлять сгенерированный анти-FOUC head-скрипт (`@themeon/vue/anti-fouc`). Default `true`. Реализуется в P3.4. */
+  /** Вставлять сгенерированный анти-FOUC head-скрипт (`@themeon/vue/anti-fouc`). Default `true`. */
   fouc?: boolean
-  /** Путь к модулю пользовательской темы (`defineTheme`, default-export). Codegen — P3.4. */
+  /**
+   * Путь к модулю пользовательской темы (`defineTheme`, default-export ИЛИ именованный
+   * `theme`/`defaultTheme`). Если задан — заменяет статический `@themeon/css/tokens.css`
+   * сгенерированным (`addTemplate`, P3.4).
+   */
   theme?: string
-  /** Директория для dev-watcher (хэш содержимого, D13). Default — `dirname(theme)`. Реализуется в P3.4. */
+  /** Директория для dev-watcher (хэш содержимого, D13). Default — `dirname(theme)`. */
   tokensDir?: string
 }
 

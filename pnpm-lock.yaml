@@ -162,6 +162,9 @@ importers:
       '@nuxt/kit':
         specifier: 'catalog:'
         version: 4.4.8(magicast@0.5.3)
+      '@themeon/core':
+        specifier: workspace:*
+        version: link:../core
       '@themeon/css':
         specifier: workspace:*
         version: link:../css

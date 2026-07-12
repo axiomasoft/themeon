@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { FOUNDATION_CSS, shouldPushCss, toPublicRuntimeConfig } from './internal/normalize'
+import { buildFoucScriptOptions, FOUNDATION_CSS, shouldPushCss, toPublicRuntimeConfig } from './internal/normalize'
 
 describe('shouldPushCss', () => {
   it('по умолчанию (опция не задана) — вставлять CSS', () => {
@@ -44,6 +44,22 @@ describe('toPublicRuntimeConfig', () => {
       default: undefined,
       themes: ['light', 'dark'],
       attribute: 'data-theme',
+    })
+  })
+})
+
+describe('buildFoucScriptOptions', () => {
+  it('пробрасывает storageKey/attribute/default как есть', () => {
+    expect(
+      buildFoucScriptOptions({ storageKey: 'my-theme', attribute: 'data-mode', default: 'dark' }),
+    ).toEqual({ storageKey: 'my-theme', attribute: 'data-mode', default: 'dark' })
+  })
+
+  it('пустые опции → storageKey/attribute падают на MODULE_DEFAULTS (тот же источник, что useTheme/toPublicRuntimeConfig), default остаётся undefined', () => {
+    expect(buildFoucScriptOptions({})).toEqual({
+      storageKey: 'themeon-theme',
+      attribute: 'data-theme',
+      default: undefined,
     })
   })
 })
