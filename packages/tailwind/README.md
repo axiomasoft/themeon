@@ -70,8 +70,10 @@ emitted: `color`, `font-weight`, `font`, `text`, `tracking`, `leading`, `breakpo
 `gradient`, `z`, `duration` — are intentionally excluded; including them would only
 produce dead `@theme inline` declarations Tailwind ignores.
 
-Double-dash companion variables (e.g. `--text-2xl--line-height`, emitted alongside
-`--text-2xl` by the naming engine) are excluded for the same reason.
+Double-dash line-height companion variables (e.g. `--text-2xl--line-height`, emitted
+alongside `--text-2xl` by the naming engine) are **included** — Tailwind v4's `--text-*`
+utilities only bundle a `line-height` declaration when this companion is present in
+`@theme`; omitting it silently drops leading from every `text-*` utility (R-11 §3).
 
 ## Naming
 

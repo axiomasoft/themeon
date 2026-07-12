@@ -45,15 +45,6 @@ export function matchNamespace(
 }
 
 /**
- * Double-dash companion-переменные (P1.3, напр. `--text-base--line-height`) содержат
- * второй `--` после ведущего — Tailwind не распознаёт такой суффикс, включение их в
- * бридж дало бы мусорные `@theme inline`-объявления (Code Guidance P4.1).
- */
-function isCompanionVar(varName: CssVarName): boolean {
-  return varName.slice(2).includes('--')
-}
-
-/**
  * Собирает уникальные имена переменных из резолвленной темы: всегда база
  * (`resolved.tokens`), плюс при `include !== 'base'` — все патчи тем (тема может
  * вводить var, которого нет в базе).
@@ -81,9 +72,7 @@ export function tailwindBridge(resolved: ResolvedTheme, opts?: TailwindBridgeOpt
   const banner = opts?.banner ?? true
 
   const names = collectVarNames(resolved, include)
-  const filtered = [...names].filter(
-    (name) => !isCompanionVar(name) && matchNamespace(name, namespaces) !== null,
-  )
+  const filtered = [...names].filter((name) => matchNamespace(name, namespaces) !== null)
   filtered.sort()
 
   const lines = filtered.map((name) => `  ${name}: var(${name});`)

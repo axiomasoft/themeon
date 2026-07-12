@@ -30,8 +30,9 @@ function buildResolved(
 
 /**
  * Фикстура покрывает: Tailwind-namespace'ы (color/spacing/font-weight/font), ThemeOn-
- * расширения вне Tailwind-набора (gradient/z/duration), double-dash companion
- * (`--text-2xl` + `--text-2xl--line-height`, P1.3) и var, введённый только темой `hc`.
+ * расширения вне Tailwind-набора (gradient/z/duration), double-dash line-height companion
+ * (`--text-2xl` + `--text-2xl--line-height`, P1.3 — оба должны попасть в бридж, R-11 §3)
+ * и var, введённый только темой `hc`.
  */
 function fixtureResolved(): ResolvedTheme {
   const base: ResolvedToken[] = [
@@ -81,10 +82,10 @@ describe('tailwindBridge', () => {
     expect(out).toContain('--font-sans: var(--font-sans);')
   })
 
-  test('double-dash companion переменные исключены', () => {
+  test('double-dash line-height companion включён (Tailwind text-* leading, R-11 §3)', () => {
     const out = tailwindBridge(fixtureResolved())
     expect(out).toContain('--text-2xl: var(--text-2xl);')
-    expect(out).not.toMatch(/--text-2xl--line-height/)
+    expect(out).toContain('--text-2xl--line-height: var(--text-2xl--line-height);')
   })
 
   test("include:'base' vs 'all' — тема вводит новый var", () => {
