@@ -1,0 +1,3 @@
+/* Порядок каскада ThemeOn (P-D20). Первый statement любого entry. */
+@layer themeon.tokens, themeon.reset, themeon.base, themeon.composition,
+       themeon.blueprints, themeon.components, themeon.utilities;

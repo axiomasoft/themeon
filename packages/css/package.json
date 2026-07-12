@@ -1,0 +1,45 @@
+{
+  "name": "@themeon/css",
+  "version": "0.0.0",
+  "description": "CSS foundation for ThemeOn: @layer cascade, reset, base typography, layout composition, site blueprints and component skeletons on CSS custom properties.",
+  "keywords": [
+    "design-tokens",
+    "css",
+    "css-layer",
+    "layout",
+    "design-system"
+  ],
+  "homepage": "https://github.com/themeon/themeon#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themeon/themeon.git",
+    "directory": "packages/css"
+  },
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": ["**/*.css"],
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/contract.d.ts",
+      "import": "./dist/contract.js"
+    },
+    "./index.css": "./dist/index.css",
+    "./layers.css": "./dist/layers.css",
+    "./reset.css": "./dist/reset.css",
+    "./base.css": "./dist/base.css"
+  },
+  "scripts": {
+    "build": "tsdown && node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --root ../.. --project @themeon/css"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "lightningcss": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

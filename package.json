@@ -11,7 +11,7 @@
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck",
     "lint": "oxlint",
-    "check:pack": "pnpm -r --filter \"./packages/*\" exec publint && pnpm -r --filter \"./packages/*\" exec attw --pack --profile esm-only"
+    "check:pack": "pnpm -r --filter \"./packages/*\" exec publint && pnpm -r --filter \"./packages/*\" exec attw --pack --profile esm-only --entrypoints ."
   },
   "devDependencies": {
     "typescript": "catalog:",

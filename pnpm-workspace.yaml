@@ -8,6 +8,8 @@ catalog:
   colorjs.io: 0.7.0
   culori: 4.0.2
   "@types/culori": 4.0.1
+  lightningcss: 1.32.0
+  "@types/node": 24.13.3
   typescript: 6.0.3
   tsdown: 0.22.3
   vitest: 4.1.10

@@ -1,0 +1,25 @@
+/*
+ * Минимальный интенциональный reset (гибрид Comeau/Bell, R-12 §6).
+ * Блок prefers-reduced-motion с !important сознательно НЕ включён — нарушал бы
+ * инвариант «ноль !important» (D8); рецепт для потребителя — packages/css/README.md (P2.7).
+ *
+ * Приватный partial (не entry, без собственного @import "./layers.css"): подключается ИЗ
+ * `reset.css` И из `index.css`. Если бы оба подключали именно `reset.css` (который сам
+ * начинается с `@import "./layers.css"`), lightningcss при бандлинге `index.css` получал бы
+ * двойной транзитивный импорт `layers.css` и ломал порядок @layer в dist (реальный баг
+ * lightningcss ≤1.32.0, воспроизведён на минимальном примере — см. Known Deviations P2.3).
+ */
+@layer themeon.reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+  html { -webkit-text-size-adjust: none; }
+  body { min-block-size: 100svh; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  img, picture, video, canvas, svg { display: block; max-inline-size: 100%; }
+  input, button, textarea, select { font: inherit; color: inherit; }
+  p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
+  ul[role="list"], ol[role="list"] { list-style: none; padding: 0; }
+  :focus-visible {
+    outline: 2px solid var(--color-focus-ring, currentColor);
+    outline-offset: 2px;
+  }
+}
