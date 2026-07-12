@@ -1,0 +1,19 @@
+/*
+ * gradient.css — градиент-утилиты как значение переменной (донор dterema: `--btn-bg:
+ * var(--gradient-brand)` работает и в `.btn`). Приватный примитив-файл (не entry):
+ * подключается ИЗ `_components-body.css`, без собственного `@import "./layers.css"`
+ * (lightningcss ≤1.32.0 dedup-баг, P2.3).
+ */
+@layer themeon.components {
+  .bg-gradient-brand {
+    background-image: var(
+      --gradient-brand,
+      linear-gradient(135deg, oklch(0.55 0.15 155), oklch(0.65 0.12 200))
+    );
+  }
+  .text-gradient {
+    background: var(--gradient-brand, linear-gradient(135deg, oklch(0.55 0.15 155), oklch(0.65 0.12 200)));
+    background-clip: text;
+    color: transparent;
+  }
+}

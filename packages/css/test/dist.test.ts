@@ -14,6 +14,8 @@ const DIST_ENTRIES = [
   'base.css',
   'composition.css',
   'blueprints.css',
+  'components.css',
+  'utilities.css',
 ]
 
 // Синхронная пересборка dist перед сбором тестов (buildCss — быстрая чистая функция,
@@ -22,12 +24,30 @@ const DIST_ENTRIES = [
 buildCss(PKG_ROOT)
 
 /**
+ * Имена custom properties, ОБЪЯВЛЕННЫХ (не только использованных) где-либо в CSS — т.е.
+ * встречающихся в позиции декларации `--name: ...;`. Локальный block-параметр компонента
+ * (P2.6, `:where(.btn) { --btn-bg: var(--color-action-primary, …); background: var(--btn-bg);
+ * }`) гарантированно установлен тем же правилом, что его использует — второй `var()`-вызов
+ * без fallback безопасен (в отличие от sys-var, у которого декларации в пакете нет вовсе).
+ */
+function findDeclaredCustomProperties(css: string): Set<string> {
+  const declared = new Set<string>()
+  const re = /(--[a-zA-Z0-9-]+)\s*:/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(css)) !== null) declared.add(m[1]!)
+  return declared
+}
+
+/**
  * Мини-сканер `var(...)`-вызовов: находит верхнеуровневые вызовы `var(` в тексте CSS и
  * возвращает по каждому — есть ли у него верхнеуровневая запятая (т.е. литеральный/вложенный
  * fallback). Вложенные `var(--a, var(--b, literal))` обязаны иметь литерал на самом глубоком
  * уровне — рекурсивно проверяем fallback-часть, если она сама является ровно одним `var(...)`.
+ * Исключение (P2.6): вызов без fallback безопасен, если референс — локально объявленный
+ * custom property (см. {@link findDeclaredCustomProperties}), а не sys-var контракта.
  */
 function findVarCallsWithoutFallback(css: string): string[] {
+  const declared = findDeclaredCustomProperties(css)
   const bad: string[] = []
   let i = 0
   while (i < css.length) {
@@ -44,13 +64,16 @@ function findVarCallsWithoutFallback(css: string): string[] {
       j++
     }
     const call = css.slice(start, j)
+    const nameMatch = /^var\(\s*(--[a-zA-Z0-9-]+)/.exec(call)
+    const refName = nameMatch?.[1]
+    const isLocalDeclared = refName !== undefined && declared.has(refName)
     if (topLevelCommaIdx === -1) {
-      bad.push(call)
+      if (!isLocalDeclared) bad.push(call)
     } else {
       const fallback = css.slice(topLevelCommaIdx + 1, j - 1).trim()
       // Если fallback сам целиком — один var(...)-вызов, рекурсия проверит его отдельно
       // (он будет найден следующей итерацией indexOf, т.к. лежит внутри исходного текста).
-      if (fallback.length === 0) bad.push(call)
+      if (fallback.length === 0 && !isLocalDeclared) bad.push(call)
     }
     i = start + 4
   }
@@ -108,5 +131,13 @@ describe('@themeon/css — инварианты dist', () => {
     expect(css).toContain(':popover-open')
     expect(css).toContain('@container page')
     expect(css).toContain('@supports (anchor-name')
+  })
+
+  // P2.6: смок паттерна нулевой специфичности — компонентные селекторы обёрнуты в :where(.
+  test('dist/components.css селекторы компонентов обёрнуты в :where(', () => {
+    const css = readFileSync(`${PKG_ROOT}/dist/components.css`, 'utf-8')
+    expect(css).toContain(':where(.btn')
+    expect(css).toContain(':where(.badge')
+    expect(css).toContain(':where(.card')
   })
 })

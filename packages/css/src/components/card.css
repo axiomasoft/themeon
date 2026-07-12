@@ -1,0 +1,17 @@
+/*
+ * card.css — контейнер-карточка на локальных переменных-модификаторах (тот же паттерн, что
+ * `btn.css`). Приватный примитив-файл (не entry): подключается ИЗ `_components-body.css`,
+ * без собственного `@import "./layers.css"` (lightningcss ≤1.32.0 dedup-баг, P2.3).
+ */
+@layer themeon.components {
+  :where(.card) {
+    --card-bg: var(--color-bg-elevated, oklch(1 0 0));
+    --card-pad: var(--spacing-lg, 1.5rem);
+
+    background: var(--card-bg);
+    border: 1px solid var(--color-border, oklch(0.85 0.01 260));
+    border-radius: var(--radius-lg, 0.75rem);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgb(0 0 0 / 0.08));
+    padding: var(--card-pad);
+  }
+}

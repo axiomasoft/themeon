@@ -29,7 +29,9 @@
     "./reset.css": "./dist/reset.css",
     "./base.css": "./dist/base.css",
     "./composition.css": "./dist/composition.css",
-    "./blueprints.css": "./dist/blueprints.css"
+    "./blueprints.css": "./dist/blueprints.css",
+    "./components.css": "./dist/components.css",
+    "./utilities.css": "./dist/utilities.css"
   },
   "scripts": {
     "build": "tsdown && node scripts/build.mjs",

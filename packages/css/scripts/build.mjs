@@ -4,7 +4,6 @@ import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 // Baseline-2026 floor (R-12 §7): Chrome 125, Firefox 132, Safari 18.2.
 const TARGETS = { chrome: 125 << 16, firefox: 132 << 16, safari: (18 << 16) | (2 << 8) }
 
-// P2.6 дополняет список своими entry (components/utilities).
 const ENTRIES = [
   'index.css',
   'layers.css',
@@ -12,6 +11,8 @@ const ENTRIES = [
   'base.css',
   'composition.css',
   'blueprints.css',
+  'components.css',
+  'utilities.css',
 ]
 
 export function buildCss(root = new URL('..', import.meta.url).pathname) {

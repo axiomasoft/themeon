@@ -1,0 +1,20 @@
+/*
+ * badge.css — компактная метка на локальных переменных-модификаторах (тот же паттерн, что
+ * `btn.css`). Приватный примитив-файл (не entry): подключается ИЗ `_components-body.css`,
+ * без собственного `@import "./layers.css"` (lightningcss ≤1.32.0 dedup-баг, P2.3).
+ */
+@layer themeon.components {
+  :where(.badge) {
+    --badge-bg: var(--color-bg-subtle, oklch(0.96 0.003 260));
+    --badge-color: var(--color-text-muted, oklch(0.5 0.01 260));
+
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15em 0.6em;
+    background: var(--badge-bg);
+    color: var(--badge-color);
+    border-radius: var(--radius-full, 999px);
+    font-size: var(--text-sm, 0.875rem);
+    line-height: var(--text-sm--line-height, 1.4);
+  }
+}

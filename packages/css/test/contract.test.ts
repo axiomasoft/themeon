@@ -13,6 +13,8 @@ const DIST_ENTRIES = [
   'base.css',
   'composition.css',
   'blueprints.css',
+  'components.css',
+  'utilities.css',
 ]
 
 // usedBy-имя слоя → неминифицированные исходники (P2.3/P2.4 файловая структура; список,
@@ -40,6 +42,13 @@ const LAYER_SOURCE_FILES: Record<string, string[]> = {
     'blueprints/section.css',
     'blueprints/footer.css',
   ],
+  components: [
+    'components/btn.css',
+    'components/badge.css',
+    'components/card.css',
+    'components/gradient.css',
+  ],
+  utilities: ['_utilities-body.css'],
 }
 
 // Namespace-фильтр sys-переменных контракта (P2.3 таблица «CSS-var контракт»). Локальные

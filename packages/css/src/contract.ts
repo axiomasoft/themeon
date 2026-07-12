@@ -11,7 +11,11 @@ export interface CssContractEntry {
  * token-coverage linter in `themeon check` (P4).
  */
 export const CSS_CONTRACT: readonly CssContractEntry[] = [
-  { varName: '--color-focus-ring', fallback: 'currentColor', usedBy: ['reset'] },
+  {
+    varName: '--color-focus-ring',
+    fallback: 'currentColor',
+    usedBy: ['reset', 'components'],
+  },
   { varName: '--font-sans', fallback: 'system-ui, sans-serif', usedBy: ['base'] },
   { varName: '--font-mono', fallback: 'ui-monospace, monospace', usedBy: ['base'] },
   { varName: '--color-text', fallback: 'oklch(0.25 0.01 260)', usedBy: ['base', 'blueprints'] },
@@ -22,11 +26,15 @@ export const CSS_CONTRACT: readonly CssContractEntry[] = [
     fallback: 'oklch(0.4 0.17 260)',
     usedBy: ['base', 'blueprints'],
   },
-  { varName: '--color-border', fallback: 'oklch(0.85 0.01 260)', usedBy: ['base', 'blueprints'] },
+  {
+    varName: '--color-border',
+    fallback: 'oklch(0.85 0.01 260)',
+    usedBy: ['base', 'blueprints', 'components'],
+  },
   { varName: '--text-base', fallback: '1rem', usedBy: ['base'] },
   { varName: '--text-base--line-height', fallback: '1.6', usedBy: ['base'] },
-  { varName: '--text-sm', fallback: '0.875rem', usedBy: ['base'] },
-  { varName: '--text-sm--line-height', fallback: '1.4', usedBy: ['base'] },
+  { varName: '--text-sm', fallback: '0.875rem', usedBy: ['base', 'components'] },
+  { varName: '--text-sm--line-height', fallback: '1.4', usedBy: ['base', 'components'] },
   { varName: '--text-xl', fallback: '1.25rem', usedBy: ['base'] },
   { varName: '--text-xl--line-height', fallback: '1.3', usedBy: ['base'] },
   { varName: '--text-2xl', fallback: '1.5rem', usedBy: ['base'] },
@@ -38,17 +46,55 @@ export const CSS_CONTRACT: readonly CssContractEntry[] = [
   { varName: '--spacing-sm', fallback: '0.75rem', usedBy: ['composition', 'blueprints'] },
   { varName: '--spacing-md', fallback: '1rem', usedBy: ['composition', 'blueprints'] },
   { varName: '--spacing-xs', fallback: '0.5rem', usedBy: ['blueprints'] },
-  { varName: '--spacing-lg', fallback: '1.5rem', usedBy: ['blueprints'] },
+  { varName: '--spacing-lg', fallback: '1.5rem', usedBy: ['blueprints', 'components'] },
   { varName: '--spacing-xl', fallback: '2rem', usedBy: ['blueprints'] },
   { varName: '--spacing-2xl', fallback: '3rem', usedBy: ['blueprints'] },
-  { varName: '--color-bg-elevated', fallback: 'oklch(1 0 0)', usedBy: ['blueprints'] },
-  { varName: '--color-bg-subtle', fallback: 'oklch(0.96 0.003 260)', usedBy: ['blueprints'] },
-  { varName: '--color-text-muted', fallback: 'oklch(0.5 0.01 260)', usedBy: ['blueprints'] },
-  { varName: '--radius-lg', fallback: '0.75rem', usedBy: ['blueprints'] },
+  {
+    varName: '--color-bg-elevated',
+    fallback: 'oklch(1 0 0)',
+    usedBy: ['blueprints', 'components'],
+  },
+  {
+    varName: '--color-bg-subtle',
+    fallback: 'oklch(0.96 0.003 260)',
+    usedBy: ['blueprints', 'components'],
+  },
+  {
+    varName: '--color-text-muted',
+    fallback: 'oklch(0.5 0.01 260)',
+    usedBy: ['blueprints', 'components', 'utilities'],
+  },
+  { varName: '--radius-lg', fallback: '0.75rem', usedBy: ['blueprints', 'components'] },
   {
     varName: '--shadow-lg',
     fallback: '0 8px 24px rgb(0 0 0 / 0.12)',
     usedBy: ['blueprints'],
+  },
+  // P2.6 — components (btn/badge/card/gradient).
+  {
+    varName: '--color-action-primary',
+    fallback: 'oklch(0.55 0.15 155)',
+    usedBy: ['components'],
+  },
+  {
+    varName: '--color-action-primary-hover',
+    fallback: 'oklch(0.51 0.15 155)',
+    usedBy: ['components'],
+  },
+  { varName: '--color-on-primary', fallback: 'oklch(0.99 0 0)', usedBy: ['components'] },
+  { varName: '--radius-md', fallback: '0.5rem', usedBy: ['components'] },
+  { varName: '--duration-fast', fallback: '150ms', usedBy: ['components'] },
+  { varName: '--ease-standard', fallback: 'ease', usedBy: ['components'] },
+  { varName: '--radius-full', fallback: '999px', usedBy: ['components'] },
+  {
+    varName: '--shadow-sm',
+    fallback: '0 1px 3px rgb(0 0 0 / 0.08)',
+    usedBy: ['components'],
+  },
+  {
+    varName: '--gradient-brand',
+    fallback: 'linear-gradient(135deg, oklch(0.55 0.15 155), oklch(0.65 0.12 200))',
+    usedBy: ['components'],
   },
 ]
 

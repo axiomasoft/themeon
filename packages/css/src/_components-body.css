@@ -1,0 +1,11 @@
+/*
+ * Агрегатор четырёх component-каркасов (P2.6). Приватный partial (не entry, без
+ * собственного `@import "./layers.css"`): подключается ИЗ `components.css` И из
+ * `index.css` — тот же паттерн, что `_composition-body.css`/`_blueprints-body.css`
+ * (P2.4/P2.5), закрывающий lightningcss ≤1.32.0 dedup-баг двойного транзитивного импорта
+ * `layers.css`.
+ */
+@import "./components/btn.css";
+@import "./components/badge.css";
+@import "./components/card.css";
+@import "./components/gradient.css";
