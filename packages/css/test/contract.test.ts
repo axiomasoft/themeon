@@ -3,7 +3,9 @@ import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
 
 import { buildCss } from '../scripts/build.mjs'
+import { genTokens } from '../scripts/gen-tokens.mjs'
 import { CSS_CONTRACT } from '../src/contract'
+import { defaultTheme } from '../src/theme/default'
 
 const PKG_ROOT = fileURLToPath(new URL('..', import.meta.url))
 const DIST_ENTRIES = [
@@ -147,6 +149,37 @@ describe('@themeon/css — контракт ↔ CSS ↔ CSS_CONTRACT', () => {
           `fallback для ${varName} в src/${LAYER_SOURCE_FILES[layer]!.join(', src/')} разошёлся с CSS_CONTRACT`,
         ).toBe(fallback)
       }
+    }
+  })
+})
+
+// P2.7 — дефолт-тема tokens.css: APCA-гейт (fail-closed) + контракт ⊆ tokens.css.
+describe('@themeon/css — дефолт-тема dist/tokens.css', () => {
+  test('genTokens: APCA-гейт проходит на дефолт-теме, файл записывается', () => {
+    const result = genTokens(defaultTheme, PKG_ROOT)
+    expect(result.ok, JSON.stringify(result.reports?.filter((r) => !r.pass))).toBe(true)
+    // 5 пар × (база + dark) = 10 отчётов, все прошли.
+    expect(result.reports).toHaveLength(10)
+    expect(result.reports.every((r) => r.pass)).toBe(true)
+  })
+
+  test('dist/tokens.css начинается с @layer themeon.tokens', () => {
+    const css = readFileSync(`${PKG_ROOT}/dist/tokens.css`, 'utf-8')
+    expect(css.startsWith('@layer themeon.tokens')).toBe(true)
+  })
+
+  test('dist/tokens.css содержит [data-theme="dark"] и color-scheme: dark', () => {
+    const css = readFileSync(`${PKG_ROOT}/dist/tokens.css`, 'utf-8')
+    expect(css).toContain('[data-theme="dark"]')
+    expect(css).toContain('color-scheme: dark')
+  })
+
+  test('каждый CSS_CONTRACT[].varName объявлен в dist/tokens.css', () => {
+    const css = readFileSync(`${PKG_ROOT}/dist/tokens.css`, 'utf-8')
+    for (const { varName } of CSS_CONTRACT) {
+      expect(css, `${varName} из CSS_CONTRACT не объявлен в dist/tokens.css`).toMatch(
+        new RegExp(`${varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:`),
+      )
     }
   })
 })

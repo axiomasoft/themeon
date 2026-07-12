@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@themeon/core": "workspace:*",
+    "@themeon/css": "workspace:*",
     "nuxt": "4.4.8"
   }
 }

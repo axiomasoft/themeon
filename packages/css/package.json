@@ -31,15 +31,18 @@
     "./composition.css": "./dist/composition.css",
     "./blueprints.css": "./dist/blueprints.css",
     "./components.css": "./dist/components.css",
-    "./utilities.css": "./dist/utilities.css"
+    "./utilities.css": "./dist/utilities.css",
+    "./tokens.css": "./dist/tokens.css"
   },
   "scripts": {
-    "build": "tsdown && node scripts/build.mjs",
+    "build": "tsdown && node scripts/build.mjs && node scripts/gen-tokens.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --root ../.. --project @themeon/css"
   },
   "dependencies": {},
   "devDependencies": {
+    "@themeon/colors": "workspace:*",
+    "@themeon/core": "workspace:*",
     "@types/node": "catalog:",
     "lightningcss": "catalog:",
     "tsdown": "catalog:",
