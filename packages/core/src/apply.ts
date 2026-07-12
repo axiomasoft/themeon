@@ -63,14 +63,15 @@ function patchedAliasEntries(
 export function themeVars(resolved: ResolvedTheme, theme?: string): Record<string, string> {
   if (theme === undefined) return { ...resolved.vars }
 
-  const patch = resolved.themes[theme]
-  if (patch === undefined) {
+  if (!Object.hasOwn(resolved.themes, theme)) {
     const known = Object.keys(resolved.themes)
     throw new ThemeonError(
       'UNKNOWN_PATH',
       `Unknown theme "${theme}"; known themes: ${known.length > 0 ? known.join(', ') : '(none)'}`,
     )
   }
+  // Object.hasOwn выше гарантирует наличие ключа; index signature TS не сужает через hasOwn.
+  const patch = resolved.themes[theme]!
 
   const out: Record<string, string> = {}
   for (const token of patch) out[token.varName] = token.value

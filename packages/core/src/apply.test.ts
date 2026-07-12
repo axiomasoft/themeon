@@ -94,6 +94,18 @@ describe('themeVars', () => {
       expect((e as ThemeonError).message).toContain('sepia')
     }
   })
+
+  test('имя темы = член Object.prototype → ThemeonError UNKNOWN_PATH, а не TypeError (code-review P1.6, MED)', () => {
+    const r = resolveTheme(fullTheme())
+    for (const collidingName of ['toString', 'constructor', 'valueOf', 'hasOwnProperty']) {
+      expect(() => themeVars(r, collidingName)).toThrowError(ThemeonError)
+      try {
+        themeVars(r, collidingName)
+      } catch (e) {
+        expect((e as ThemeonError).code).toBe('UNKNOWN_PATH')
+      }
+    }
+  })
 })
 
 describe('applyTheme', () => {
