@@ -1,0 +1,12 @@
+/*
+ * center.css — контентная колонка по ширине текста (D9, Every Layout Center).
+ * Приватный примитив-файл (не entry) — см. пояснение в `container.css`.
+ */
+@layer themeon.composition {
+  .center {
+    box-sizing: content-box;
+    max-inline-size: var(--center-max, 60ch);
+    margin-inline: auto;
+    padding-inline: var(--center-pad, 0);
+  }
+}

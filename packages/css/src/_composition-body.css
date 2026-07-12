@@ -1,0 +1,14 @@
+/*
+ * Агрегатор восьми composition-примитивов (P2.4). Приватный partial (не entry, без
+ * собственного `@import "./layers.css"`): подключается ИЗ `composition.css` И из
+ * `index.css` — тот же паттерн, что `_reset-body.css`/`_base-body.css` (P2.3), закрывающий
+ * lightningcss ≤1.32.0 dedup-баг двойного транзитивного импорта `layers.css`.
+ */
+@import "./composition/container.css";
+@import "./composition/stack.css";
+@import "./composition/cluster.css";
+@import "./composition/sidebar.css";
+@import "./composition/center.css";
+@import "./composition/cover.css";
+@import "./composition/switcher.css";
+@import "./composition/grid.css";

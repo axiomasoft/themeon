@@ -1,0 +1,18 @@
+/*
+ * sidebar.css — сайдбар + контент, переключение на столбец без media-запроса
+ * (D9, Every Layout Sidebar: flex-basis-трюк). Приватный примитив-файл (не entry) —
+ * см. пояснение в `container.css`.
+ */
+@layer themeon.composition {
+  .with-sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sidebar-gap, var(--spacing-md, 1rem));
+  }
+  .with-sidebar > :first-child { flex-grow: 1; flex-basis: var(--sidebar-width, 20rem); }
+  .with-sidebar > :last-child {
+    flex-grow: 999;
+    flex-basis: 0;
+    min-inline-size: var(--sidebar-content-min, 50%);
+  }
+}

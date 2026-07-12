@@ -1,0 +1,11 @@
+/*
+ * grid.css — авто-сетка карточек (D9, RAM-idiom auto-fit/minmax).
+ * Приватный примитив-файл (не entry) — см. пояснение в `container.css`.
+ */
+@layer themeon.composition {
+  .grid {
+    display: grid;
+    gap: var(--grid-gap, var(--spacing-md, 1rem));
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--grid-min, 16rem), 100%), 1fr));
+  }
+}

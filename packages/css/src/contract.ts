@@ -31,6 +31,8 @@ export const CSS_CONTRACT: readonly CssContractEntry[] = [
   { varName: '--text-3xl--line-height', fallback: '1.2', usedBy: ['base'] },
   { varName: '--text-4xl', fallback: '2.5rem', usedBy: ['base'] },
   { varName: '--text-4xl--line-height', fallback: '1.15', usedBy: ['base'] },
+  { varName: '--spacing-sm', fallback: '0.75rem', usedBy: ['composition'] },
+  { varName: '--spacing-md', fallback: '1rem', usedBy: ['composition'] },
 ]
 
 /** Порядок каскада ThemeOn (P-D20) — то же перечисление, что и в `layers.css`. */

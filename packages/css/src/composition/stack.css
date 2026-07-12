@@ -1,0 +1,11 @@
+/*
+ * stack.css — вертикальный ритм между детьми (D9, Every Layout Stack).
+ * Приватный примитив-файл (не entry) — см. пояснение в `container.css`.
+ * Пример: `<div class="stack" style="--stack-gap: var(--spacing-xl)">` — дети получают
+ * `margin-block-start: 2rem` при дефолт-теме.
+ */
+@layer themeon.composition {
+  .stack { display: flex; flex-direction: column; }
+  .stack > * { margin-block: 0; }
+  .stack > * + * { margin-block-start: var(--stack-gap, var(--spacing-md, 1rem)); }
+}

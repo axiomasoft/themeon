@@ -6,15 +6,26 @@ import { buildCss } from '../scripts/build.mjs'
 import { CSS_CONTRACT } from '../src/contract'
 
 const PKG_ROOT = fileURLToPath(new URL('..', import.meta.url))
-const DIST_ENTRIES = ['index.css', 'layers.css', 'reset.css', 'base.css']
+const DIST_ENTRIES = ['index.css', 'layers.css', 'reset.css', 'base.css', 'composition.css']
 
-// usedBy-имя слоя → неминифицированный исходник (P2.3 файловая структура). Fallback-сверка
+// usedBy-имя слоя → неминифицированные исходники (P2.3/P2.4 файловая структура; список,
+// т.к. composition собирается из восьми отдельных примитив-файлов). Fallback-сверка
 // (P-D19) идёт по исходнику, а не по dist: lightningcss минифицирует литералы синтаксически
 // (`oklch(0.25 0.01 260)` → `oklch(25% .01 260)`), что ломало бы сравнение с CSS_CONTRACT
 // при каждом апдейте минификатора, а не при реальном дрейфе контракта.
-const LAYER_SOURCE_FILES: Record<string, string> = {
-  reset: '_reset-body.css',
-  base: '_base-body.css',
+const LAYER_SOURCE_FILES: Record<string, string[]> = {
+  reset: ['_reset-body.css'],
+  base: ['_base-body.css'],
+  composition: [
+    'composition/container.css',
+    'composition/stack.css',
+    'composition/cluster.css',
+    'composition/sidebar.css',
+    'composition/center.css',
+    'composition/cover.css',
+    'composition/switcher.css',
+    'composition/grid.css',
+  ],
 }
 
 // Namespace-фильтр sys-переменных контракта (P2.3 таблица «CSS-var контракт»). Локальные
@@ -89,7 +100,9 @@ describe('@themeon/css — контракт ↔ CSS ↔ CSS_CONTRACT', () => {
     for (const entry of LAYER_ENTRIES) {
       const layer = entry.replace(/\.css$/, '')
       const distCss = readFileSync(`${PKG_ROOT}/dist/${entry}`, 'utf-8')
-      const srcCss = readFileSync(`${PKG_ROOT}/src/${LAYER_SOURCE_FILES[layer]}`, 'utf-8')
+      const srcCss = LAYER_SOURCE_FILES[layer]!
+        .map((file) => readFileSync(`${PKG_ROOT}/src/${file}`, 'utf-8'))
+        .join('\n')
       perEntry.set(layer, {
         names: extractSysVarNames(distCss),
         fallbacks: extractFallbacks(srcCss),
@@ -108,7 +121,7 @@ describe('@themeon/css — контракт ↔ CSS ↔ CSS_CONTRACT', () => {
         const actualFallback = perEntry.get(layer)?.fallbacks.get(varName)
         expect(
           actualFallback,
-          `fallback для ${varName} в src/${LAYER_SOURCE_FILES[layer]} разошёлся с CSS_CONTRACT`,
+          `fallback для ${varName} в src/${LAYER_SOURCE_FILES[layer]!.join(', src/')} разошёлся с CSS_CONTRACT`,
         ).toBe(fallback)
       }
     }

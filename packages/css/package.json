@@ -27,7 +27,8 @@
     "./index.css": "./dist/index.css",
     "./layers.css": "./dist/layers.css",
     "./reset.css": "./dist/reset.css",
-    "./base.css": "./dist/base.css"
+    "./base.css": "./dist/base.css",
+    "./composition.css": "./dist/composition.css"
   },
   "scripts": {
     "build": "tsdown && node scripts/build.mjs",

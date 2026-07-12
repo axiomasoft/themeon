@@ -1,0 +1,13 @@
+/*
+ * container.css — центрированная колонка с ограничением ширины (D9).
+ * Приватный примитив-файл (не entry): подключается ИЗ `_composition-body.css`, без
+ * собственного `@import "./layers.css"` — см. пояснение в `_reset-body.css` про причину
+ * разделения на body-partial + тонкий entry (тот же lightningcss ≤1.32.0 dedup-баг, P2.3).
+ */
+@layer themeon.composition {
+  .container {
+    max-inline-size: var(--container-max, 72rem);
+    margin-inline: auto;
+    padding-inline: var(--container-pad, var(--spacing-md, 1rem));
+  }
+}

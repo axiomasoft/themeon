@@ -1,0 +1,13 @@
+/*
+ * cluster.css — горизонтальная группа с переносом (D9, Every Layout Cluster).
+ * Приватный примитив-файл (не entry) — см. пояснение в `container.css`.
+ */
+@layer themeon.composition {
+  .cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cluster-gap, var(--spacing-sm, 0.75rem));
+    align-items: var(--cluster-align, center);
+    justify-content: var(--cluster-justify, flex-start);
+  }
+}

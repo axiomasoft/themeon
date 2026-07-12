@@ -7,7 +7,7 @@ import { buildCss } from '../scripts/build.mjs'
 import { THEMEON_LAYERS } from '../src/contract'
 
 const PKG_ROOT = fileURLToPath(new URL('..', import.meta.url))
-const DIST_ENTRIES = ['index.css', 'layers.css', 'reset.css', 'base.css']
+const DIST_ENTRIES = ['index.css', 'layers.css', 'reset.css', 'base.css', 'composition.css']
 
 // Синхронная пересборка dist перед сбором тестов (buildCss — быстрая чистая функция,
 // без побочных асинхронных эффектов) — гарантирует, что dist существует и свеж на момент
@@ -77,4 +77,20 @@ describe('@themeon/css — инварианты dist', () => {
       })
     })
   }
+
+  // P2.4: смок, что имена параметров composition-примитивов не потерялись при minify.
+  test('dist/composition.css содержит --stack-gap и --switcher-threshold', () => {
+    const css = readFileSync(`${PKG_ROOT}/dist/composition.css`, 'utf-8')
+    expect(css).toContain('--stack-gap')
+    expect(css).toContain('--switcher-threshold')
+  })
+
+  // P-D21: голые (непрефиксованные) имена параметров Every Layout запрещены во всём dist.
+  test('во всём dist отсутствуют голые var(--space,/var(--gutter, (анти-EL-паттерн, P-D21)', () => {
+    for (const entry of DIST_ENTRIES) {
+      const css = readFileSync(`${PKG_ROOT}/dist/${entry}`, 'utf-8')
+      expect(css).not.toContain('var(--space,')
+      expect(css).not.toContain('var(--gutter,')
+    }
+  })
 })
