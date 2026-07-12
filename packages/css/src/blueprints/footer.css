@@ -1,0 +1,17 @@
+/*
+ * footer.css — подвал сайта: приглушённый фон + адаптивная сетка колонок (P-D4).
+ * Приватный примитив-файл (не entry) — см. пояснение в `container.css`.
+ */
+@layer themeon.blueprints {
+  .site-footer {
+    padding-block: var(--footer-pad-block, var(--spacing-2xl, 3rem));
+    padding-inline: var(--footer-pad-inline, var(--spacing-md, 1rem));
+    background-color: var(--color-bg-subtle, oklch(0.96 0.003 260));
+    color: var(--color-text-muted, oklch(0.5 0.01 260));
+  }
+  .site-footer .footer-cols {
+    display: grid;
+    gap: var(--footer-gap, var(--spacing-xl, 2rem));
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  }
+}

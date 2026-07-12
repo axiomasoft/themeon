@@ -1,0 +1,18 @@
+/*
+ * page-shell.css — обёртка страницы: прижатый футер (flex-колонка на всю высоту) +
+ * именованный контейнер `page` для container queries (P-D4, P-D20). Порог бургера
+ * (`header.css`) читает именно этот контейнер через `@container page (...)`.
+ * Приватный примитив-файл (не entry) — см. пояснение в `container.css`/`_reset-body.css`
+ * про причину разделения на body-partial + тонкий entry (lightningcss ≤1.32.0 dedup-баг).
+ */
+@layer themeon.blueprints {
+  .page-shell {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100svh;
+    container: page / inline-size;
+  }
+  .page-shell > main {
+    flex-grow: 1;
+  }
+}

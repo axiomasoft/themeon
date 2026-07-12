@@ -1,0 +1,75 @@
+/*
+ * header.css — шапка сайта: бренд + горизонтальная навигация на широких экранах, бургер
+ * на узких (P-D4). Бургер — CSS-only на Popover API: `.nav-menu` открывается атрибутом
+ * `popover` (top-layer, light-dismiss, Esc — бесплатно от браузера), порог переключения —
+ * `@container page (inline-size < 48rem)` на именованном контейнере `page-shell.css`
+ * (НЕ `@media`/`@custom-media` — P-D22, порог фиксированный). Anchor Positioning —
+ * прогрессивное улучшение под `@supports`: без него панель остаётся в top-layer по
+ * умолчанию браузера (по центру), полностью работоспособна (R-12 §7).
+ * Приватный примитив-файл (не entry) — см. пояснение в `container.css`.
+ */
+@layer themeon.blueprints {
+  .site-header {
+    display: flex;
+    align-items: center;
+    gap: var(--header-gap, var(--spacing-md, 1rem));
+    padding-block: var(--header-pad-block, var(--spacing-sm, 0.75rem));
+    padding-inline: var(--header-pad-inline, var(--spacing-md, 1rem));
+  }
+  .site-header > .site-nav {
+    margin-inline-start: auto;
+  }
+  .site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nav-gap, var(--spacing-md, 1rem));
+  }
+  .site-nav a {
+    text-decoration: none;
+    color: var(--color-text, oklch(0.25 0.01 260));
+  }
+  .site-nav a:hover {
+    color: var(--color-link-hover, oklch(0.4 0.17 260));
+  }
+
+  /* Кнопка-бургер скрыта на широких экранах; панель — popover в top-layer. */
+  .nav-burger {
+    display: none;
+  }
+  .nav-menu {
+    /* Видимость управляется `:popover-open` ниже — здесь только стили самой панели. */
+    flex-direction: column;
+    gap: var(--nav-gap, var(--spacing-md, 1rem));
+    padding: var(--spacing-lg, 1.5rem);
+    background: var(--color-bg-elevated, oklch(1 0 0));
+    border: 1px solid var(--color-border, oklch(0.85 0.01 260));
+    border-radius: var(--radius-lg, 0.75rem);
+    box-shadow: var(--shadow-lg, 0 8px 24px rgb(0 0 0 / 0.12));
+  }
+  .nav-menu:popover-open {
+    display: flex;
+  }
+
+  @container page (inline-size < 48rem) {
+    .site-header > .site-nav {
+      display: none;
+    }
+    .nav-burger {
+      display: inline-flex;
+      margin-inline-start: auto;
+    }
+  }
+
+  /* Прогрессивное улучшение: панель прибита к бургеру якорным позиционированием. */
+  @supports (anchor-name: --nav) {
+    .nav-burger {
+      anchor-name: --nav;
+    }
+    .nav-menu {
+      position-anchor: --nav;
+      position-area: block-end span-inline-start;
+      margin-block-start: var(--spacing-xs, 0.5rem);
+    }
+  }
+}

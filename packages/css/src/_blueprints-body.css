@@ -1,0 +1,12 @@
+/*
+ * Агрегатор пяти site-blueprint-файлов (P2.5). Приватный partial (не entry, без
+ * собственного `@import "./layers.css"`): подключается ИЗ `blueprints.css` И из
+ * `index.css` — тот же паттерн, что `_reset-body.css`/`_base-body.css`/
+ * `_composition-body.css` (P2.3/P2.4), закрывающий lightningcss ≤1.32.0 dedup-баг
+ * двойного транзитивного импорта `layers.css`.
+ */
+@import "./blueprints/page-shell.css";
+@import "./blueprints/header.css";
+@import "./blueprints/hero.css";
+@import "./blueprints/section.css";
+@import "./blueprints/footer.css";

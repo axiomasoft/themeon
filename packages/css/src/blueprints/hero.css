@@ -1,0 +1,16 @@
+/*
+ * hero.css — вступительная зона страницы: центрированный контент с ограничением
+ * измеряемой ширины текста (P-D4). Приватный примитив-файл (не entry) — см. пояснение
+ * в `container.css`.
+ */
+@layer themeon.blueprints {
+  .hero {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding-block: var(--hero-pad-block, clamp(4rem, 12vi, 8rem));
+  }
+  .hero > * {
+    max-inline-size: var(--hero-max, 60ch);
+  }
+}

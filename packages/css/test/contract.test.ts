@@ -6,7 +6,14 @@ import { buildCss } from '../scripts/build.mjs'
 import { CSS_CONTRACT } from '../src/contract'
 
 const PKG_ROOT = fileURLToPath(new URL('..', import.meta.url))
-const DIST_ENTRIES = ['index.css', 'layers.css', 'reset.css', 'base.css', 'composition.css']
+const DIST_ENTRIES = [
+  'index.css',
+  'layers.css',
+  'reset.css',
+  'base.css',
+  'composition.css',
+  'blueprints.css',
+]
 
 // usedBy-имя слоя → неминифицированные исходники (P2.3/P2.4 файловая структура; список,
 // т.к. composition собирается из восьми отдельных примитив-файлов). Fallback-сверка
@@ -25,6 +32,13 @@ const LAYER_SOURCE_FILES: Record<string, string[]> = {
     'composition/cover.css',
     'composition/switcher.css',
     'composition/grid.css',
+  ],
+  blueprints: [
+    'blueprints/page-shell.css',
+    'blueprints/header.css',
+    'blueprints/hero.css',
+    'blueprints/section.css',
+    'blueprints/footer.css',
   ],
 }
 

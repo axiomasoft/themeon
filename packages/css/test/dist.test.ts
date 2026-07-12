@@ -7,7 +7,14 @@ import { buildCss } from '../scripts/build.mjs'
 import { THEMEON_LAYERS } from '../src/contract'
 
 const PKG_ROOT = fileURLToPath(new URL('..', import.meta.url))
-const DIST_ENTRIES = ['index.css', 'layers.css', 'reset.css', 'base.css', 'composition.css']
+const DIST_ENTRIES = [
+  'index.css',
+  'layers.css',
+  'reset.css',
+  'base.css',
+  'composition.css',
+  'blueprints.css',
+]
 
 // Синхронная пересборка dist перед сбором тестов (buildCss — быстрая чистая функция,
 // без побочных асинхронных эффектов) — гарантирует, что dist существует и свеж на момент
@@ -92,5 +99,14 @@ describe('@themeon/css — инварианты dist', () => {
       expect(css).not.toContain('var(--space,')
       expect(css).not.toContain('var(--gutter,')
     }
+  })
+
+  // P2.5: смок, что бургер-механики (Popover API, @container-порог, прогрессивное улучшение
+  // Anchor Positioning) переживают bundle+minify под Baseline-2026 targets.
+  test('dist/blueprints.css содержит :popover-open, @container page и @supports (anchor-name', () => {
+    const css = readFileSync(`${PKG_ROOT}/dist/blueprints.css`, 'utf-8')
+    expect(css).toContain(':popover-open')
+    expect(css).toContain('@container page')
+    expect(css).toContain('@supports (anchor-name')
   })
 })

@@ -1,0 +1,12 @@
+/*
+ * section.css — вертикальный ритм секций страницы + модификатор чередования фона
+ * (P-D4). Приватный примитив-файл (не entry) — см. пояснение в `container.css`.
+ */
+@layer themeon.blueprints {
+  .section {
+    padding-block: var(--section-pad-block, clamp(3rem, 8vi, 6rem));
+  }
+  .section--subtle {
+    background-color: var(--color-bg-subtle, oklch(0.96 0.003 260));
+  }
+}
