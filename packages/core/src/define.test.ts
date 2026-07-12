@@ -36,6 +36,25 @@ describe('defineTokens — оборачивание, пути, freeze', () => {
     expect(ref.type).toBe('color')
   })
 
+  test('путь с сегментом __proto__/constructor/prototype — ThemeonError UNSAFE_PATH, дерево не портится (final-audit H2)', () => {
+    const dangerous = JSON.parse('{"__proto__":{"x":"#fff"},"primary":"#00f"}') as unknown as Parameters<typeof defineTokens>[1]
+
+    expect(() => defineTokens('color', dangerous)).toThrow(ThemeonError)
+    try {
+      defineTokens('color', dangerous)
+    } catch (err) {
+      expect((err as ThemeonError).code).toBe('UNSAFE_PATH')
+    }
+
+    // соседний легитимный лист не должен был превратиться в прототип группы у ДРУГИХ вызовов
+    const clean = defineTokens('color', { primary: '#00f' })
+    expect(Object.getPrototypeOf(clean)).toBe(Object.prototype)
+    expect((clean as Record<string, unknown>).x).toBeUndefined()
+
+    expect(() => defineTokens('color', { constructor: { x: '#fff' }, primary: '#00f' })).toThrow(ThemeonError)
+    expect(() => defineTokens('color', { prototype: { x: '#fff' }, primary: '#00f' })).toThrow(ThemeonError)
+  })
+
   test('TextStyleValue — один лист типа text (в подгруппу size/lineHeight не спускаемся)', () => {
     const text = defineTokens('text', { '2xl': { size: '1.5rem', lineHeight: 1.33 } })
     const tok = text['2xl'] as Token

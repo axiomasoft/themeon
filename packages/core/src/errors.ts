@@ -5,6 +5,7 @@ export type ThemeonErrorCode =
   | 'BAD_VALUE' // число без единиц в dimension-группе и т.п.
   | 'NAME_COLLISION' // два пути дали одно имя переменной
   | 'DTCG_PARSE' // невалидный входной DTCG-документ
+  | 'UNSAFE_PATH' // сегмент пути — `__proto__`/`constructor`/`prototype` (prototype pollution)
 
 /** Единая ошибка пакета: код + сообщение (публичная поверхность — сообщение на английском). */
 export class ThemeonError extends Error {

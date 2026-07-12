@@ -117,16 +117,29 @@ function makeToken(group: string, path: string[], value: TokenLeafInput): Token 
 }
 
 /** Кладёт лист в результирующее дерево по относительному пути, создавая подгруппы. */
+/** Ключи, чья bracket-запись (`node[key] = ...`) идёт через unset/наследуемый аксессор
+ *  вместо создания own-property — `__proto__` подменяет прототип узла целиком (verified
+ *  final-audit H2, 2026-07-12), `constructor`/`prototype` — тот же класс риска. */
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
 function assignByPath(root: Record<string, unknown>, path: string[], leaf: unknown): void {
   let node = root
-  for (let i = 0; i < path.length - 1; i++) {
+  for (let i = 0; i < path.length; i++) {
     const key = path[i]!
-    // Object.hasOwn — `in` читает через прототип-цепочку: ключ `__proto__`/`constructor`
-    // резолвится на Object.prototype и открывает prototype pollution / молчаливую порчу дерева.
-    if (!Object.hasOwn(node, key)) node[key] = {}
+    if (UNSAFE_KEYS.has(key)) {
+      throw new ThemeonError('UNSAFE_PATH', `Token path segment "${key}" is reserved and not allowed (path: ${path.join('.')})`)
+    }
+    if (i === path.length - 1) {
+      Object.defineProperty(node, key, { value: leaf, writable: true, enumerable: true, configurable: true })
+      break
+    }
+    // Object.hasOwn — `in` читает через прототип-цепочку и молчаливо считает
+    // унаследованный ключ существующим.
+    if (!Object.hasOwn(node, key)) {
+      Object.defineProperty(node, key, { value: {}, writable: true, enumerable: true, configurable: true })
+    }
     node = node[key] as Record<string, unknown>
   }
-  node[path[path.length - 1]!] = leaf
 }
 
 /** Рекурсивно замораживает объект и все вложенные (уже замороженные — пропускает). */
