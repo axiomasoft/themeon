@@ -51,6 +51,10 @@ export function themeon(options: ThemeonViteOptions): Plugin {
       return undefined
     },
 
+    // Без debounce (v1, ТЗ допускает): один save файла токенов = один hotUpdate-вызов Vite,
+    // повторное сохранение того же файла в течение мс — редкий кейс для авторинга темы (не
+    // hot-reload при печати кода); UnoCSS дебонсит ради частых событий watch-глоба множества
+    // файлов, здесь `tokensFiles` — единичные файлы темы.
     hotUpdate({ file }) {
       if (!tokensFiles.has(normalizePath(file))) return undefined
       const mod = this.environment.moduleGraph.getModuleById(RESOLVED)
