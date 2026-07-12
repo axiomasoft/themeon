@@ -13,6 +13,11 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {
     ...MODULE_DEFAULTS,
     default: undefined,
+    // `themes` из defaults исключён намеренно: defu (getOptions) конкатенирует массивы,
+    // а не заменяет их, поэтому наличие themes здесь дублирует пользовательский массив
+    // (['light','dark'] + ['light','dark'] = 4 элемента). Фолбэк на MODULE_DEFAULTS.themes
+    // при отсутствии пользовательской опции уже даёт toPublicRuntimeConfig.
+    themes: undefined,
   },
   setup(options, nuxt) {
     const resolver = createResolver(import.meta.url)
