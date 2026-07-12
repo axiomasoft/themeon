@@ -14,12 +14,13 @@
  */
 import { computed, readonly, ref } from 'vue'
 import { applyTheme, clearTheme } from '@themeon/core'
+import { DEFAULT_ATTRIBUTE, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, DEFAULT_STORAGE_KEY } from './defaults'
 import type { UseThemeOptions, UseThemeReturn } from './types'
 
-const DEFAULT_THEMES = ['light', 'dark'] as const
-const DEFAULT_STORAGE_KEY = 'themeon-theme'
-const DEFAULT_ATTRIBUTE = 'data-theme'
-const DEFAULT_SYSTEM = { dark: 'dark', light: 'light' } as const
+// Ключ/атрибут — из общего `defaults.ts` (P3.2 Rule 3): тот же источник, что и у
+// `themeInitScript` (anti-fouc.ts), иначе сгенерированный скрипт и рантайм разъедутся.
+const DEFAULT_THEMES = [DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME] as const
+const DEFAULT_SYSTEM = { dark: DEFAULT_DARK_THEME, light: DEFAULT_LIGHT_THEME } as const
 
 /**
  * Глушит CSS-transition на кадр смены темы (известный приём против «протекания» transition,

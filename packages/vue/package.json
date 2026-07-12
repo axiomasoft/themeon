@@ -23,6 +23,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./anti-fouc": {
+      "types": "./dist/anti-fouc.d.ts",
+      "import": "./dist/anti-fouc.js"
     }
   },
   "scripts": {
