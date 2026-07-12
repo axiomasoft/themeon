@@ -1,0 +1,53 @@
+{
+  "name": "themeon",
+  "version": "0.0.0",
+  "description": "ThemeOn design-token CLI: init/build/check — scaffold theme.config.ts, compile it to tokens.css (+ optional Tailwind bridge), lint token coverage/contrast/hardcoded values.",
+  "keywords": [
+    "design-tokens",
+    "cli",
+    "theming",
+    "design-system"
+  ],
+  "homepage": "https://github.com/themeon/themeon#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themeon/themeon.git",
+    "directory": "packages/cli"
+  },
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "files": ["dist"],
+  "bin": {
+    "themeon": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --root ../.. --project themeon"
+  },
+  "dependencies": {
+    "@themeon/core": "workspace:*",
+    "@themeon/tailwind": "workspace:*",
+    "@themeon/colors": "workspace:*",
+    "citty": "catalog:",
+    "consola": "catalog:",
+    "jiti": "catalog:",
+    "tinyglobby": "catalog:"
+  },
+  "devDependencies": {
+    "@themeon/core": "workspace:*",
+    "@themeon/tailwind": "workspace:*",
+    "@themeon/colors": "workspace:*",
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
