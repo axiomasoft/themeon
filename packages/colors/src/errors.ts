@@ -5,8 +5,8 @@ export type ColorsErrorCode = 'BAD_COLOR' | 'BAD_SEED'
 export class ColorsError extends Error {
   readonly code: ColorsErrorCode
 
-  constructor(code: ColorsErrorCode, message: string) {
-    super(message)
+  constructor(code: ColorsErrorCode, message: string, options?: ErrorOptions) {
+    super(message, options)
     this.name = 'ColorsError'
     this.code = code
   }

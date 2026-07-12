@@ -61,6 +61,39 @@ describe('contrastAPCA — fail-closed на непарсибельном цве�
   })
 })
 
+// code-review P2.1 (MED): gate регистрировал только sRGB+OKLCH, hsl()/lab()/lch()/hwb()/color()
+// бросали BAD_COLOR как «непарсибельные», хотя это валидный CSS.
+describe('contrastAPCA — принимает все CSS-синтаксисы цвета (code-review P2.1)', () => {
+  test.each([
+    ['hsl(0 100% 50%)', '#fff'],
+    ['hwb(0 0% 0%)', '#fff'],
+    ['lab(50% 40 30)', '#fff'],
+    ['lch(50% 40 30)', '#fff'],
+    ['color(display-p3 1 0 0)', '#fff'],
+  ] as const)('%s на %s — не бросает, возвращает конечное число', (fg, bg) => {
+    expect(Number.isFinite(contrastAPCA(fg, bg))).toBe(true)
+  })
+})
+
+// code-review P2.1 (MED): альфа молча игнорировалась — прозрачный/полупрозрачный текст
+// засчитывался как опаковый (fail-open вместо fail-closed).
+describe('contrastAPCA — учитывает альфа-канал (code-review P2.1)', () => {
+  test('rgba(0,0,0,0.5) на белом даёт МЕНЬШИЙ |Lc|, чем непрозрачный #000', () => {
+    const opaque = Math.abs(contrastAPCA('#000', '#fff'))
+    const translucent = Math.abs(contrastAPCA('rgba(0, 0, 0, 0.5)', '#fff'))
+    expect(translucent).toBeLessThan(opaque)
+  })
+
+  test('transparent на белом — |Lc| около 0 (текст неотличим от фона)', () => {
+    expect(Math.abs(contrastAPCA('transparent', '#fff'))).toBeLessThan(1)
+  })
+
+  test('непрозрачные цвета (alpha=1) — численно совпадают с референс-вектором apca-w3', () => {
+    // Регрессия: путь сплющивания альфы не должен менять результат для уже опаковых цветов.
+    expect(contrastAPCA('#888', '#FFF')).toBeCloseTo(63.056469930209424, 1)
+  })
+})
+
 describe('checkContrast — батч-гейт', () => {
   test('пара body с |Lc| ниже требуемого — pass=false', () => {
     // #767676 на #ffffff даёт |Lc| около 70 — ниже порога body (75).
