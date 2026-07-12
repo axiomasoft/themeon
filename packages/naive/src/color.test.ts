@@ -41,4 +41,13 @@ describe('deriveInteractionStates', () => {
     expect(deriveInteractionStates(nearWhite).hover).toMatch(HEX_RE)
     expect(deriveInteractionStates(nearBlack).pressed).toMatch(HEX_RE)
   })
+
+  test('непарсибельный baseHex не роняет функцию (fail-safe, не throw) — passthrough во всех трёх состояниях', () => {
+    // P4.2 code-review MED: toHex() пропускает непарсибельные значения (currentColor,
+    // light-dark(), var(), typo) как есть, следующий derive-проход не должен на этом падать.
+    for (const value of ['currentColor', 'light-dark(#fff,#000)', 'var(--x)', 'not-a-color']) {
+      expect(() => deriveInteractionStates(value)).not.toThrow()
+      expect(deriveInteractionStates(value)).toEqual({ hover: value, pressed: value, suppl: value })
+    }
+  })
 })

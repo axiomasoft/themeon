@@ -32,22 +32,29 @@ export function toHex(value: string): string {
 
 /**
  * Деривит hover/pressed/suppl из одной базовой hex-точки по OKLCH-lightness (colorjs.io),
- * gamut-safe (`toGamut({space:'srgb'})` перед сериализацией в hex).
+ * gamut-safe (`toGamut({space:'srgb'})` перед сериализацией в hex). Непарсибельный `baseHex`
+ * (например, уже прошедший через `toHex` fail-safe passthrough: currentColor, light-dark(),
+ * var(), typo) не должен ронять весь `toNative()` — деградируем так же, как `toHex`: base
+ * без деривации для всех трёх состояний (P4.2 code-review MED).
  */
 export function deriveInteractionStates(baseHex: string): {
   hover: string
   pressed: string
   suppl: string
 } {
-  const base = new Color(baseHex).to('oklch')
-  const shift = (delta: number): string => {
-    const shifted = base.clone()
-    shifted.oklch.l = clampLightness((shifted.oklch.l as number) + delta)
-    return shifted.toGamut({ space: 'srgb' }).toString({ format: 'hex', collapse: false })
-  }
-  return {
-    hover: shift(HOVER_DELTA),
-    pressed: shift(PRESSED_DELTA),
-    suppl: shift(SUPPL_DELTA),
+  try {
+    const base = new Color(baseHex).to('oklch')
+    const shift = (delta: number): string => {
+      const shifted = base.clone()
+      shifted.oklch.l = clampLightness((shifted.oklch.l as number) + delta)
+      return shifted.toGamut({ space: 'srgb' }).toString({ format: 'hex', collapse: false })
+    }
+    return {
+      hover: shift(HOVER_DELTA),
+      pressed: shift(PRESSED_DELTA),
+      suppl: shift(SUPPL_DELTA),
+    }
+  } catch {
+    return { hover: baseHex, pressed: baseHex, suppl: baseHex }
   }
 }
