@@ -32,9 +32,11 @@
     "test": "vitest run --root ../.. --project @themeon/colors"
   },
   "dependencies": {
-    "colorjs.io": "catalog:"
+    "colorjs.io": "catalog:",
+    "culori": "catalog:"
   },
   "devDependencies": {
+    "@types/culori": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
