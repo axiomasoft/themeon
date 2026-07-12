@@ -10,6 +10,7 @@ catalog:
   "@nuxt/schema": 4.4.8
   "@nuxt/module-builder": 1.0.2
   nuxt: 4.4.8
+  vite: 8.1.4
   colorjs.io: 0.7.0
   culori: 4.0.2
   "@types/culori": 4.0.1
