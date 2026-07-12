@@ -33,7 +33,21 @@ export interface BuildResult {
  * `opts.out` (+ an optional Tailwind bridge file at `opts.tailwind`). Pure with respect to
  * `opts.cwd` — never reads `process.cwd()` directly (testability, Rule 5).
  */
+const KNOWN_ALIASES = ['legacy-v0']
+const KNOWN_REF_LAYERS = ['referenced', 'all', 'inline']
+
 export async function runBuild(opts: BuildOptions): Promise<BuildResult> {
+  // P4.4 code review MED: валидируем CLI-строки до передачи в core — иначе неизвестный
+  // --aliases падает криптичным `aliasRule is not a function` (resolve.ts:272), а опечатка
+  // в --ref-layer молча трактуется как 'referenced' (resolve.ts:212-214), давая неверный
+  // tokens.css без ошибки.
+  if (opts.aliases !== undefined && !KNOWN_ALIASES.includes(opts.aliases)) {
+    throw new Error(`Unknown --aliases rule "${opts.aliases}" (expected one of: ${KNOWN_ALIASES.join(', ')})`)
+  }
+  if (opts.refLayer !== undefined && !KNOWN_REF_LAYERS.includes(opts.refLayer)) {
+    throw new Error(`Invalid --ref-layer "${opts.refLayer}" (expected one of: ${KNOWN_REF_LAYERS.join(', ')})`)
+  }
+
   const theme = await loadThemeConfig(resolve(opts.cwd, opts.config))
   // CLI принимает алиас-набор строкой (v1 поддерживает только именованное правило
   // 'legacy-v0'; кастомная функция-правило AliasRule недостижима из command-line).
