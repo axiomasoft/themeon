@@ -83,21 +83,34 @@ export default defineNuxtModule<ModuleOptions>({
       // `resolvePath` (не `resolver.resolvePath`!) резолвит от `nuxt.options.rootDir` —
       // `options.theme` это путь пользовательского проекта, не путь внутри этого пакета.
       const themePath = await resolvePath(options.theme)
-      const themeModule = await importModule<ThemeModuleExports>(themePath)
-      const theme = themeModule.default ?? themeModule.theme ?? themeModule.defaultTheme
-      if (!theme) {
-        throw new Error(
-          `[themeon] module: файл темы "${options.theme}" должен экспортировать тему ` +
-            `(default export либо именованный "theme"/"defaultTheme")`,
-        )
+
+      // Перечитывает файл темы с диска при каждом вызове (fresh `importModule` → fresh jiti
+      // instance, без переиспользования закэшированного модуля) — иначе `getContents`
+      // сериализовал бы объект темы, захваченный один раз на `setup`, и dev-watcher (D13)
+      // перезаписывал бы tokens.css БАЙТ-В-БАЙТ тем же контентом при каждом сохранении
+      // файла темы (P3.4 code-review HIGH: token HMR мёртв).
+      const loadTheme = async (): Promise<ThemeDefinition> => {
+        const themeModule = await importModule<ThemeModuleExports>(themePath)
+        const loaded = themeModule.default ?? themeModule.theme ?? themeModule.defaultTheme
+        if (!loaded) {
+          throw new Error(
+            `[themeon] module: файл темы "${options.theme}" должен экспортировать тему ` +
+              `(default export либо именованный "theme"/"defaultTheme")`,
+          )
+        }
+        return loaded
       }
+
+      // Ранняя валидация при setup — ошибка конфигурации всплывает сразу при старте `nuxt dev`,
+      // а не отложенно на первой сборке шаблона.
+      await loadTheme()
 
       const template = addTemplate({
         filename: 'themeon-tokens.css',
         write: true,
-        getContents: () => {
+        getContents: async () => {
           try {
-            return serializeThemeCss(resolveTheme(theme))
+            return serializeThemeCss(resolveTheme(await loadTheme()))
           } catch (err) {
             // Fail loud (Rule 5): циклы/коллизии в пользовательской теме не должны молча
             // деградировать в пустой/старый CSS.

@@ -27,12 +27,19 @@ export function hashDir(dir: string): string {
     }
     for (const name of entries) {
       const p = join(d, name)
-      const st = statSync(p)
-      if (st.isDirectory()) walk(p)
-      else {
-        h.update(relative(dir, p))
-        h.update('\0')
-        h.update(readFileSync(p))
+      try {
+        const st = statSync(p)
+        if (st.isDirectory()) {
+          walk(p)
+        } else {
+          h.update(relative(dir, p))
+          h.update('\0')
+          h.update(readFileSync(p))
+        }
+      } catch {
+        // Гонка атомарного сохранения (readdir увидел запись, которую уже переименовали/удалили
+        // до statSync/readFileSync) или битый symlink — пропускаем запись, не валим весь обход
+        // (иначе ENOENT всплывает как unhandled rejection в async `builder:watch`-хуке).
       }
     }
   }
