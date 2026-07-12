@@ -1,0 +1,45 @@
+{
+  "name": "@themeon/tailwind",
+  "version": "0.0.0",
+  "description": "Tailwind v4 CSS-first bridge: generates a self-referential `@theme inline` block from a resolved ThemeOn theme, so runtime `[data-theme]` swaps reach generated Tailwind utilities.",
+  "keywords": [
+    "design-tokens",
+    "tailwindcss",
+    "theme-inline",
+    "design-system"
+  ],
+  "homepage": "https://github.com/themeon/themeon#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themeon/themeon.git",
+    "directory": "packages/tailwind"
+  },
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --root ../.. --project @themeon/tailwind"
+  },
+  "dependencies": {
+    "@themeon/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@themeon/core": "workspace:*",
+    "@tailwindcss/node": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "tailwindcss": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
