@@ -7,8 +7,7 @@
     "build": "nuxt build"
   },
   "dependencies": {
-    "@themeon/core": "workspace:*",
-    "@themeon/css": "workspace:*",
+    "@themeon/nuxt": "workspace:*",
     "nuxt": "4.4.8"
   }
 }
