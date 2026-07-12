@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { defineTheme, defineTokens } from './define'
+import { ThemeonError } from './errors'
 import { resolveTheme } from './resolve'
 import { serializeThemeCss } from './serialize'
 
@@ -46,6 +47,8 @@ describe('serializeThemeCss — snapshot полного выхода (этало
   [data-theme="dark"] {
     color-scheme: dark;
     --color-bg-page: oklch(0.15 0 0);
+    /* aliases: legacy-v0 (remove after migration) */
+    --bg-page: var(--color-bg-page);
   }
 }
 @custom-media --bp-md (min-width: 768px);
@@ -160,5 +163,56 @@ describe('serializeThemeCss — краевые случаи', () => {
   test('детерминизм: двойной вызов даёт идентичную строку', () => {
     const r = resolveTheme(fullTheme(), { aliases: 'legacy-v0' })
     expect(serializeThemeCss(r)).toBe(serializeThemeCss(r))
+  })
+})
+
+describe('serializeThemeCss — легаси-алиасы в блоках тем (code-review P1.5, MED)', () => {
+  test('алиас чужой (непатченной) цели НЕ переобъявляется в блоке темы', () => {
+    // dark патчит только color.bg.page — алиас --action-primary (цель --color-action-primary)
+    // не патчится, значит в блоке dark его быть не должно.
+    const r = resolveTheme(fullTheme(), { aliases: 'legacy-v0' })
+    const css = serializeThemeCss(r)
+    const darkBlock = css.slice(css.indexOf('[data-theme="dark"]'))
+    expect(darkBlock).toContain('--bg-page: var(--color-bg-page);')
+    expect(darkBlock).not.toContain('--action-primary')
+  })
+
+  test('алиас патченной цели переобъявляется в блоке темы, а не только в :root', () => {
+    // Под subtree-scoped [data-theme] (не на :root) var(--alias), объявленный только в
+    // :root, резолвится против :root-значения цели, а не значения темы (custom-property
+    // substitution — по месту объявления). Переобъявление в блоке темы это устраняет.
+    const r = resolveTheme(fullTheme(), { aliases: 'legacy-v0' })
+    const css = serializeThemeCss(r)
+    const darkBlock = css.slice(css.indexOf('[data-theme="dark"]'), css.indexOf('}\n@custom-media'))
+    expect(darkBlock).toContain('--color-bg-page: oklch(0.15 0 0);')
+    expect(darkBlock).toContain('--bg-page: var(--color-bg-page);')
+  })
+})
+
+describe('serializeThemeCss — CSS-injection guard (code-review P1.5, MED)', () => {
+  test('themeName с "{"/"}" бросает ThemeonError(UNSAFE_CSS_TOKEN)', () => {
+    const theme = defineTheme({
+      base: { color: { bg: { page: '#fff' } } },
+      themes: { 'x"] { color: red } [y': { color: { bg: { page: '#000' } } } },
+    })
+    expect(() => serializeThemeCss(resolveTheme(theme))).toThrow(ThemeonError)
+    try {
+      serializeThemeCss(resolveTheme(theme))
+    } catch (e) {
+      expect((e as ThemeonError).code).toBe('UNSAFE_CSS_TOKEN')
+    }
+  })
+
+  test('опции selector/layer/themeAttribute/customMediaPrefix с "{"/"}" бросают ошибку', () => {
+    const r = resolveTheme(fullTheme())
+    expect(() => serializeThemeCss(r, { selector: ':root { }' })).toThrow(ThemeonError)
+    expect(() => serializeThemeCss(r, { layer: 'a{b' })).toThrow(ThemeonError)
+    expect(() => serializeThemeCss(r, { themeAttribute: 'data-x}' })).toThrow(ThemeonError)
+    expect(() => serializeThemeCss(r, { customMediaPrefix: 'bp}' })).toThrow(ThemeonError)
+  })
+
+  test('дефолтный баннер (легитимно оканчивается на "*/") не ломается новой проверкой', () => {
+    const r = resolveTheme(fullTheme())
+    expect(() => serializeThemeCss(r)).not.toThrow()
   })
 })

@@ -8,6 +8,7 @@
  * CSS — это фундамент «пустого diff» пилота P5.
  */
 
+import { ThemeonError } from './errors'
 import type { ResolvedTheme } from './types'
 
 /** Опции сериализатора. Все значения по умолчанию воспроизводят канон D6/D8/D14. */
@@ -46,6 +47,26 @@ function selectorBlock(indent: string, selector: string, lines: readonly string[
 }
 
 /**
+ * Latent CSS-injection guard (code-review P1.5, MED): `serializeThemeCss` interpolates
+ * `themeName` and several options verbatim into selectors/at-rules/comments with no
+ * escaping. Today these are developer literals, but the theme-name channel is on a path
+ * to tenant-supplied identifiers (P6 `serializeThemePatch`) — reject `{`/`}` (the
+ * block-open/close primitives an injected value needs to smuggle in a whole new CSS rule)
+ * up front rather than escape silently, so a malicious identifier fails loudly instead of
+ * producing subtly-wrong CSS. The comment-close sequence alone is not checked: without
+ * `{`/`}` a prematurely closed comment cannot form a new rule, and the default banner
+ * legitimately ends with one.
+ */
+function assertSafeCssToken(value: string, label: string): void {
+  if (/[{}]/.test(value)) {
+    throw new ThemeonError(
+      'UNSAFE_CSS_TOKEN',
+      `${label} must not contain "{" or "}" (CSS-injection guard): ${JSON.stringify(value)}`,
+    )
+  }
+}
+
+/**
  * Serializes a {@link ResolvedTheme} into deterministic static CSS: an optional `@layer`
  * wrapper, the base `:root` block (`color-scheme` + variables + legacy aliases), one
  * `[data-theme="…"]` block per theme patch, and optional top-level `@custom-media` /
@@ -67,6 +88,14 @@ export function serializeThemeCss(resolved: ResolvedTheme, opts: SerializeCssOpt
     emitProperty = 'none',
     banner = DEFAULT_BANNER,
   } = opts
+
+  assertSafeCssToken(selector, 'selector')
+  assertSafeCssToken(themeAttribute, 'themeAttribute')
+  assertSafeCssToken(customMediaPrefix, 'customMediaPrefix')
+  if (layer !== false) assertSafeCssToken(layer, 'layer')
+  if (banner !== false) assertSafeCssToken(banner, 'banner')
+  for (const themeName of Object.keys(resolved.themes)) assertSafeCssToken(themeName, 'theme name')
+  for (const name of Object.keys(resolved.breakpoints)) assertSafeCssToken(name, 'breakpoint name')
 
   const useLayer = layer !== false
   // При наличии @layer селекторы вложены на +2 пробела, их содержимое — на +4.
@@ -103,6 +132,20 @@ export function serializeThemeCss(resolved: ResolvedTheme, opts: SerializeCssOpt
     }
     for (const token of tokens) {
       lines.push(`${varIndent}${token.varName}: ${token.value};`)
+    }
+    // Легаси-алиасы, чья цель патчится этой темой, переобъявляются здесь тоже — иначе
+    // под subtree-scoped `[data-theme]` (не на :root) `var(--alias)` резолвится против
+    // :root-значения цели (custom-property substitution происходит там, где объявлено
+    // свойство), а не против значения темы, и легаси-потребитель молча получает светлое
+    // значение внутри тёмной темы. `var(target)` здесь корректен: цель уже переобъявлена
+    // выше в этом же блоке.
+    const patchedVarNames = new Set(tokens.map((t) => t.varName))
+    const patchedAliases = resolved.aliases.filter(({ target }) => patchedVarNames.has(target))
+    if (patchedAliases.length > 0) {
+      lines.push(`${varIndent}/* aliases: legacy-v0 (remove after migration) */`)
+      for (const { alias, target } of patchedAliases) {
+        lines.push(`${varIndent}${alias}: var(${target});`)
+      }
     }
     // Пустой патч без своей схемы не даёт пустого блока.
     if (lines.length === 0) continue
