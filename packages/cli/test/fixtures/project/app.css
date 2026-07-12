@@ -1,0 +1,12 @@
+/* Фикстура e2e-смока P4.6 — чистый CSS-вход: ссылается только на реально резолвленные
+ * переменные фикстурной темы (`theme.config.ts` рядом) — `themeon check` обязан пройти
+ * без ошибок (exit 0). */
+.page {
+  background: var(--color-bg-page);
+  color: var(--color-text);
+  padding: var(--spacing-md);
+}
+
+.btn {
+  background: var(--color-action-primary);
+}
