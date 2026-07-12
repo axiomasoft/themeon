@@ -1,0 +1,42 @@
+{
+  "name": "@themeon/colors",
+  "version": "0.0.0",
+  "description": "Seed → 12-step OKLCH scale (Radix-shaped) and APCA contrast gate for ThemeOn",
+  "keywords": [
+    "design-tokens",
+    "oklch",
+    "color-scale",
+    "apca",
+    "contrast",
+    "design-system"
+  ],
+  "homepage": "https://github.com/themeon/themeon#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themeon/themeon.git",
+    "directory": "packages/colors"
+  },
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --root ../.. --project @themeon/colors"
+  },
+  "dependencies": {
+    "colorjs.io": "catalog:"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

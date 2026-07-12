@@ -5,6 +5,7 @@ allowBuilds:
   '@parcel/watcher': true
   esbuild: true
 catalog:
+  colorjs.io: 0.7.0
   typescript: 6.0.3
   tsdown: 0.22.3
   vitest: 4.1.10
@@ -34,3 +35,4 @@ minimumReleaseAgeExclude:
   - '@oxlint/binding-win32-ia32-msvc@1.73.0'
   - '@oxlint/binding-win32-x64-msvc@1.73.0'
   - oxlint@1.73.0
+  - colorjs.io@0.7.0
