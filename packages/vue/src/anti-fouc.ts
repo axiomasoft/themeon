@@ -22,6 +22,14 @@ export interface ThemeInitScriptOptions {
   darkTheme?: string
   /** Имя светлой темы. Default `'light'`. */
   lightTheme?: string
+  /**
+   * Тема по умолчанию, если ничего не персистилось (тот же смысл, что `UseThemeOptions.default`
+   * в `state.ts`, P3-P3.2-MED): без этой опции скрипт при отсутствии персиста всегда падает на
+   * системную тему, а `init()` — на `options.default ?? systemMap[...]`, из-за чего каналы
+   * расходятся и первая отрисовка мигает. Если задана — перебивает системную тему на этой ветке
+   * ровно как в `init()`, а не подмешивается в системную ветку.
+   */
+  default?: string
 }
 
 /**
@@ -58,5 +66,10 @@ export function themeInitScript(options: ThemeInitScriptOptions = {}): string {
   assertSafeScriptToken(a, 'attribute')
   assertSafeScriptToken(d, 'darkTheme')
   assertSafeScriptToken(l, 'lightTheme')
+  if (options.default !== undefined) {
+    const def = options.default
+    assertSafeScriptToken(def, 'default')
+    return `(function(){try{var e=document.documentElement,s=localStorage.getItem('${k}'),t=s||'${def}';e.setAttribute('${a}',t)}catch(_){}})()`
+  }
   return `(function(){try{var e=document.documentElement,s=localStorage.getItem('${k}'),t=s||(matchMedia('(prefers-color-scheme: dark)').matches?'${d}':'${l}');e.setAttribute('${a}',t)}catch(_){}})()`
 }

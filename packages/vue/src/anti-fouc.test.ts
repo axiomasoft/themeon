@@ -20,6 +20,13 @@ describe('themeInitScript', () => {
     expect(script).toContain(`?'night':'day'`)
   })
 
+  test('default перебивает системную ветку — согласовано с init() (P3-P3.2-MED)', () => {
+    const script = themeInitScript({ default: 'light' })
+    expect(script).not.toContain('matchMedia')
+    expect(script).toContain(`t=s||'light'`)
+    expect(script).toContain(`e.setAttribute('data-theme',t)`)
+  })
+
   test.each([
     ["it's"],
     ['"quoted"'],
