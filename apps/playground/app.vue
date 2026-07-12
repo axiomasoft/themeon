@@ -24,7 +24,15 @@ const theme = useTheme()
           <button class="btn btn--outline">Outline</button>
           <span class="badge">Badge</span>
           <button class="btn" @click="theme.toggle()">
-            Theme: {{ theme.theme.value }} ({{ theme.isDark.value ? 'dark' : 'light' }})
+            <!-- P3.6-фикс (MED): текст зависит от темы → на SSR не может знать про persisted-тему
+                 из localStorage (инициализируется client-only в runtime/plugin.ts), поэтому
+                 гидрация всегда рендерит другой текст, чем сервер. ClientOnly рендерит fallback
+                 на сервере и переключается на реальный текст ПОСЛЕ mount (не hydration-патч
+                 существующего текстового узла) — инвариант «SSR-разметка не зависит от темы»
+                 соблюдён, data-theme-атрибут (анти-FOUC) не затронут. -->
+            <ClientOnly fallback="Theme: …">
+              Theme: {{ theme.theme.value }} ({{ theme.isDark.value ? 'dark' : 'light' }})
+            </ClientOnly>
           </button>
         </div>
       </section>
