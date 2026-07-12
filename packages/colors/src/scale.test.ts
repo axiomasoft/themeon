@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 
 import { contrastAPCA } from './contrast'
 import { ColorsError } from './errors'
-import { inGamut, oklch } from './internal/culori'
+import { inGamut, oklch, rgb } from './internal/culori'
 import { generateScale, generateScalePair, scaleToTokens } from './scale'
 
 // Тестовый набор seeds (P2.2 ТЗ): 8 хроматических (одна lightness/chroma, разный hue) +
@@ -73,9 +73,22 @@ describe.each(ALL_SEEDS)('generateScale(%s)', (seed) => {
     })
 
     test('gamut: hex валиден, css в sRGB-гамме (gamut:srgb деф.)', () => {
+      // Эпсилон-допуск: toGamut использует JND-толерантность (CSS Color 4 «roughly in gamut» —
+      // R-12 §2), плюс round-trip oklch→rgb→oklch вносит плавающий шум на уровне 1e-15
+      // (см. Completion Notes) — culori `inGamut('rgb')` со строгими границами [0,1] иногда
+      // ложно бракует такой шум (b ≈ -1.8e-16), поэтому сравниваем с допуском.
+      const EPSILON = 1e-4
       const scale = generateScale(seed, { appearance })
+      const toRgb = rgb
       for (const step of scale) {
         expect(step.hex).toMatch(hexRe())
+        const rgbColor = toRgb({ mode: 'oklch', l: step.l, c: step.c, h: step.h } as never)!
+        expect(rgbColor.r ?? 0).toBeGreaterThanOrEqual(-EPSILON)
+        expect(rgbColor.r ?? 0).toBeLessThanOrEqual(1 + EPSILON)
+        expect(rgbColor.g ?? 0).toBeGreaterThanOrEqual(-EPSILON)
+        expect(rgbColor.g ?? 0).toBeLessThanOrEqual(1 + EPSILON)
+        expect(rgbColor.b ?? 0).toBeGreaterThanOrEqual(-EPSILON)
+        expect(rgbColor.b ?? 0).toBeLessThanOrEqual(1 + EPSILON)
       }
     })
   })
