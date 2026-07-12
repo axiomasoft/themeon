@@ -50,7 +50,7 @@ const resolved = resolveTheme(theme, { refLayer: 'referenced' })
 
 // 4a. Build channel — static CSS for <head>.
 const css = serializeThemeCss(resolved)
-// @layer themeon.tokens { :root { color-scheme: light; --color-bg-page: oklch(0.99 0 0); … } … }
+// @layer themeon.tokens { :root { color-scheme: light; --color-neutral-0: oklch(0.99 0 0); --color-bg-page: var(--color-neutral-0); … } … }
 
 // 4b. Runtime channel — inline variables, same names & values as the CSS.
 applyTheme(document.documentElement, themeVars(resolved))
