@@ -291,13 +291,26 @@ export function fromDTCG(files: DTCGDocument | Record<string, DTCGDocument>): Fr
     baseDoc = files as DTCGDocument
   }
 
-  // ── База: разобрать → построить value-only дерево → 1-й defineTheme (цели алиасов) ──
+  // ── База: разобрать → итеративно резолвить alias-цепочки ЛЮБОЙ глубины ──
+  // Каждый раунд достраивает tokenByPath алиасами, чья цель уже стала известным Token (напр.
+  // primitive→semantic→component); раунды повторяются, пока размер карты растёт — так
+  // многошаговые цепочки сводятся к реальным Token-ссылкам, а не деградируют в первом же
+  // непрямом алиасе до литеральной строки (P1.7 code-review HIGH: fromDTCG resolved only one
+  // level of aliasing).
   const baseEntries: LeafEntry[] = []
   walkDTCG(baseDoc, baseDoc, [], undefined, baseEntries, warnings)
   const basePathSet = new Set(baseEntries.map((e) => e.path.join('.')))
-  const valueOnlyBase = buildTree(baseEntries.filter((e) => e.kind === 'value'), null, warnings)
-  const defA = defineTheme({ base: valueOnlyBase as SysTreeInput })
-  const tokenByPath = flattenTokens(defA)
+  let tokenByPath = new Map<string, Token>()
+  let prevSize = -1
+  while (tokenByPath.size !== prevSize) {
+    prevSize = tokenByPath.size
+    const resolvableEntries = baseEntries.filter(
+      (e) => e.kind === 'value' || (e.kind === 'alias' && tokenByPath.has(e.aliasPath!)),
+    )
+    const partialBase = buildTree(resolvableEntries, tokenByPath, warnings)
+    const defRound = defineTheme({ base: partialBase as SysTreeInput })
+    tokenByPath = flattenTokens(defRound)
+  }
 
   // ── Полная база: alias-листья = Token-цели ──
   const fullBase = buildTree(baseEntries, tokenByPath, warnings)

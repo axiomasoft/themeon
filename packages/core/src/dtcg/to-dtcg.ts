@@ -180,6 +180,10 @@ export function toDTCG(def: ThemeDefinition, opts: ToDTCGOptions = {}): DTCGExpo
         let node: DTCGToken
         if (isToken(value)) {
           node = { $type: TYPE_TO_DTCG[value.type], $value: `{${value.path.join('.')}}` }
+          // Цель ссылки должна попасть в base.tokens.json, иначе алиас — dangling curly-brace
+          // (P1.7 code-review HIGH): темы могут ссылаться на sys-токены, которых сама база не
+          // обходит напрямую (напр. palette-токен вне дерева def.sys).
+          refQueue.push(value)
         } else {
           const type = baseTypeByPath.get(path.join('.')) ?? 'dimension'
           node = { $type: TYPE_TO_DTCG[type], $value: toDTCGValue(type, value as RawLeaf) }
@@ -187,6 +191,10 @@ export function toDTCG(def: ThemeDefinition, opts: ToDTCGOptions = {}): DTCGExpo
         setByPath(themeDoc as Record<string, unknown>, path, node)
       }
       files[`${name}.tokens.json`] = themeDoc
+    }
+    // ── Дренируем ref-цели, обнаруженные при обходе тем, в base.tokens.json ──
+    while (refQueue.length > 0) {
+      placeToken(baseDoc, refQueue.shift()!, emitted, refQueue)
     }
 
     // ── themeon.resolver.json (Resolver Module требует у modifier ≥ 2 контекстов) ──
