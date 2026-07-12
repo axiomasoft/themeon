@@ -1,6 +1,6 @@
 import { contrastAPCA } from './contrast'
 import { ColorsError } from './errors'
-import { formatHex, oklch, toGamut } from './internal/culori'
+import { formatHex, oklch, p3, rgb, toGamut } from './internal/culori'
 
 export interface ScaleOptions {
   /** Целевая тема шкалы. Деф. 'light'. */
@@ -83,6 +83,42 @@ function formatOklchCss(l: number, c: number, h: number): string {
   return `oklch(${l.toFixed(4)} ${c.toFixed(4)} ${h.toFixed(2)})`
 }
 
+// Шаг toFixed(4) для chroma — тот же грануляр, которым мы отступаем от границы гаммы ниже.
+const CSS_ROUND_GRAIN = 1e-4
+// Допуск на float round-trip шум (oklch → целевая гамма → парсинг css обратно), НЕ на
+// саму ошибку округления сериализации (см. P2.2 code-review MED: toFixed(4)/toFixed(2)
+// у крутой жёлтой границы гаммы могут увести rgb-координату за [0,1] сильнее, чем этот шум).
+const GAMUT_NOISE_EPSILON = 1e-6
+// Верхняя граница итераций «отступа» chroma назад в гамму после округления — на практике
+// хватает 1-2 шагов по CSS_ROUND_GRAIN; ограничение защищает от зависания на патологиях.
+const MAX_ROUND_GAMUT_RETREATS = 50
+
+/** Возвращает true, если распарсенный css-шаг лежит в целевой гамме (с допуском на шум). */
+function cssWithinGamut(css: string, dest: 'rgb' | 'p3'): boolean {
+  const parsed = (dest === 'rgb' ? rgb(css) : p3(css)) as
+    | { readonly r?: number; readonly g?: number; readonly b?: number }
+    | undefined
+  if (!parsed) return false
+  const channels = [parsed.r ?? 0, parsed.g ?? 0, parsed.b ?? 0]
+  return channels.every((v) => v >= -GAMUT_NOISE_EPSILON && v <= 1 + GAMUT_NOISE_EPSILON)
+}
+
+/**
+ * Сериализует OKLCH-координаты, уже проверенные `inGamut` в целевой гамме, в css-строку и
+ * гарантирует, что округление (toFixed) не вытолкнуло итоговый css за пределы этой гаммы
+ * (P2.2 code-review MED — сериализация у крутой границы гаммы иначе может «сбежать» из неё).
+ * При обнаружении такого сбегания отступаем chroma назад малыми шагами до возврата в гамму.
+ */
+function formatOklchCssInGamut(l: number, c: number, h: number, dest: 'rgb' | 'p3'): string {
+  let chroma = c
+  let css = formatOklchCss(l, chroma, h)
+  for (let i = 0; i < MAX_ROUND_GAMUT_RETREATS && chroma > 0 && !cssWithinGamut(css, dest); i++) {
+    chroma = Math.max(0, chroma - CSS_ROUND_GRAIN)
+    css = formatOklchCss(l, chroma, h)
+  }
+  return css
+}
+
 /**
  * Gamut-маппинг сырых OKLCH-координат в целевую гамму через `toGamut` culori (алгоритм
  * CSS Color 4, НЕ `clampChroma` — R-12 §2), с обратной конвертацией результата в OKLCH-
@@ -116,7 +152,7 @@ function buildStep(index: number, raw: RawStep, isAchromatic: boolean, destGamut
     l: mappedForCss.l,
     c: mappedForCss.c,
     h: mappedForCss.h,
-    css: formatOklchCss(mappedForCss.l, mappedForCss.c, mappedForCss.h),
+    css: formatOklchCssInGamut(mappedForCss.l, mappedForCss.c, mappedForCss.h, destGamut),
     hex,
   }
 }

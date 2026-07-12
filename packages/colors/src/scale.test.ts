@@ -73,16 +73,19 @@ describe.each(ALL_SEEDS)('generateScale(%s)', (seed) => {
     })
 
     test('gamut: hex валиден, css в sRGB-гамме (gamut:srgb деф.)', () => {
-      // Эпсилон-допуск: toGamut использует JND-толерантность (CSS Color 4 «roughly in gamut» —
-      // R-12 §2), плюс round-trip oklch→rgb→oklch вносит плавающий шум на уровне 1e-15
-      // (см. Completion Notes) — culori `inGamut('rgb')` со строгими границами [0,1] иногда
-      // ложно бракует такой шум (b ≈ -1.8e-16), поэтому сравниваем с допуском.
-      const EPSILON = 1e-4
+      // Проверяем именно `step.css` — то, что реально парсят потребители (plan §6 «каждый
+      // css-шаг в sRGB-гамме») — а не сырые до-сериализационные координаты step.l/c/h.
+      // Округление до 4/2 знаков в formatOklchCss (scale.ts) у крутых границ гаммы (жёлтый
+      // hue) само по себе способно вытолкнуть css за пределы [0,1] на ~1e-4 — это чинится
+      // в scale.ts (formatOklchCssInGamut), а не тестовым допуском (P2.2 code-review MED).
+      // Эпсилон здесь — только на float round-trip шум парсинга css-строки обратно в rgb,
+      // на уровне 1e-15..1e-6.
+      const EPSILON = 1e-6
       const scale = generateScale(seed, { appearance })
       const toRgb = rgb
       for (const step of scale) {
         expect(step.hex).toMatch(hexRe())
-        const rgbColor = toRgb({ mode: 'oklch', l: step.l, c: step.c, h: step.h } as never)!
+        const rgbColor = toRgb(step.css)!
         expect(rgbColor.r ?? 0).toBeGreaterThanOrEqual(-EPSILON)
         expect(rgbColor.r ?? 0).toBeLessThanOrEqual(1 + EPSILON)
         expect(rgbColor.g ?? 0).toBeGreaterThanOrEqual(-EPSILON)
