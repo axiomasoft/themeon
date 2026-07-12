@@ -13,6 +13,7 @@
   }
   .text-gradient {
     background: var(--gradient-brand, linear-gradient(135deg, oklch(0.55 0.15 155), oklch(0.65 0.12 200)));
+    -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
