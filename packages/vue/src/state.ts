@@ -60,7 +60,17 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
   const runtimeVars = options.runtimeVars ?? {}
   const getTarget = options.target ?? (() => document.documentElement)
   const getStorage =
-    options.storage ?? (() => (typeof localStorage === 'undefined' ? null : localStorage))
+    options.storage ??
+    (() => {
+      // seam-геттер оборачиваем в try/catch: Safari private mode/cookies-blocked Chrome
+      // бросают SecurityError/QuotaExceededError уже на доступе к `localStorage` (анти-FOUC
+      // спека требует не ронять инициализацию темы из-за этого)
+      try {
+        return typeof localStorage === 'undefined' ? null : localStorage
+      } catch {
+        return null
+      }
+    })
   const getMedia = options.media ?? ((query: string) => matchMedia(query))
 
   // SSR-нейтральный дефолт: не зависит от system/stored, чтобы серверная и клиентская первая
@@ -76,15 +86,16 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     const el = getTarget()
     el.setAttribute(attribute, name)
     const patch = runtimeVars[name]
+    if (lastRuntimeVarNames.length > 0) {
+      // прошлая тема была динамической — снять её inline-var перед применением следующей,
+      // иначе var'ы, которых нет в новом патче (или его вовсе нет), протекают как inline
+      // и перебивают статический `[data-theme]`-блок tokens.css (D8: inline сильнее layered)
+      clearTheme(el, lastRuntimeVarNames)
+      lastRuntimeVarNames = []
+    }
     if (patch) {
       applyTheme(el, patch)
       lastRuntimeVarNames = Object.keys(patch)
-    } else if (lastRuntimeVarNames.length > 0) {
-      // прошлая тема была динамической — снять её inline-var, чтобы статический
-      // `[data-theme]`-блок tokens.css снова выиграл (D8 unlayered > layered, но inline
-      // сильнее layered — значит его надо явно убрать при уходе с динамической темы)
-      clearTheme(el, lastRuntimeVarNames)
-      lastRuntimeVarNames = []
     }
   }
 
@@ -97,7 +108,11 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     theme.value = name
     withoutTransition(disableTransition, () => applyOne(name))
     if (storageKey !== null) {
-      getStorage()?.setItem(storageKey, name)
+      try {
+        getStorage()?.setItem(storageKey, name)
+      } catch {
+        // localStorage недоступен (private mode/quota) — не роняем смену темы
+      }
     }
   }
 
@@ -111,7 +126,15 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     if (initialized) return
     initialized = true
 
-    const stored = storageKey !== null ? (getStorage()?.getItem(storageKey) ?? null) : null
+    let stored: string | null = null
+    if (storageKey !== null) {
+      try {
+        stored = getStorage()?.getItem(storageKey) ?? null
+      } catch {
+        // localStorage недоступен (private mode/quota) — стартуем без персиста
+        stored = null
+      }
+    }
 
     const media = getMedia('(prefers-color-scheme: dark)')
     system.value = media.matches ? 'dark' : 'light'
@@ -120,10 +143,11 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
       system.value = media.matches ? 'dark' : 'light'
     })
 
-    const active =
-      stored !== null && cycleThemes.includes(stored)
-        ? stored
-        : (options.default ?? systemMap[system.value])
+    // `themes` не задан явно (open set — например, только `runtimeVars`) — доверяем
+    // персисту любое сохранённое имя; если `themes` задан явно, персист валиден только
+    // среди перечисленных тем (симметрично с проверкой в `set()`, см. HIGH P3.1)
+    const storedIsKnown = stored !== null && (explicitThemes ? explicitThemes.includes(stored) : true)
+    const active = storedIsKnown ? (stored as string) : (options.default ?? systemMap[system.value])
     set(active)
   }
 
