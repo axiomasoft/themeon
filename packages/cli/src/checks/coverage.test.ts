@@ -91,6 +91,26 @@ describe('checkCoverage', () => {
     expect(findings.some((f) => f.message === 'unused token --text-color')).toBe(false)
   })
 
+  it('opts.ignorePrefixes — project-owned/third-party var не даёт dead-ref error (P4.5 code-review MED)', () => {
+    const resolved = buildResolved([tok('--color-text', '#111')])
+    const findings = checkCoverage(resolved, [src('.x{width:var(--reka-popper-anchor-width)}')], {
+      ignorePrefixes: ['--reka-'],
+    })
+
+    expect(findings.filter((f) => f.level === 'error')).toHaveLength(0)
+  })
+
+  it('opts.ignorePrefixes не маскирует настоящие dead-ref вне allowlist', () => {
+    const resolved = buildResolved([tok('--color-text', '#111')])
+    const findings = checkCoverage(resolved, [src('.x{color:var(--color-nope)}')], {
+      ignorePrefixes: ['--reka-'],
+    })
+
+    expect(findings).toContainEqual(
+      expect.objectContaining({ level: 'error', message: 'dead var reference --color-nope' }),
+    )
+  })
+
   it('file:line указаны для мёртвой ссылки', () => {
     const resolved = buildResolved([])
     const findings = checkCoverage(resolved, [src('.a{}\n.b{color:var(--color-nope)}', 'src/app.css')])

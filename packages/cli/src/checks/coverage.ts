@@ -5,6 +5,12 @@
  * Множество B — все `var(--*)`-обращения в исходниках потребителя. Мёртвые = B∖A (error),
  * неиспользуемые = A∖B (warning). `var(--x, fallback)` — fallback НЕ считается ссылкой:
  * regex забирает только первую группу до `,`/`)`.
+ *
+ * P4.5 code-review MED (P4 phase-doc): B∖A по умолчанию содержит любую project-owned/third-party
+ * custom property (`--reka-*`, `--tw-*`, потребительские `--pad` и т.п.) — не только реальные
+ * dterema-опечатки. `opts.ignorePrefixes` — allowlist точных `--`-префиксов (сравнение через
+ * `startsWith`), которые НЕ попадают в error-путь dead-ref (единственная альтернатива раньше —
+ * полностью выключить линтер `--no-coverage`).
  */
 import type { ResolvedTheme } from '@themeon/core'
 import type { Finding, SourceFile } from './types'
@@ -27,8 +33,18 @@ function lineAt(content: string, index: number): number {
   return content.slice(0, index).split('\n').length
 }
 
-export function checkCoverage(resolved: ResolvedTheme, sources: readonly SourceFile[]): Finding[] {
+export interface CoverageOptions {
+  /** `--`-префиксы (напр. `--reka-`, `--tw-`), исключённые из dead-ref error (не ThemeOn-токены). */
+  ignorePrefixes?: readonly string[]
+}
+
+export function checkCoverage(
+  resolved: ResolvedTheme,
+  sources: readonly SourceFile[],
+  opts: CoverageOptions = {},
+): Finding[] {
   const generated = collectGenerated(resolved)
+  const ignorePrefixes = opts.ignorePrefixes ?? []
   const used = new Set<string>()
   const findings: Finding[] = []
 
@@ -37,7 +53,7 @@ export function checkCoverage(resolved: ResolvedTheme, sources: readonly SourceF
     for (let match = VAR_REF.exec(source.content); match !== null; match = VAR_REF.exec(source.content)) {
       const varName = match[1]!
       used.add(varName)
-      if (!generated.has(varName)) {
+      if (!generated.has(varName) && !ignorePrefixes.some((prefix) => varName.startsWith(prefix))) {
         findings.push({
           level: 'error',
           rule: 'token-coverage',

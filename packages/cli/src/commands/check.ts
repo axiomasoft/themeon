@@ -24,6 +24,8 @@ export interface CheckOptions {
   contrast?: boolean
   hardcode?: boolean
   allowPx?: readonly number[]
+  /** `--`-префиксы project-owned/third-party переменных, исключённые из coverage dead-ref (P4.5 code-review MED). */
+  coverageIgnorePrefixes?: readonly string[]
 }
 
 const DEFAULT_SRC_PATTERNS: readonly string[] = ['**/*.css', '**/*.vue']
@@ -45,7 +47,8 @@ export async function runCheck(opts: CheckOptions): Promise<{ findings: Finding[
   const sources = await scanSources(opts.cwd, opts.src ?? DEFAULT_SRC_PATTERNS, DEFAULT_IGNORE)
 
   const findings: Finding[] = []
-  if (opts.coverage ?? true) findings.push(...checkCoverage(resolved, sources))
+  if (opts.coverage ?? true)
+    findings.push(...checkCoverage(resolved, sources, { ignorePrefixes: opts.coverageIgnorePrefixes }))
   if (opts.contrast ?? true) findings.push(...checkContrastPairs(resolvedInline))
   if (opts.hardcode ?? true) findings.push(...checkHardcode(sources, { allowPx: opts.allowPx }))
 
@@ -109,6 +112,10 @@ export const checkCommand = defineCommand({
       type: 'string',
       description: 'Comma-separated px values to allow (default: 0,1)',
     },
+    'coverage-ignore': {
+      type: 'string',
+      description: 'Comma-separated --var prefixes to exclude from dead-ref coverage errors (project-owned/third-party custom properties)',
+    },
   },
   async run({ args }) {
     try {
@@ -120,6 +127,9 @@ export const checkCommand = defineCommand({
         contrast: args.contrast,
         hardcode: args.hardcode,
         allowPx: args['allow-px'] ? args['allow-px'].split(',').map(Number) : undefined,
+        coverageIgnorePrefixes: args['coverage-ignore']
+          ? args['coverage-ignore'].split(',').map((s) => s.trim())
+          : undefined,
       })
 
       reportFindings(findings)

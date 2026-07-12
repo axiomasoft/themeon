@@ -17,6 +17,7 @@ themeon init [--force] [--tailwind]      # scaffold theme.config.ts (+ optional 
 themeon build [--config] [--out] [--tailwind] [--ref-layer] [--aliases]
                                           # compile theme.config.ts → tokens.css (+ optional Tailwind bridge)
 themeon check [--config] [--src] [--no-coverage] [--no-contrast] [--no-hardcode] [--allow-px]
+              [--coverage-ignore]
                                           # lint token coverage / APCA contrast / hardcoded values
 ```
 
@@ -46,7 +47,10 @@ Three linters, run against `theme.config.ts` + your source files (default glob
 
 - **token coverage** — flags `var(--x)` references to variables ThemeOn doesn't generate
   (`error`) and tokens ThemeOn generates but nothing references (`warning`). A literal
-  `var(--x, fallback)` fallback is never treated as a separate reference.
+  `var(--x, fallback)` fallback is never treated as a separate reference. Project-owned or
+  third-party custom properties (component-library vars like `--reka-*`, your own `--pad`, …)
+  aren't ThemeOn tokens either — use `--coverage-ignore <prefix1,prefix2,…>` to exclude them from
+  the dead-ref `error` instead of disabling the whole linter with `--no-coverage`.
 - **contrast** — APCA contrast of a fixed set of semantic text-on-bg role pairs (`--color-text`
   on `--color-bg-page`, etc.), for the base theme and every theme patch. Reuses
   `checkContrast`/`LC_THRESHOLDS` from `@themeon/colors` — fail-closed: an unparseable color is
