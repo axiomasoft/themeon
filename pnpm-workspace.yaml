@@ -5,6 +5,7 @@ allowBuilds:
   '@parcel/watcher': true
   esbuild: true
 catalog:
+  vue: 3.5.39
   colorjs.io: 0.7.0
   culori: 4.0.2
   "@types/culori": 4.0.1
