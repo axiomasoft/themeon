@@ -1,0 +1,58 @@
+{
+  "name": "@themeon/nuxt",
+  "version": "0.0.0",
+  "description": "Nuxt module for ThemeOn: pushes the CSS foundation, auto-imports useTheme() and bootstraps theme state per request — zero manual wiring.",
+  "keywords": [
+    "design-tokens",
+    "theming",
+    "nuxt",
+    "nuxt-module",
+    "dark-mode",
+    "design-system"
+  ],
+  "homepage": "https://github.com/themeon/themeon#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themeon/themeon.git",
+    "directory": "packages/nuxt"
+  },
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "files": ["dist"],
+  "main": "./dist/module.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/module.mjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      ".": ["./dist/types.d.mts"]
+    }
+  },
+  "scripts": {
+    "build": "nuxt-module-build build",
+    "dev:prepare": "nuxt-module-build prepare",
+    "prepack": "nuxt-module-build build",
+    "typecheck": "nuxt-module-build prepare && tsc --noEmit",
+    "test": "vitest run --root ../.. --project @themeon/nuxt"
+  },
+  "dependencies": {
+    "@nuxt/kit": "catalog:",
+    "@themeon/css": "workspace:*",
+    "@themeon/vue": "workspace:*"
+  },
+  "peerDependencies": {
+    "nuxt": ">=4.0.0"
+  },
+  "devDependencies": {
+    "@nuxt/module-builder": "catalog:",
+    "@nuxt/schema": "catalog:",
+    "nuxt": "catalog:",
+    "typescript": "catalog:",
+    "unbuild": "^3.6.1",
+    "vitest": "catalog:"
+  }
+}
