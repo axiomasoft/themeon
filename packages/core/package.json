@@ -1,6 +1,20 @@
 {
   "name": "@themeon/core",
   "version": "0.0.0",
+  "description": "Typed design-token engine: TS tokens → CSS custom properties (build + runtime), naming engine and DTCG interchange. Zero runtime dependencies.",
+  "keywords": [
+    "design-tokens",
+    "css-variables",
+    "theming",
+    "dtcg",
+    "design-system"
+  ],
+  "homepage": "https://github.com/themeon/themeon#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themeon/themeon.git",
+    "directory": "packages/core"
+  },
   "type": "module",
   "license": "MIT",
   "sideEffects": false,

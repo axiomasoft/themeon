@@ -76,6 +76,11 @@ function assertSafeCssToken(value: string, label: string): void {
  *
  * @param resolved output of `resolveTheme`
  * @param opts layer/selector/attribute names and at-rule toggles
+ * @example
+ * ```ts
+ * const css = serializeThemeCss(resolved, { layer: 'themeon.tokens' })
+ * // "@layer themeon.tokens { :root { color-scheme: light; --color-bg-page: … } }"
+ * ```
  */
 export function serializeThemeCss(resolved: ResolvedTheme, opts: SerializeCssOptions = {}): string {
   const {

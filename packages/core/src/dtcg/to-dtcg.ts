@@ -150,6 +150,11 @@ function placeToken(doc: DTCGDocument, token: Token, emitted: Set<string>, refQu
  *
  * @param def a theme definition produced by `defineTheme`
  * @param opts split-themes and resolver-file toggles
+ * @example
+ * ```ts
+ * const { files } = toDTCG(theme)
+ * files['base.tokens.json'] // DTCG document, ready for Terrazzo / Style Dictionary
+ * ```
  */
 export function toDTCG(def: ThemeDefinition, opts: ToDTCGOptions = {}): DTCGExport {
   const splitThemes = opts.splitThemes ?? true

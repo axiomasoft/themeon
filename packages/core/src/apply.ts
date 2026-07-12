@@ -104,6 +104,11 @@ function warnIfInvalid(name: string, value: string): void {
  *
  * Known limitation: inline styles lose to `!important` in consumer CSS. Paired with
  * ThemeOn's `@layer` scaffold `!important` is unnecessary (D8, R-11 §5).
+ *
+ * @example
+ * ```ts
+ * applyTheme(document.documentElement, themeVars(resolved, 'dark'))
+ * ```
  */
 export function applyTheme(el: ElementLike, vars: Record<string, string>): void {
   const dev = isDev()

@@ -158,6 +158,11 @@ function freezeDeep(obj: object): void {
  *
  * @param group root group name (drives token type inference for well-known groups)
  * @param tree nested plain object of token values
+ * @example
+ * ```ts
+ * const palette = defineTokens('color', { forest: { 600: 'oklch(0.55 0.13 155)' } })
+ * palette.forest[600].value // 'oklch(0.55 0.13 155)'
+ * ```
  */
 export function defineTokens<const T extends TokenTreeInput>(
   group: GroupName,
@@ -192,6 +197,14 @@ export interface ThemeConfig<TSys extends SysTreeInput> {
  * `color-scheme: dark` unless overridden in `schemes` (P-D16).
  *
  * @param config base contract, optional patches and scheme overrides
+ * @example
+ * ```ts
+ * const theme = defineTheme({
+ *   base: { color: { bg: { page: 'oklch(0.99 0 0)' } }, space: { 4: '1rem' } },
+ *   themes: { dark: { color: { bg: { page: 'oklch(0.15 0 0)' } } } },
+ * })
+ * theme.schemes.dark // 'dark' (convention P-D16)
+ * ```
  */
 export function defineTheme<const TSys extends SysTreeInput>(
   config: ThemeConfig<TSys>,
