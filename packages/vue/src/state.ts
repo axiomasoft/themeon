@@ -107,7 +107,11 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
 
   function set(name: string): void {
     if (normalizeThemeName(name) === undefined) {
-      console.warn('[themeon] useTheme: set() ignored an empty theme name')
+      console.warn(
+        `[themeon] useTheme: set() ignored an empty theme name (${JSON.stringify(name)}); ` +
+          `an empty or whitespace-only string is not a theme. Pass a theme name, or omit ` +
+          `\`default\` to fall back to the \`prefers-color-scheme\` system preference.`,
+      )
       return
     }
     if (explicitThemes && !explicitThemes.includes(name)) {
