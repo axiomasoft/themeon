@@ -57,5 +57,8 @@ export function buildFoucScriptOptions(options: ModuleOptions): ThemeInitScriptO
     storageKey: options.storageKey ?? MODULE_DEFAULTS.storageKey,
     attribute: options.attribute ?? MODULE_DEFAULTS.attribute,
     default: options.default,
+    // Тот же набор, что уезжает в runtimeConfig → `useTheme()`: скрипт обязан валидировать
+    // персист по тем же правилам, что `init()` (иначе протухшее имя темы даёт вспышку).
+    themes: [...(options.themes ?? MODULE_DEFAULTS.themes)],
   }
 }

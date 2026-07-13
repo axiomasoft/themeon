@@ -49,17 +49,33 @@ describe('toPublicRuntimeConfig', () => {
 })
 
 describe('buildFoucScriptOptions', () => {
-  it('пробрасывает storageKey/attribute/default как есть', () => {
+  it('пробрасывает storageKey/attribute/default/themes как есть', () => {
     expect(
-      buildFoucScriptOptions({ storageKey: 'my-theme', attribute: 'data-mode', default: 'dark' }),
-    ).toEqual({ storageKey: 'my-theme', attribute: 'data-mode', default: 'dark' })
+      buildFoucScriptOptions({
+        storageKey: 'my-theme',
+        attribute: 'data-mode',
+        default: 'dark',
+        themes: ['light', 'dark', 'contrast'],
+      }),
+    ).toEqual({
+      storageKey: 'my-theme',
+      attribute: 'data-mode',
+      default: 'dark',
+      themes: ['light', 'dark', 'contrast'],
+    })
   })
 
-  it('пустые опции → storageKey/attribute падают на MODULE_DEFAULTS (тот же источник, что useTheme/toPublicRuntimeConfig), default остаётся undefined', () => {
+  it('пустые опции → storageKey/attribute/themes падают на MODULE_DEFAULTS (тот же источник, что useTheme/toPublicRuntimeConfig), default остаётся undefined', () => {
     expect(buildFoucScriptOptions({})).toEqual({
       storageKey: 'themeon-theme',
       attribute: 'data-theme',
       default: undefined,
+      themes: ['light', 'dark'],
     })
+  })
+
+  it('themes уходит в скрипт тем же набором, что и в runtimeConfig (скрипт и init() валидируют персист одинаково)', () => {
+    const options = { themes: ['light', 'dark', 'contrast'] }
+    expect(buildFoucScriptOptions(options).themes).toEqual(toPublicRuntimeConfig(options).themes)
   })
 })
