@@ -33,6 +33,11 @@ export interface ModuleOptions {
  * `default: ''` (и незаданная опция) означает «не задано» — ключ обязан присутствовать ради
  * `NUXT_PUBLIC_THEMEON_DEFAULT`-override (P3.7); рантайм (`@themeon/vue`) трактует '' как
  * отсутствие явной темы, а не как литеральное имя.
+ *
+ * Область действия env-override: только ЭТОТ (рантайм) канал. Анти-FOUC head-скрипт запекается
+ * на сборке из `nuxt.config` и env не видит — см. `internal/normalize.ts`
+ * (`buildFoucScriptOptions`). Задавать тему по умолчанию ТОЛЬКО через `NUXT_PUBLIC_THEMEON_DEFAULT`,
+ * не продублировав её в `nuxt.config`, значит получить вспышку темы на первой отрисовке.
  */
 export interface ModulePublicRuntimeConfig {
   themeon: {
