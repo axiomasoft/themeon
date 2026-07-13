@@ -18,7 +18,12 @@ export type SystemPreference = 'dark' | 'light'
 export interface UseThemeOptions {
   /** Известные имена тем; `toggle()` по умолчанию циклит первые две. Default `['light','dark']`. */
   themes?: readonly string[]
-  /** Тема, когда нет сохранённой И не хотим системную. Если не задан — берётся системная. */
+  /**
+   * Тема, когда нет сохранённой И не хотим системную. Если не задан — берётся системная.
+   * Пустая/пробельная строка = «не задано» (то же, что отсутствие опции): так отсутствующее
+   * значение приезжает по JSON/env-транспорту (Nitro нормализует незаданный `runtimeConfig`
+   * в `''`), и трактовать его как имя темы значит убить `prefers-color-scheme`-фолбэк.
+   */
   default?: string
   /** Ключ localStorage; `null` отключает персист. Default `'themeon-theme'`. */
   storageKey?: string | null
@@ -50,6 +55,12 @@ export interface UseThemeReturn {
   readonly system: Readonly<Ref<SystemPreference>>
   /** `theme === system.dark`-имя. */
   readonly isDark: ComputedRef<boolean>
+  /**
+   * Применяет тему: атрибут + персист (+ runtime-var-патч для тем из `runtimeVars`).
+   * Пустое/пробельное имя игнорируется — `console.warn` и выход БЕЗ записи в DOM/хранилище,
+   * текущая тема остаётся на месте (пустая строка — не тема, см. `UseThemeOptions.default`).
+   * Неизвестная тема при заданном `themes` — предупреждение, но тема применяется.
+   */
   set(theme: string): void
   toggle(a?: string, b?: string): void
   init(): void

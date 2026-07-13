@@ -26,11 +26,21 @@ export interface ThemeInitScriptOptions {
   /**
    * Тема по умолчанию, если ничего не персистилось (тот же смысл, что `UseThemeOptions.default`
    * в `state.ts`, P3-P3.2-MED): без этой опции скрипт при отсутствии персиста всегда падает на
-   * системную тему, а `init()` — на `options.default ?? systemMap[...]`, из-за чего каналы
-   * расходятся и первая отрисовка мигает. Если задана — перебивает системную тему на этой ветке
-   * ровно как в `init()`, а не подмешивается в системную ветку.
+   * системную тему, а `init()` — на `normalizeThemeName(options.default) ?? systemMap[...]`,
+   * из-за чего каналы расходятся и первая отрисовка мигает. Если задана — перебивает системную
+   * тему на этой ветке ровно как в `init()`, а не подмешивается в системную ветку.
+   * Пустая/пробельная строка = «не задано» (P3.7).
    */
   default?: string
+  /**
+   * Известные имена тем (тот же смысл, что `UseThemeOptions.themes`). Если задан — скрипт
+   * принимает персист, только если он входит в набор, ровно как `init()` (`storedIsKnown`).
+   * Без этой опции набор открыт и скрипт доверяет персисту любое непустое имя — тоже как
+   * `init()`. Обе стороны обязаны валидировать персист по ОДНИМ правилам, иначе протухшее имя
+   * темы (`'sepia'` после её удаления) красится скриптом до отрисовки и перекрашивается
+   * `init()` после гидрации — видимая вспышка.
+   */
+  themes?: readonly string[]
 }
 
 /**
@@ -68,10 +78,28 @@ export function themeInitScript(options: ThemeInitScriptOptions = {}): string {
   assertSafeScriptToken(d, 'darkTheme')
   assertSafeScriptToken(l, 'lightTheme')
   const explicitDefault = normalizeThemeName(options.default)
+
+  // Фолбэк, когда персиста нет или он невалиден — ровно ветвление `init()`
+  // (`explicitDefault ?? systemMap[system]`, state.ts).
+  let fallback: string
   if (explicitDefault !== undefined) {
-    const def = explicitDefault
-    assertSafeScriptToken(def, 'default')
-    return `(function(){try{var e=document.documentElement,s=localStorage.getItem('${k}'),t=s||'${def}';e.setAttribute('${a}',t)}catch(_){}})()`
+    assertSafeScriptToken(explicitDefault, 'default')
+    fallback = `'${explicitDefault}'`
+  } else {
+    fallback = `(matchMedia('(prefers-color-scheme: dark)').matches?'${d}':'${l}')`
   }
-  return `(function(){try{var e=document.documentElement,s=localStorage.getItem('${k}'),t=s||(matchMedia('(prefers-color-scheme: dark)').matches?'${d}':'${l}');e.setAttribute('${a}',t)}catch(_){}})()`
+
+  // Проверка персиста — те же правила, что у `init()`: пустое/пробельное имя не тема (отсюда
+  // `.trim()` на чтении), а при явном `themes` валиден только персист из набора (`storedIsKnown`).
+  // Набор не задан — открытый набор, доверяем любому непустому имени.
+  const knownThemes = (options.themes ?? []).filter((t) => normalizeThemeName(t) !== undefined)
+  let storedIsUsable: string
+  if (knownThemes.length > 0) {
+    for (const t of knownThemes) assertSafeScriptToken(t, 'themes')
+    storedIsUsable = `[${knownThemes.map((t) => `'${t}'`).join(',')}].indexOf(s)!==-1`
+  } else {
+    storedIsUsable = 's'
+  }
+
+  return `(function(){try{var e=document.documentElement,s=(localStorage.getItem('${k}')||'').trim(),t=${storedIsUsable}?s:${fallback};e.setAttribute('${a}',t)}catch(_){}})()`
 }

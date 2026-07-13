@@ -203,8 +203,33 @@ describe('createThemeState', () => {
     state.set('')
 
     expect(warn).toHaveBeenCalled()
+    // предупреждение обязано называть само значение — иначе источник пустой темы не найти
+    expect(warn.mock.calls[0]?.[0]).toContain('""')
     expect(el.attrs['data-theme']).toBeUndefined()
     expect(storage.data['themeon-theme']).toBeUndefined()
+    warn.mockRestore()
+  })
+
+  it("set('') не сбрасывает уже применённую тему (guard срабатывает ДО записи в theme.value)", () => {
+    const el = fakeElement()
+    const storage = fakeStorage()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const state = createThemeState({
+      target: () => el,
+      storage: () => storage,
+      media: () => fakeMedia(true),
+    })
+
+    state.init()
+    expect(state.theme.value).toBe('dark')
+
+    state.set('   ')
+
+    // theme.value/isDark обязаны остаться синхронными с DOM — иначе UI покажет чужое состояние
+    expect(state.theme.value).toBe('dark')
+    expect(state.isDark.value).toBe(true)
+    expect(el.attrs['data-theme']).toBe('dark')
+    expect(storage.data['themeon-theme']).toBe('dark')
     warn.mockRestore()
   })
 

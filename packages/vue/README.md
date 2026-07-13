@@ -86,7 +86,7 @@ unsafe output.
 | Option | Type | Default | Meaning |
 |:--|:--|:--|:--|
 | `themes` | `readonly string[]` | `['light', 'dark']` | Known theme names; `toggle()` cycles the first two by default. |
-| `default` | `string` | — | Theme used when nothing is persisted and the system default is not wanted. |
+| `default` | `string` | — | Theme used when nothing is persisted and the system default is not wanted. An empty or whitespace-only string means "not set" — it falls back to `prefers-color-scheme`, it is not a theme named `''`. |
 | `storageKey` | `string \| null` | `'themeon-theme'` | `localStorage` key; `null` disables persistence. |
 | `attribute` | `string` | `'data-theme'` | DOM attribute driving the switch (D6). |
 | `system` | `{ dark: string; light: string }` | `{ dark: 'dark', light: 'light' }` | Maps the system preference to a theme name. |
@@ -95,6 +95,11 @@ unsafe output.
 
 Returns `{ theme, system, isDark, set, toggle, init }` — see `UseThemeReturn` in `src/types.ts`.
 
+`set(name)` ignores an empty or whitespace-only name: it warns and returns without touching the
+DOM or persistence, leaving the current theme in place. An empty string is never a theme — it is
+how a missing value arrives over a JSON/env transport (Nitro normalizes an unset `runtimeConfig`
+value to `''`), and applying it would wipe the attribute and poison the persisted value.
+
 ### `themeonPlugin`
 
 `app.use(themeonPlugin, options)` — `options` is the same `UseThemeOptions` shape as
@@ -102,14 +107,20 @@ Returns `{ theme, system, isDark, set, toggle, init }` — see `UseThemeReturn` 
 
 ### `themeInitScript(options?)` (`@themeon/vue/anti-fouc`)
 
-| Option | Type | Default |
-|:--|:--|:--|
-| `storageKey` | `string` | `'themeon-theme'` |
-| `attribute` | `string` | `'data-theme'` |
-| `darkTheme` | `string` | `'dark'` |
-| `lightTheme` | `string` | `'light'` |
+| Option | Type | Default | Meaning |
+|:--|:--|:--|:--|
+| `storageKey` | `string` | `'themeon-theme'` | `localStorage` key — must match `useTheme()`. |
+| `attribute` | `string` | `'data-theme'` | DOM attribute — must match `useTheme()`. |
+| `darkTheme` | `string` | `'dark'` | Name used when the system prefers dark. |
+| `lightTheme` | `string` | `'light'` | Name used when the system prefers light. |
+| `default` | `string` | — | Overrides the system branch when nothing is persisted. `''`/whitespace means "not set". |
+| `themes` | `readonly string[]` | — | Known theme names. When set, a persisted name outside the set is rejected and the fallback applies. |
 
 Returns the IIFE body as a string (no `<script>` tags — the caller wraps it).
+
+Pass the **same** `storageKey`/`attribute`/`default`/`themes` you pass to `useTheme()`. The script
+runs before paint and `useTheme().init()` runs after hydration; if they resolve the theme by
+different rules, the page visibly repaints. (`@themeon/nuxt` wires both from one config for you.)
 
 ## License
 

@@ -37,6 +37,14 @@ export function toPublicRuntimeConfig(options: ModuleOptions): ModulePublicRunti
 
 /**
  * Чистая нормализация опций модуля → опции `themeInitScript` (анти-FOUC IIFE, P3.4).
+ *
+ * ВНИМАНИЕ (ограничение маршрута A): источник значений здесь — `ModuleOptions` (build-time
+ * `nuxt.config`), а НЕ `runtimeConfig`. Скрипт запекается в `<head>` один раз на сборке
+ * (`module.ts`), поэтому `NUXT_PUBLIC_THEMEON_*`-override, применяемый Nitro в рантайме,
+ * до него НЕ доезжает: рантайм-канал (`useTheme().init()`) увидит env-значение, а pre-paint
+ * скрипт — то, что было в конфиге на сборке. При расхождении будет видимая перекраска после
+ * гидрации. Резолв скрипта из runtimeConfig на каждый запрос — маршрут B (nitro-инъекция),
+ * намеренно отложен (см. комментарий в `module.ts`).
  * `storageKey`/`attribute` — ОДИН источник с `toPublicRuntimeConfig`/`useTheme()` (D6): анти-
  * FOUC скрипт и клиентский `init()` обязаны читать/писать один и тот же ключ/атрибут, иначе
  * скрипт выставляет тему до гидрации, а `useTheme` — другую после (видимая вспышка).
@@ -49,5 +57,8 @@ export function buildFoucScriptOptions(options: ModuleOptions): ThemeInitScriptO
     storageKey: options.storageKey ?? MODULE_DEFAULTS.storageKey,
     attribute: options.attribute ?? MODULE_DEFAULTS.attribute,
     default: options.default,
+    // Тот же набор, что уезжает в runtimeConfig → `useTheme()`: скрипт обязан валидировать
+    // персист по тем же правилам, что `init()` (иначе протухшее имя темы даёт вспышку).
+    themes: [...(options.themes ?? MODULE_DEFAULTS.themes)],
   }
 }
