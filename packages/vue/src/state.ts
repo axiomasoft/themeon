@@ -15,6 +15,7 @@
 import { computed, readonly, ref } from 'vue'
 import { applyTheme, clearTheme } from '@themeon/core'
 import { DEFAULT_ATTRIBUTE, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, DEFAULT_STORAGE_KEY } from './defaults'
+import { normalizeThemeName } from './theme-name'
 import type { UseThemeOptions, UseThemeReturn } from './types'
 
 // Ключ/атрибут — из общего `defaults.ts` (P3.2 Rule 3): тот же источник, что и у
@@ -74,9 +75,13 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     })
   const getMedia = options.media ?? ((query: string) => matchMedia(query))
 
+  // Один резолв на состояние (P3.7): пустая/пробельная строка (Nuxt-коерс незаданной опции
+  // runtimeConfig в '') не считается заданной темой — используется и здесь, и в `init()`.
+  const explicitDefault = normalizeThemeName(options.default)
+
   // SSR-нейтральный дефолт: не зависит от system/stored, чтобы серверная и клиентская первая
   // отрисовка совпадали (инвариант №2) — фактическая тема резолвится позже, в `init()`.
-  const theme = ref<string>(options.default ?? cycleThemes[0] ?? 'light')
+  const theme = ref<string>(explicitDefault ?? cycleThemes[0] ?? 'light')
   const system = ref<'dark' | 'light'>('light')
   let lastRuntimeVarNames: string[] = []
   let initialized = false
@@ -101,6 +106,10 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
   }
 
   function set(name: string): void {
+    if (normalizeThemeName(name) === undefined) {
+      console.warn('[themeon] useTheme: set() ignored an empty theme name')
+      return
+    }
     if (explicitThemes && !explicitThemes.includes(name)) {
       console.warn(
         `[themeon] useTheme: unknown theme "${name}"; known themes: ${explicitThemes.join(', ')}`,
@@ -130,7 +139,9 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     let stored: string | null = null
     if (storageKey !== null) {
       try {
-        stored = getStorage()?.getItem(storageKey) ?? null
+        // Нормализуем ДО проверки `storedIsKnown` (P3.7): отравленный персист ('', записанный
+        // дефектной сборкой до фикса) не должен проходить как валидное имя темы открытого набора.
+        stored = normalizeThemeName(getStorage()?.getItem(storageKey)) ?? null
       } catch {
         // localStorage недоступен (private mode/quota) — стартуем без персиста
         stored = null
@@ -148,7 +159,7 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     // персисту любое сохранённое имя; если `themes` задан явно, персист валиден только
     // среди перечисленных тем (симметрично с проверкой в `set()`, см. HIGH P3.1)
     const storedIsKnown = stored !== null && (explicitThemes ? explicitThemes.includes(stored) : true)
-    const active = storedIsKnown ? (stored as string) : (options.default ?? systemMap[system.value])
+    const active = storedIsKnown ? (stored as string) : (explicitDefault ?? systemMap[system.value])
     set(active)
   }
 

@@ -158,6 +158,56 @@ describe('createThemeState', () => {
     expect(touched).toBe(false)
   })
 
+  it("default:'' + пустой персист + системная dark → init() даёт 'dark' (регресс P3.7/P5.9)", () => {
+    const el = fakeElement()
+    const storage = fakeStorage()
+    const state = createThemeState({
+      target: () => el,
+      storage: () => storage,
+      media: () => fakeMedia(true),
+      default: '',
+    })
+
+    state.init()
+
+    expect(state.theme.value).toBe('dark')
+    expect(el.attrs['data-theme']).toBe('dark')
+  })
+
+  it('отравленный персист "" при не заданном themes уходит в системную тему и перезаписывает хранилище', () => {
+    const el = fakeElement()
+    const storage = fakeStorage()
+    storage.setItem('themeon-theme', '')
+    const state = createThemeState({
+      target: () => el,
+      storage: () => storage,
+      media: () => fakeMedia(true),
+    })
+
+    state.init()
+
+    expect(state.theme.value).toBe('dark')
+    expect(storage.data['themeon-theme']).toBe('dark')
+  })
+
+  it("set('') предупреждает и не трогает атрибут/хранилище", () => {
+    const el = fakeElement()
+    const storage = fakeStorage()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const state = createThemeState({
+      target: () => el,
+      storage: () => storage,
+      media: () => fakeMedia(false),
+    })
+
+    state.set('')
+
+    expect(warn).toHaveBeenCalled()
+    expect(el.attrs['data-theme']).toBeUndefined()
+    expect(storage.data['themeon-theme']).toBeUndefined()
+    warn.mockRestore()
+  })
+
   it('set() неизвестной темы (themes задан) предупреждает, но всё равно применяет', () => {
     const el = fakeElement()
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})

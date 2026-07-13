@@ -5,7 +5,8 @@ export default defineNuxtConfig({
   // (css.push, порядок токены→база сохранён внутри модуля) — ручной `css:[...]` P2.7 снят.
   modules: ['@themeon/nuxt'],
   themeon: {
+    // P3.7 — без `default`: догфуд системной ветки (matchMedia), ровно конфигурация,
+    // в которой был воспроизведён дефект `default:''` на живых пилотах.
     themes: ['light', 'dark'],
-    default: 'light',
   },
 })

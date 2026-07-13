@@ -38,10 +38,10 @@ describe('toPublicRuntimeConfig', () => {
     })
   })
 
-  it('пустые опции → storageKey/themes/attribute падают на MODULE_DEFAULTS, default остаётся undefined', () => {
+  it("пустые опции → storageKey/themes/attribute падают на MODULE_DEFAULTS, default: '' (ключ присутствует ради env-override, P3.7)", () => {
     expect(toPublicRuntimeConfig({})).toEqual({
       storageKey: 'themeon-theme',
-      default: undefined,
+      default: '',
       themes: ['light', 'dark'],
       attribute: 'data-theme',
     })

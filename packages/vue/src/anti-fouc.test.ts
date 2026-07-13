@@ -27,6 +27,10 @@ describe('themeInitScript', () => {
     expect(script).toContain(`e.setAttribute('data-theme',t)`)
   })
 
+  test("default:'' даёт ту же matchMedia-ветку, что и незаданный default (P3.7)", () => {
+    expect(themeInitScript({ default: '' })).toBe(themeInitScript({}))
+  })
+
   test.each([
     ["it's"],
     ['"quoted"'],

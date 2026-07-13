@@ -12,6 +12,7 @@
  * (Safari private mode/cookies-blocked Chrome).
  */
 import { DEFAULT_ATTRIBUTE, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, DEFAULT_STORAGE_KEY } from './defaults'
+import { normalizeThemeName } from './theme-name'
 
 export interface ThemeInitScriptOptions {
   /** Ключ localStorage. Default `'themeon-theme'` (тот же, что `useTheme`). */
@@ -66,8 +67,9 @@ export function themeInitScript(options: ThemeInitScriptOptions = {}): string {
   assertSafeScriptToken(a, 'attribute')
   assertSafeScriptToken(d, 'darkTheme')
   assertSafeScriptToken(l, 'lightTheme')
-  if (options.default !== undefined) {
-    const def = options.default
+  const explicitDefault = normalizeThemeName(options.default)
+  if (explicitDefault !== undefined) {
+    const def = explicitDefault
     assertSafeScriptToken(def, 'default')
     return `(function(){try{var e=document.documentElement,s=localStorage.getItem('${k}'),t=s||'${def}';e.setAttribute('${a}',t)}catch(_){}})()`
   }

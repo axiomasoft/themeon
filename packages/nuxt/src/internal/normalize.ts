@@ -26,7 +26,10 @@ export function shouldPushCss(options: ModuleOptions): boolean {
 export function toPublicRuntimeConfig(options: ModuleOptions): ModulePublicRuntimeConfig['themeon'] {
   return {
     storageKey: options.storageKey ?? MODULE_DEFAULTS.storageKey,
-    default: options.default,
+    // Ключ обязан присутствовать (RAG nuxt.com/docs/guide/going-further/runtime-config) — иначе
+    // `NUXT_PUBLIC_THEMEON_DEFAULT` невозможен; '' — документированная конвенция «объявлено,
+    // значение придёт из env». Рантайм (`@themeon/vue`) трактует '' как отсутствие темы (P3.7).
+    default: options.default ?? '',
     themes: [...(options.themes ?? MODULE_DEFAULTS.themes)],
     attribute: options.attribute ?? MODULE_DEFAULTS.attribute,
   }

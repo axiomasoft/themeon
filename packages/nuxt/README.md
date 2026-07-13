@@ -53,7 +53,7 @@ SSR-safe — no module-level singleton leaking between requests.
 |:--|:--|:--|:--|
 | `css` | `boolean` | `true` | Push the static CSS foundation (`tokens.css` + `index.css`). |
 | `storageKey` | `string` | `'themeon-theme'` | `localStorage` key (shared by `useTheme()` and the anti-FOUC script). |
-| `default` | `string` | — | Theme used when nothing is persisted and the system default isn't wanted. |
+| `default` | `string` | — | Theme used when nothing is persisted and the system default isn't wanted. `''` (and an unset option) means "not set" — falls back to the `prefers-color-scheme` system preference, not a literal theme named `''`. |
 | `themes` | `readonly string[]` | `['light', 'dark']` | Known theme names. |
 | `attribute` | `string` | `'data-theme'` | DOM attribute driving the switch (D6). |
 | `fouc` | `boolean` | `true` | Insert the generated anti-FOUC head script. |

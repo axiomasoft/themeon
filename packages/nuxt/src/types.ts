@@ -28,14 +28,16 @@ export interface ModuleOptions {
 
 /**
  * Публичная часть `runtimeConfig.public.themeon`, читаемая рантайм-плагином
- * (`src/runtime/plugin.ts`). `storageKey`/`themes`/`attribute` не-опциональны здесь: к моменту
- * попадания в `setup()` `defineNuxtModule` уже смержил их с `defaults` через `defu` — только
- * `default` (тема по умолчанию) намеренно остаётся без дефолта.
+ * (`src/runtime/plugin.ts`). `storageKey`/`themes`/`attribute`/`default` не-опциональны здесь: к
+ * моменту попадания в `setup()` `defineNuxtModule` уже смержил их с `defaults` через `defu`.
+ * `default: ''` (и незаданная опция) означает «не задано» — ключ обязан присутствовать ради
+ * `NUXT_PUBLIC_THEMEON_DEFAULT`-override (P3.7); рантайм (`@themeon/vue`) трактует '' как
+ * отсутствие явной темы, а не как литеральное имя.
  */
 export interface ModulePublicRuntimeConfig {
   themeon: {
     storageKey: string
-    default: string | undefined
+    default: string
     // Nuxt сериализует runtimeConfig в JSON (nitro) — массив всегда мутабелен на выходе;
     // держим mutable здесь, чтобы совпадать с генерируемым `PublicRuntimeConfig`.
     themes: string[]
