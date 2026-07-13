@@ -1,0 +1,93 @@
+Роль — исполнение item'а P5.4 фазы P5 плана THEMEON (пилотная миграция dterema/vintera на
+ThemeOn), с ОБЯЗАТЕЛЬНЫМ read-only adversarial-review после реализации — прод-риск, ошибка ломает
+живой сайт. Работаешь в этой же CLI-сессии, без фоновых Workflow.
+
+Порядок чтения СТРОГО:
+1. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/plan.md — §1 Context, §2
+   Execution Rules, §5 Decision Log (особо P-D34..P-D43 — механика P5, parity-семантика, известные
+   баги автоскрипта уже починены), §4 Status Board.
+2. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/handoff.md
+3. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/phases/P5.md — Phase Context
+   целиком + item P5.4 целиком (Status/Intent/Scope/Implementation Rules/Code Guidance/
+   Validation/expectedVarDiff). Прочти также Completion Notes P5.1/P5.2/P5.3 — P5.4 стоит на них
+   (метод установки пакетов, theme.config.ts, единый JS-источник breakpoints `bpPx`).
+4. Required Reads item'а, в указанном порядке.
+
+Прод-репо пилотов: dterema /home/vostrikov/projects/dterema/app, vintera
+/home/vostrikov/projects/vintera/vintera. Item трогает прод-репо dterema (ветка
+themeon-migration/P5, уже создана; HEAD после P5.3 — коммит «P5.3 breakpoints — один JS-источник»)
+— ЖЁСТКИЕ инварианты, нарушение = escalation, не импровизация:
+  - INV1: работай ТОЛЬКО в ветке themeon-migration/P5. НЕ push, НЕ merge, НЕ rebase на основную.
+  - INV2: НИКАКИХ git stash/git reset/git checkout -f/git clean в прод-репо.
+  - INV3 (parity): P5.4 — expectedVarDiff ПУСТ (base-vars.css не меняется: генератор уже переключён
+    в P5.2, P5.4 трогает runtime-слой). Гейт падает iff (removed ∪ changed переменных) ⊄
+    expectedVarDiff item'а (P-D35/P-D38) — added-переменные НЕ блокируют сами по себе. Baseline
+    dterema снят в P5.1 — ПЕРЕИСПОЛЬЗУЙ, не переснимай. Артефакты (`themeon-parity.mjs`,
+    `baseline-dterema.json`) лежат в scratchpad прошлой сессии:
+    /tmp/claude-1000/-home-vostrikov-projects-packages-themeon/d588ac7a-0cbb-4201-875c-08dc1493a0eb/scratchpad/
+    (скопируй к себе; если их там уже нет — пересоздай скрипт по Code Guidance P5.1, а baseline
+    сними из pristine-вывода донора на коммите P5.1, НЕ из текущего CSS).
+    Команда гейта: node themeon-parity.mjs public/styles/base-vars.css --against
+    baseline-dterema.json --expect '--size2xl,--size3xl,--size4xl,--size5xl,--size6xl'  → exit 0
+    (expect — тот же список, что в P5.2/P5.3: baseline снят ДО P5.2).
+  - dterema (пользователь подтвердил 2026-07-13, повторно 2026-07-13 перед P5.4): сайт только начали
+    разрабатывать — НЕ держимся за текущую реализацию. При конфликте «легаси-форма dterema» против
+    «каноничная форма пакета» — гни ПИЛОТ под пакет, а не пакет под пилот (пока не теряются реальные
+    данные/значения без причины). Байт-в-байт сохранение легаси само по себе НЕ цель.
+  - ГЛАВНЫЙ КРИТЕРИЙ ПАКЕТА — ГИБКОСТЬ ПО НАСТРОЙКАМ (явное указание пользователя). Если для
+    интеграции приходится обходить пакет хаком в пилоте (моднкипатч, ручная копия того, что пакет
+    обязан уметь настройкой, «пакет так не умеет — сделаем руками») — это НАХОДКА ПО ПАКЕТУ, а не
+    норма: остановись, зафиксируй её явно (Pending Work + отдельный абзац в финальном сообщении о
+    генерализации), не прячь в пилоте. Ровно этот класс уже всплыл в P5.3 (пакет не даёт моста
+    breakpoints → JS-потребители, каждый пилот пишет свой parseInt) и в P5.2 (модуль @themeon/nuxt
+    не имеет опций aliases/refLayer → пришлось идти через CLI, P-D34). Правка самих пакетов ThemeOn
+    в P5 вне скоупа (P3 заморожен) — но недостающая настройка обязана быть ЗАПИСАНА, а не забыта.
+
+P5.4 — самый рискованный item dterema: [BEHAVIORAL] смена рантайма (локальный useTheme/useAppTheme
+→ @themeon/vue + @themeon/nuxt с css:false), Naive UI → @themeon/naive, физический снос
+config/theme + utils/theme-css-vars.ts + utils/naive-ui.ts + локальных композаблов. Особое внимание:
+  - P-D34: @themeon/nuxt подключается с css:false (токены по-прежнему доставляет статический
+    <link base-vars.css>, канал не меняется); модуль @themeon/nuxt НЕ правится (P3 заморожен).
+  - P-D40: при css:false модульная гарантия порядка каскада ВЫКЛючена — порядок задаёт размещение
+    <link base-vars.css> в head, он обязан идти ДО app-CSS. Value-parity этого НЕ ловит →
+    обязательная проверка SSR-head (curl) в Validation и в adversarial-review.
+  - P-D29: @themeon/naive сам derive'ит hover/pressed/suppl — визуальный сайнофф человека нужен
+    перед merge (это Pending Work, не блокер item'а).
+
+Исполняй СТРОГО Scope Included; Implementation Rules и Code Guidance — жёсткие рамки, не
+рекомендации. «Улучшить бы заодно» — в Pending Work, не делай (но если идея тянет на генерализацию
+пакета для будущих пользователей, а не только этого пилота — вынеси её отдельным абзацем в конце
+своего финального сообщения, не молчи о ней). Комментарии/тест-описания на русском. План разошёлся с
+реальным кодом — НЕ импровизируй: останавливайся и опиши расхождение, ничего не коммить.
+
+Прогони Validation-команды item'а, почини красное в рамках Scope. Прогони parity-гейт ДО коммита.
+Закоммить (git add конкретных путей, НЕ -A; сообщение на русском, тело — почему; НЕ push) в ветку
+themeon-migration/P5 репо ~/projects/dterema/app.
+
+Затем ОБЯЗАТЕЛЬНО подними отдельного read-only adversarial-ревьюера через Agent tool
+(subagent_type: general-purpose, model: opus, максимальный effort) на СВОЙ коммит — контекст: item
+P5.4, Scope/Code Guidance из P5.md. Фокус ровно на том, что parity по переменным не ловит:
+визуальная регрессия при совпавших переменных, FOUC (анти-FOUC скрипт vs localStorage-ключ темы —
+storageKey должен совпасть с донорским, иначе тема слетает на первой загрузке), SSR-рассинхрон/
+hydration-mismatch, порядок каскада (curl SSR-head: base-vars.css ДО app-CSS, P-D40), мёртвая копия
+старого пайплайна (остатки config/theme/utils/композаблов, на которые ещё кто-то ссылается),
+Naive-overrides (P-D29 self-derive hover/pressed — сверить с прежними цветами). Severity
+LOW/MED/HIGH/CRITICAL, при сомнении — выше. Находки MED+ — почини сам, отдельным коммитом,
+перепрогони Validation и parity заново.
+
+В конце: обнови phases/P5.md (Status item'а — 🟢 Done / 🟠 Done with deviations + Known Deviations
+/ 🔴 Blocked с причиной; Completion Notes — только факты; Status Board §4 plan.md). Перезапиши
+handoff.md. Синхронизируй копию плана в
+/home/vostrikov/Vaults/Brain/05-Projects/03-Packages/ThemeOn/plans/2026.07.12-BASE/ (rsync -a
+--delete поверх, только плановые файлы).
+
+P5.4 закрывает пилота dterema → после него по плану ОБЯЗАТЕЛЕН /task:review (plan.md §2б/§3) перед
+переходом к vintera.
+
+Финал ответа — ОБЯЗАТЕЛЬНО: короткий статус и ГОТОВЫЙ К ВСТАВКЕ промпт для следующего item'а —
+P5.5 (шаблон и таблица подстановок в
+plans/2026.07.12-BASE/workflows/P5-manual-item-prompt.md; P5.5 — первый item vintera: preflight +
+СОЗДАНИЕ ветки themeon-migration/P5 + установка ThemeOn методом «yalc + yarn resolutions» из
+Completion Notes P5.1 + снятие Baseline vintera). Сохрани его аналогично этому файлу —
+plans/2026.07.12-BASE/workflows/P5.5.prompt.txt — чтобы следующую сессию можно было запустить той
+же командой с заменённым именем файла.

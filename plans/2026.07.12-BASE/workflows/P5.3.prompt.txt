@@ -1,0 +1,55 @@
+Роль — исполнение item'а P5.3 фазы P5 плана THEMEON (пилотная миграция dterema/vintera на
+ThemeOn), с ОБЯЗАТЕЛЬНЫМ read-only adversarial-review после реализации — прод-риск, ошибка ломает
+живой сайт. Работаешь в этой же CLI-сессии, без фоновых Workflow.
+
+Порядок чтения СТРОГО:
+1. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/plan.md — §1 Context, §2
+   Execution Rules, §5 Decision Log (особо P-D34..P-D43 — механика P5, parity-семантика, известные
+   баги автоскрипта уже починены), §4 Status Board.
+2. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/handoff.md
+3. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/phases/P5.md — Phase Context
+   целиком + item P5.3 целиком (Status/Intent/Scope/Implementation Rules/Code Guidance/
+   Validation/expectedVarDiff).
+4. Required Reads item'а, в указанном порядке.
+
+Прод-репо пилотов: dterema /home/vostrikov/projects/dterema/app, vintera
+/home/vostrikov/projects/vintera/vintera. Item трогает прод-репо dterema (ветка
+themeon-migration/P5, уже создана P5.1/P5.2) — ЖЁСТКИЕ инварианты, нарушение = escalation, не
+импровизация:
+  - INV1: работай ТОЛЬКО в ветке themeon-migration/P5. НЕ push, НЕ merge, НЕ rebase на основную.
+  - INV2: НИКАКИХ git stash/git reset/git checkout -f/git clean в прод-репо.
+  - INV3 (если item меняет base-vars.css — P5.3 не должен): гейт падает iff (removed ∪ changed
+    переменных) ⊄ expectedVarDiff item'а (P-D35/P-D38) — added-переменные НЕ блокируют сами по
+    себе. Baseline dterema уже снят в P5.1 (см. его Completion Notes) — переиспользуй, не переснимай.
+  - dterema (пользователь подтвердил 2026-07-13): ранняя разработка, НЕ держимся за текущую
+    реализацию — можно вести к каноничной форме пакета, а не к байт-в-байт сохранению легаси, пока
+    не теряются реальные данные/значения без причины.
+
+Исполняй СТРОГО Scope Included; Implementation Rules и Code Guidance — жёсткие рамки, не
+рекомендации. «Улучшить бы заодно» — в Pending Work, не делай (но если идея тянет на генерализацию
+пакета для будущих пользователей, а не только этого пилота — вынеси её отдельным абзацем в конце
+своего финального сообщения, не молчи о ней). Комментарии/тест-описания на русском. План разошёлся с
+реальным кодом — НЕ импровизируй: останавливайся и опиши расхождение, ничего не коммить.
+
+Прогони Validation-команды item'а, почини красное в рамках Scope. Закоммить (git add конкретных
+путей, НЕ -A; сообщение на русском, тело — почему; НЕ push) в ветку themeon-migration/P5 репо
+~/projects/dterema/app.
+
+Затем ОБЯЗАТЕЛЬНО подними отдельного read-only adversarial-ревьюера через Agent tool
+(subagent_type: general-purpose, model: opus, максимальный effort) на СВОЙ коммит — контекст: item
+P5.3, Scope/Code Guidance из P5.md. Фокус ровно на том, что parity по переменным не ловит:
+визуальная регрессия, порядок каскада, мёртвые дубли-хардкоды breakpoints. Severity
+LOW/MED/HIGH/CRITICAL, при сомнении — выше. Находки MED+ — почини сам, отдельным коммитом,
+перепрогони Validation заново.
+
+В конце: обнови phases/P5.md (Status item'а — 🟢 Done / 🟠 Done with deviations + Known Deviations
+/ 🔴 Blocked с причиной; Completion Notes — только факты; Status Board §4 plan.md). Перезапиши
+handoff.md. Синхронизируй копию плана в
+/home/vostrikov/Vaults/Brain/05-Projects/03-Packages/ThemeOn/plans/2026.07.12-BASE/ (rsync -a
+--delete поверх, только плановые файлы).
+
+Финал ответа — ОБЯЗАТЕЛЬНО: короткий статус и ГОТОВЫЙ К ВСТАВКЕ промпт для следующего item'а —
+P5.4 (шаблон и таблица подстановок в
+plans/2026.07.12-BASE/workflows/P5-manual-item-prompt.md). Сохрани его аналогично этому файлу —
+plans/2026.07.12-BASE/workflows/P5.4.prompt.txt — чтобы следующую сессию можно было запустить той
+же командой с заменённым именем файла.

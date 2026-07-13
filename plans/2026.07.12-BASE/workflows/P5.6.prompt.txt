@@ -1,0 +1,68 @@
+Роль — исполнение item'а P5.6 фазы P5 плана THEMEON (пилотная миграция dterema/vintera на
+ThemeOn), с ОБЯЗАТЕЛЬНЫМ read-only adversarial-review после реализации — прод-риск, ошибка ломает
+живой сайт. Работаешь в этой же CLI-сессии, без фоновых Workflow.
+
+Порядок чтения СТРОГО:
+1. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/plan.md — §1 Context, §2
+   Execution Rules, §5 Decision Log (особо P-D34..P-D43 — механика P5, parity-семантика, известные
+   баги автоскрипта уже починены), §4 Status Board.
+2. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/handoff.md
+3. /home/vostrikov/projects/packages/themeon/plans/2026.07.12-BASE/phases/P5.md — Phase Context
+   целиком + item P5.6 целиком (Status/Intent/Scope/Implementation Rules/Code Guidance/
+   Validation/expectedVarDiff). Прочти также Completion Notes P5.5 (vintera) — baseline
+   `baseline-vintera.json` снят этим item'ом (session-scratchpad, НЕ прод-репо; если файл физически
+   недоступен в новой сессии — пересоздать тем же методом: `yarn gen:styles` на HEAD ветки
+   `themeon-migration/P5` ДО правок P5.6, сверить с санити-значениями Completion Notes P5.5:
+   `--primary` base=dark=`#43d357`, `--bg-base` base=`#050520`) и P5.2 dterema (тот же item для
+   dterema — метод смены генератора, фикс `--size-2-xl`, переиспускается для vintera один-в-один).
+4. Required Reads item'а, в указанном порядке.
+
+Прод-репо пилотов: dterema `/home/vostrikov/projects/dterema/app`, vintera
+`/home/vostrikov/projects/vintera/vintera`. Item P5.6 трогает vintera, ветка `themeon-migration/P5`
+(создана P5.5, коммит `c7de812`) — ЖЁСТКИЕ инварианты, нарушение = escalation, не импровизация:
+  - INV1: работай ТОЛЬКО в ветке `themeon-migration/P5` vintera. НЕ push, НЕ merge, НЕ rebase на
+    основную.
+  - INV2: НИКАКИХ `git stash`/`git reset`/`git checkout -f`/`git clean` в прод-репо.
+  - INV3 (parity, item меняет base-vars.css): гейт падает iff (removed ∪ changed переменных) ⊄
+    expectedVarDiff item'а (P-D35/P-D38; для P5.6 — `--size2xl,--size3xl,--size4xl,--size5xl,
+    --size6xl` исчезают, `--size-2-xl..--size-6-xl` появляются, см. phases/P5.md expectedVarDiff
+    P5.6) — added-переменные (канон-namespace рядом с легаси) НЕ блокируют сами по себе, логируй, не
+    роняй. Baseline vintera — переиспользуй уже снятый P5.5 (`baseline-vintera.json`), НЕ переснимай.
+  - vintera — эталон регрессий (D17), строгий parity-гейт как задумано, БЕЗ послаблений dterema (то
+    решение пользователя касалось только dterema).
+
+Исполняй СТРОГО Scope Included; Implementation Rules и Code Guidance — жёсткие рамки, не
+рекомендации. «Улучшить бы заодно» — в Pending Work, не делай (но если идея тянет на генерализацию
+пакета для будущих пользователей, а не только этого пилота — вынеси её отдельным абзацем в конце
+своего финального сообщения, не молчи о ней; ГЛАВНЫЙ КРИТЕРИЙ ПАКЕТА — гибкость по настройкам,
+явное указание пользователя — если приходится обходить пакет хаком в пилоте, это НАХОДКА ПО ПАКЕТУ,
+а не норма, зафиксируй явно, не молчи). Комментарии/тест-описания на русском. План разошёлся с
+реальным кодом (файла нет, сигнатура другая, факты устарели) — НЕ импровизируй: останавливайся и
+опиши расхождение, ничего не коммить.
+
+Прогони Validation-команды item'а, почини красное в рамках Scope. Прогони parity-гейт (против
+`baseline-vintera.json`, переиспользуй, не переснимай) ДО коммита финального статуса. Закоммить
+(`git add` конкретных путей, НЕ `-A`; сообщение на русском, тело — почему; НЕ push) в
+`~/projects/vintera/vintera`, ветка `themeon-migration/P5`.
+
+Затем ОБЯЗАТЕЛЬНО подними отдельного read-only adversarial-ревьюера через Agent tool
+(subagent_type: general-purpose, model: opus, максимальный effort) на СВОЙ коммит — контекст:
+item P5.6, Scope/Code Guidance из P5.md. Фокус ровно на том, что parity по переменным не ловит:
+визуальная регрессия при совпавших переменных, FOUC, SSR-рассинхрон, мёртвая копия старого
+пайплайна (донорский `scripts/sync-css-vars.mjs`/`scripts/lib/styles-css-vars-codegen.ts`/
+`modules/sync-styles-css-vars.ts` — физически удалены, не просто отключены), порядок каскада
+(`@layer`/`<link>`-размещение, P-D40), корректность фикса `--size-2-xl`/`--size-5-xl` (значение ==
+fallback в `styles/core/typography.sass:16,25`). Severity LOW/MED/HIGH/CRITICAL, при сомнении —
+выше. Находки MED+ — почини сам, отдельным коммитом, перепрогони Validation и parity заново.
+
+В конце: обнови `phases/P5.md` (Status item'а — 🟢 Done / 🟠 Done with deviations + Known
+Deviations / 🔴 Blocked с причиной; Completion Notes — только факты; Status Board §4 plan.md).
+Перезапиши `handoff.md`. Синхронизируй копию плана в
+`/home/vostrikov/Vaults/Brain/05-Projects/03-Packages/ThemeOn/plans/2026.07.12-BASE/` (rsync -a
+--delete поверх, только плановые файлы).
+
+Финал ответа — ОБЯЗАТЕЛЬНО: короткий статус (что сделано, вердикт review, что дальше) и ГОТОВЫЙ
+К ВСТАВКЕ промпт для следующего item'а — P5.7 (шаблон и таблица подстановок в
+`plans/2026.07.12-BASE/workflows/P5-manual-item-prompt.md`). Сохрани его аналогично этому файлу —
+`plans/2026.07.12-BASE/workflows/P5.7.prompt.txt` — чтобы следующую сессию можно было запустить той
+же командой с заменённым именем файла.
