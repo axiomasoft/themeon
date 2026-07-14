@@ -3,6 +3,7 @@
  * анти-FOUC генератор живёт в отдельном pure-подпути `@themeon/vue/anti-fouc`, P-D24).
  * Заморожен `api.test.ts` (snapshot рантайм-экспортов) — образец `packages/core/src/index.ts`.
  */
+export { SYSTEM_PREFERENCE } from './defaults'
 export { THEME_INJECTION_KEY, themeonPlugin } from './plugin'
 export { useTheme } from './use-theme'
 export type { StorageLike, SystemPreference, UseThemeOptions, UseThemeReturn } from './types'

@@ -50,6 +50,29 @@ function fakeMedia(matches: boolean): { matches: boolean; addEventListener?: nev
   return { matches }
 }
 
+/**
+ * `MediaQueryList`-фейк, УМЕЮЩИЙ подписку (в отличие от `fakeMedia`) — нужен там, где проверяется
+ * живая реакция на смену темы ОС при открытой вкладке. `emit()` играет реальный `change`-эвент:
+ * сначала меняет `matches` (как это делает браузер), затем зовёт слушателей.
+ */
+function fakeLiveMedia(matches: boolean): {
+  matches: boolean
+  addEventListener: (t: 'change', cb: () => void) => void
+  emit: (next: boolean) => void
+} {
+  const listeners: Array<() => void> = []
+  return {
+    matches,
+    addEventListener(_t, cb) {
+      listeners.push(cb)
+    },
+    emit(next) {
+      this.matches = next
+      for (const cb of listeners) cb()
+    },
+  }
+}
+
 describe('createThemeState', () => {
   it('init() без сохранённой темы при системной dark-схеме выбирает dark', () => {
     const el = fakeElement()
@@ -174,7 +197,7 @@ describe('createThemeState', () => {
     expect(el.attrs['data-theme']).toBe('dark')
   })
 
-  it('отравленный персист "" при не заданном themes уходит в системную тему и перезаписывает хранилище', () => {
+  it('отравленный персист "" при не заданном themes уходит в системную тему и НЕ трогает хранилище', () => {
     const el = fakeElement()
     const storage = fakeStorage()
     storage.setItem('themeon-theme', '')
@@ -187,7 +210,114 @@ describe('createThemeState', () => {
     state.init()
 
     expect(state.theme.value).toBe('dark')
-    expect(storage.data['themeon-theme']).toBe('dark')
+    expect(state.preference.value).toBe('system')
+    // P-D49: `init()` не пишет в хранилище — персист это след ЯВНОГО `set()`. Отравленное значение
+    // остаётся лежать, но оно безвредно: оба канала (скрипт и init) классифицируют '' как «не задано».
+    // Перезаписывать его резолвнутой темой значит сфабриковать выбор пользователя и навсегда
+    // отписать его от prefers-color-scheme.
+    expect(storage.data['themeon-theme']).toBe('')
+  })
+
+  it('первый визит без персиста: тема применена, но хранилище пусто (системное предпочтение живо, P-D49)', () => {
+    const el = fakeElement()
+    const storage = fakeStorage()
+    const state = createThemeState({
+      target: () => el,
+      storage: () => storage,
+      media: () => fakeMedia(true),
+    })
+
+    state.init()
+
+    expect(state.theme.value).toBe('dark')
+    expect(el.attrs['data-theme']).toBe('dark')
+    expect(state.preference.value).toBe('system')
+    expect(storage.data['themeon-theme']).toBeUndefined()
+  })
+
+  it("смена темы ОС при preference==='system' перекрашивает страницу вживую (P-D49)", () => {
+    const el = fakeElement()
+    const media = fakeLiveMedia(false)
+    const state = createThemeState({
+      target: () => el,
+      storage: () => fakeStorage(),
+      media: () => media,
+    })
+
+    state.init()
+    expect(el.attrs['data-theme']).toBe('light')
+
+    media.emit(true) // пользователь переключил ОС в тёмную тему при открытой вкладке
+
+    expect(state.system.value).toBe('dark')
+    expect(state.theme.value).toBe('dark')
+    expect(el.attrs['data-theme']).toBe('dark')
+    expect(state.preference.value).toBe('system') // намерение не изменилось
+  })
+
+  it('явно выбранная тема ОС-переключение игнорирует (явный выбор главнее системы)', () => {
+    const el = fakeElement()
+    const media = fakeLiveMedia(false)
+    const state = createThemeState({
+      target: () => el,
+      storage: () => fakeStorage(),
+      media: () => media,
+    })
+
+    state.init()
+    state.set('light') // явный выбор пользователя
+
+    media.emit(true)
+
+    expect(state.system.value).toBe('dark') // системное предпочтение отслеживается…
+    expect(state.theme.value).toBe('light') // …но тему не перебивает
+    expect(el.attrs['data-theme']).toBe('light')
+  })
+
+  it("set('system') возвращает пользователя к системной теме и персистит НАМЕРЕНИЕ, а не резолв (P-D49)", () => {
+    const el = fakeElement()
+    const storage = fakeStorage()
+    const media = fakeLiveMedia(true)
+    const state = createThemeState({
+      target: () => el,
+      storage: () => storage,
+      media: () => media,
+      themes: ['light', 'dark'],
+    })
+
+    state.init()
+    state.set('light')
+    expect(storage.data['themeon-theme']).toBe('light')
+
+    state.set('system')
+
+    expect(state.preference.value).toBe('system')
+    expect(state.theme.value).toBe('dark') // резолв по текущей ОС
+    expect(el.attrs['data-theme']).toBe('dark')
+    // в хранилище — намерение, а не 'dark': иначе на следующем визите пользователь снова
+    // окажется приколочен к теме, а не к «как в системе»
+    expect(storage.data['themeon-theme']).toBe('system')
+  })
+
+  it("персист 'system' восстанавливает живое следование за ОС на следующем визите", () => {
+    const el = fakeElement()
+    const storage = fakeStorage()
+    storage.setItem('themeon-theme', 'system')
+    const media = fakeLiveMedia(true)
+    const state = createThemeState({
+      target: () => el,
+      storage: () => storage,
+      media: () => media,
+      themes: ['light', 'dark'],
+    })
+
+    state.init()
+
+    expect(state.preference.value).toBe('system')
+    expect(state.theme.value).toBe('dark')
+
+    media.emit(false)
+    expect(state.theme.value).toBe('light') // следование живое, а не одноразовое
   })
 
   it("set('') предупреждает и не трогает атрибут/хранилище", () => {
@@ -229,7 +359,8 @@ describe('createThemeState', () => {
     expect(state.theme.value).toBe('dark')
     expect(state.isDark.value).toBe(true)
     expect(el.attrs['data-theme']).toBe('dark')
-    expect(storage.data['themeon-theme']).toBe('dark')
+    // хранилище так и не тронуто: `init()` не пишет (P-D49), а отвергнутый `set('   ')` — тем более
+    expect(storage.data['themeon-theme']).toBeUndefined()
     warn.mockRestore()
   })
 

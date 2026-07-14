@@ -67,13 +67,23 @@ pull in `vue`) — generates the *one* anti-FOUC inline script the whole ThemeOn
 ```ts
 import { themeInitScript } from '@themeon/vue/anti-fouc'
 
-const script = themeInitScript({ storageKey: 'themeon-theme', attribute: 'data-theme' })
+// Pass the SAME options you pass to useTheme() — the script and useTheme() are two channels of
+// one state, not two independent configs. Omitting `themes`/`default` here while passing them to
+// useTheme() is exactly how the page ends up repainting after hydration.
+const script = themeInitScript({
+  storageKey: 'themeon-theme',
+  attribute: 'data-theme',
+  themes: ['light', 'dark'],
+  default: 'system',
+})
 // `<script>${script}</script>` — inject as early as possible in <head>.
-// Nuxt (`@themeon/nuxt`) injects it via `app.head.script`; Vite (`@themeon/vite`) via
-// `transformIndexHtml`. Options passed to `themeInitScript` and to `useTheme`/`themeonPlugin`
-// must match (same `storageKey`/`attribute`/theme names) — they are two channels of the same
-// state, not two independent configs.
+// Nuxt (`@themeon/nuxt`) injects it per request from `runtimeConfig`; Vite (`@themeon/vite`) via
+// `transformIndexHtml`.
 ```
+
+Both channels resolve persistence by the **same** rules, and a test (`src/parity.test.ts`) runs every
+combination of inputs through both and asserts they agree — a divergence here is a visible theme flash,
+so it is an executable invariant rather than a convention.
 
 Option values are validated against a script-injection guard (no quotes, angle brackets,
 backslash or newlines) — `themeInitScript` throws rather than silently producing broken or
@@ -85,20 +95,44 @@ unsafe output.
 
 | Option | Type | Default | Meaning |
 |:--|:--|:--|:--|
-| `themes` | `readonly string[]` | `['light', 'dark']` | Known theme names; `toggle()` cycles the first two by default. |
-| `default` | `string` | — | Theme used when nothing is persisted and the system default is not wanted. An empty or whitespace-only string means "not set" — it falls back to `prefers-color-scheme`, it is not a theme named `''`. |
+| `themes` | `readonly string[]` | `['light', 'dark']` | Known theme names; `toggle()` cycles the first two by default. `'system'` is a reserved preference, not a theme — do not list it. |
+| `default` | `string` | `'system'` | Preference used when nothing is persisted: a theme name, or `'system'` to follow the OS. An empty or whitespace-only string means "not set" and resolves to `'system'` — it is not a theme named `''`. |
 | `storageKey` | `string \| null` | `'themeon-theme'` | `localStorage` key; `null` disables persistence. |
 | `attribute` | `string` | `'data-theme'` | DOM attribute driving the switch (D6). |
 | `system` | `{ dark: string; light: string }` | `{ dark: 'dark', light: 'light' }` | Maps the system preference to a theme name. |
 | `disableTransition` | `boolean` | `true` | Suppress CSS transitions for one frame during a switch. |
 | `runtimeVars` | `Record<string, Record<string, string>>` | — | Runtime variable patches for themes absent from the static `tokens.css` (tenant/dynamic). |
 
-Returns `{ theme, system, isDark, set, toggle, init }` — see `UseThemeReturn` in `src/types.ts`.
+Returns `{ preference, theme, system, isDark, set, toggle, init }` — see `UseThemeReturn` in `src/types.ts`.
 
-`set(name)` ignores an empty or whitespace-only name: it warns and returns without touching the
-DOM or persistence, leaving the current theme in place. An empty string is never a theme — it is
-how a missing value arrives over a JSON/env transport (Nitro normalizes an unset `runtimeConfig`
-value to `''`), and applying it would wipe the attribute and poison the persisted value.
+### Preference vs theme (why there are two)
+
+```ts
+const { preference, theme, system, set } = useTheme()
+
+preference.value // 'system' | 'light' | 'dark' | … — the user's INTENT. This is what gets persisted.
+theme.value      // 'light' | 'dark' | …           — the RESOLVED theme, the one on <html>.
+system.value     // 'light' | 'dark'               — the OS preference, tracked live.
+
+set('dark')      // explicit choice — stops following the OS
+set('system')    // back to following the OS, live
+```
+
+ThemeOn persists the **preference**, never the resolved theme. Storing the resolved value on behalf
+of a user who never chose it would silently unsubscribe them from `prefers-color-scheme` on their very
+first visit: the OS flips to dark, the site stays light, and there is no way back. Same split as VueUse
+`useColorMode` (`store`/`state`) and next-themes (`theme`/`resolvedTheme`).
+
+Consequences worth knowing:
+
+- `init()` **never writes** to storage. Persistence is a trace of an explicit `set()`.
+- While `preference` is `'system'`, an OS theme change repaints the page live — no reload needed.
+- Render your switcher's selected item from `preference`, and the page from `theme`.
+
+`set(value)` ignores an empty or whitespace-only value: it warns and returns without touching the DOM
+or persistence, leaving the current theme in place. An empty string is never a theme — it is how a
+missing value arrives over a JSON/env transport (Nitro coerces an unset `runtimeConfig` value to `''`),
+and applying it would wipe the attribute and poison the persisted value.
 
 ### `themeonPlugin`
 
@@ -113,7 +147,7 @@ value to `''`), and applying it would wipe the attribute and poison the persiste
 | `attribute` | `string` | `'data-theme'` | DOM attribute — must match `useTheme()`. |
 | `darkTheme` | `string` | `'dark'` | Name used when the system prefers dark. |
 | `lightTheme` | `string` | `'light'` | Name used when the system prefers light. |
-| `default` | `string` | — | Overrides the system branch when nothing is persisted. `''`/whitespace means "not set". |
+| `default` | `string` | `'system'` | Preference used when nothing is persisted — a theme name, or `'system'` to follow the OS. `''`/whitespace means "not set". |
 | `themes` | `readonly string[]` | — | Known theme names. When set, a persisted name outside the set is rejected and the fallback applies. |
 
 Returns the IIFE body as a string (no `<script>` tags — the caller wraps it).

@@ -14,8 +14,14 @@
  */
 import { computed, readonly, ref } from 'vue'
 import { applyTheme, clearTheme } from '@themeon/core'
-import { DEFAULT_ATTRIBUTE, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, DEFAULT_STORAGE_KEY } from './defaults'
-import { normalizeThemeName } from './theme-name'
+import {
+  DEFAULT_ATTRIBUTE,
+  DEFAULT_DARK_THEME,
+  DEFAULT_LIGHT_THEME,
+  DEFAULT_STORAGE_KEY,
+  SYSTEM_PREFERENCE,
+} from './defaults'
+import { asThemeName } from './theme-name'
 import type { UseThemeOptions, UseThemeReturn } from './types'
 
 // Ключ/атрибут — из общего `defaults.ts` (P3.2 Rule 3): тот же источник, что и у
@@ -75,18 +81,35 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     })
   const getMedia = options.media ?? ((query: string) => matchMedia(query))
 
-  // Один резолв на состояние (P3.7): пустая/пробельная строка (Nuxt-коерс незаданной опции
-  // runtimeConfig в '') не считается заданной темой — используется и здесь, и в `init()`.
-  const explicitDefault = normalizeThemeName(options.default)
+  // Предпочтение по умолчанию (P-D49): `'system'` — следовать за ОС. Пустая/пробельная строка
+  // (Nuxt-коерс незаданной опции runtimeConfig в '') = «не задано» = та же системная ветка (P3.7).
+  const defaultPreference = asThemeName(options.default) ?? SYSTEM_PREFERENCE
 
-  // SSR-нейтральный дефолт: не зависит от system/stored, чтобы серверная и клиентская первая
-  // отрисовка совпадали (инвариант №2) — фактическая тема резолвится позже, в `init()`.
-  const theme = ref<string>(explicitDefault ?? cycleThemes[0] ?? 'light')
+  if (explicitThemes?.includes(SYSTEM_PREFERENCE)) {
+    console.warn(
+      `[themeon] useTheme: "${SYSTEM_PREFERENCE}" is a reserved preference meaning "follow the OS", ` +
+        `not a theme name — remove it from \`themes\`, or the persisted preference becomes ambiguous.`,
+    )
+  }
+
+  // ПРЕДПОЧТЕНИЕ (намерение пользователя) и ТЕМА (резолв) — два разных состояния (P-D49, канон
+  // VueUse `store`/`state`, research R-13 §2.1). Персистится ТОЛЬКО предпочтение: сохранив вместо
+  // него резолвнутую системную тему, мы бы навсегда отписали пользователя от `prefers-color-scheme`.
+  const preference = ref<string>(defaultPreference)
   const system = ref<'dark' | 'light'>('light')
+  // SSR-нейтральная тема: на сервере `system` всегда 'light' (читать `matchMedia` там нечем),
+  // поэтому серверная и клиентская первая отрисовка совпадают (инвариант №2) — фактический
+  // резолв случится в `init()` на клиенте.
+  const theme = ref<string>(resolvePreference(defaultPreference))
   let lastRuntimeVarNames: string[] = []
   let initialized = false
 
   const isDark = computed(() => theme.value === systemMap.dark)
+
+  /** Предпочтение → тема: `'system'` резолвится по текущему `system`, имя темы — само собой. */
+  function resolvePreference(pref: string): string {
+    return pref === SYSTEM_PREFERENCE ? systemMap[system.value] : pref
+  }
 
   function applyOne(name: string): void {
     const el = getTarget()
@@ -105,25 +128,39 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     }
   }
 
-  function set(name: string): void {
-    if (normalizeThemeName(name) === undefined) {
+  /**
+   * Применяет ПРЕДПОЧТЕНИЕ: обновляет `preference`, резолвит его в тему и пишет её в DOM.
+   * Хранилище НЕ трогает — персист происходит только в `set()` (явный выбор пользователя).
+   */
+  function apply(pref: string): void {
+    preference.value = pref
+    const resolved = resolvePreference(pref)
+    theme.value = resolved
+    withoutTransition(disableTransition, () => applyOne(resolved))
+  }
+
+  function set(pref: string): void {
+    if (asThemeName(pref) === undefined) {
       console.warn(
-        `[themeon] useTheme: set() ignored an empty theme name (${JSON.stringify(name)}); ` +
-          `an empty or whitespace-only string is not a theme. Pass a theme name, or omit ` +
-          `\`default\` to fall back to the \`prefers-color-scheme\` system preference.`,
+        `[themeon] useTheme: set() ignored an empty preference (${JSON.stringify(pref)}); ` +
+          `an empty or whitespace-only string is not a theme. Pass a theme name or ` +
+          `"${SYSTEM_PREFERENCE}" to follow the OS preference.`,
       )
       return
     }
-    if (explicitThemes && !explicitThemes.includes(name)) {
+    if (pref !== SYSTEM_PREFERENCE && explicitThemes && !explicitThemes.includes(pref)) {
       console.warn(
-        `[themeon] useTheme: unknown theme "${name}"; known themes: ${explicitThemes.join(', ')}`,
+        `[themeon] useTheme: unknown theme "${pref}"; known themes: ${explicitThemes.join(', ')}` +
+          ` (or "${SYSTEM_PREFERENCE}" to follow the OS preference)`,
       )
     }
-    theme.value = name
-    withoutTransition(disableTransition, () => applyOne(name))
+    // `set()` — ЕДИНСТВЕННЫЙ путь, которым что-либо попадает в хранилище: персист означает
+    // «пользователь выбрал ЭТО явно» (P-D49). Персистится намерение (`'system'` — тоже намерение),
+    // а не резолвнутая тема, иначе возврат к «как в системе» становится невозможен.
+    apply(pref)
     if (storageKey !== null) {
       try {
-        getStorage()?.setItem(storageKey, name)
+        getStorage()?.setItem(storageKey, pref)
       } catch {
         // localStorage недоступен (private mode/quota) — не роняем смену темы
       }
@@ -133,6 +170,8 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
   function toggle(a?: string, b?: string): void {
     const first = a ?? cycleThemes[0] ?? 'light'
     const second = b ?? cycleThemes[1] ?? first
+    // Циклим по РЕЗОЛВНУТОЙ теме (то, что пользователь видит), а не по предпочтению: при
+    // `preference==='system'` и тёмной ОС тумблер обязан увести в светлую, а не в `cycleThemes[1]`.
     set(theme.value === first ? second : first)
   }
 
@@ -143,9 +182,11 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     let stored: string | null = null
     if (storageKey !== null) {
       try {
-        // Нормализуем ДО проверки `storedIsKnown` (P3.7): отравленный персист ('', записанный
-        // дефектной сборкой до фикса) не должен проходить как валидное имя темы открытого набора.
-        stored = normalizeThemeName(getStorage()?.getItem(storageKey)) ?? null
+        // Классифицируем ДО проверки валидности (P3.7): отравленный персист ('', записанный
+        // дефектной сборкой) не должен проходить как валидное значение открытого набора.
+        // `asThemeName` НЕ переписывает значение — ровно те же правила исполняет анти-FOUC
+        // скрипт (P3.8, исполняемый инвариант `parity.test.ts`).
+        stored = asThemeName(getStorage()?.getItem(storageKey)) ?? null
       } catch {
         // localStorage недоступен (private mode/quota) — стартуем без персиста
         stored = null
@@ -157,17 +198,26 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     // подписка живёт, только если seam её предоставляет (реальный MediaQueryList — умеет)
     media.addEventListener?.('change', () => {
       system.value = media.matches ? 'dark' : 'light'
+      // Предпочтение «следовать за системой» — ЖИВОЕ: смена темы ОС при открытой вкладке
+      // перекрашивает страницу (P-D49). Явно выбранная тема системную ветку перебивает.
+      if (preference.value === SYSTEM_PREFERENCE) apply(SYSTEM_PREFERENCE)
     })
 
-    // `themes` не задан явно (open set — например, только `runtimeVars`) — доверяем
-    // персисту любое сохранённое имя; если `themes` задан явно, персист валиден только
-    // среди перечисленных тем (симметрично с проверкой в `set()`, см. HIGH P3.1)
-    const storedIsKnown = stored !== null && (explicitThemes ? explicitThemes.includes(stored) : true)
-    const active = storedIsKnown ? (stored as string) : (explicitDefault ?? systemMap[system.value])
-    set(active)
+    // Персист валиден, если это `'system'` (намерение следовать за ОС) либо известная тема.
+    // `themes` не задан явно (open set — например, только `runtimeVars`) — доверяем персисту
+    // любое непустое имя; задан — только имя из набора (симметрично с `set()`, см. HIGH P3.1).
+    const storedIsUsable =
+      stored !== null &&
+      (stored === SYSTEM_PREFERENCE || (explicitThemes ? explicitThemes.includes(stored) : true))
+
+    // `init()` НЕ пишет в хранилище (P-D49): персист — след ЯВНОГО выбора (`set()`), а не
+    // побочный эффект первого визита. Отравленный/протухший персист не «лечится» перезаписью —
+    // оба канала игнорируют его одинаково.
+    apply(storedIsUsable ? (stored as string) : defaultPreference)
   }
 
   return {
+    preference: readonly(preference),
     theme: readonly(theme),
     system: readonly(system),
     isDark,

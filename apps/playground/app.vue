@@ -34,6 +34,24 @@ const theme = useTheme()
               Theme: {{ theme.theme.value }} ({{ theme.isDark.value ? 'dark' : 'light' }})
             </ClientOnly>
           </button>
+          <!-- Догфуд P-D49: тумблер темы обязан различать НАМЕРЕНИЕ (preference) и РЕЗОЛВ (theme).
+               "System" — полноценный выбор, а не скрытый дефолт: выбрав его, пользователь
+               возвращается к живому следованию за темой ОС. Без этой кнопки в playground новая
+               семантика не догфудится (ровно так P3.6 и спрятал дефект `default:''`). -->
+          <ClientOnly>
+            <div class="cluster" role="group" aria-label="Theme preference">
+              <button
+                v-for="p in ['light', 'dark', 'system']"
+                :key="p"
+                class="btn"
+                :class="{ 'btn--outline': theme.preference.value !== p }"
+                :aria-pressed="theme.preference.value === p"
+                @click="theme.set(p)"
+              >
+                {{ p }}
+              </button>
+            </div>
+          </ClientOnly>
         </div>
       </section>
     </main>

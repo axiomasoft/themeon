@@ -16,13 +16,19 @@ export interface StorageLike {
 export type SystemPreference = 'dark' | 'light'
 
 export interface UseThemeOptions {
-  /** Известные имена тем; `toggle()` по умолчанию циклит первые две. Default `['light','dark']`. */
+  /**
+   * Known theme names; `toggle()` cycles the first two by default. Default `['light','dark']`.
+   * `'system'` is a reserved *preference* (follow the OS), not a theme — do not list it here.
+   */
   themes?: readonly string[]
   /**
-   * Тема, когда нет сохранённой И не хотим системную. Если не задан — берётся системная.
-   * Пустая/пробельная строка = «не задано» (то же, что отсутствие опции): так отсутствующее
-   * значение приезжает по JSON/env-транспорту (Nitro нормализует незаданный `runtimeConfig`
-   * в `''`), и трактовать его как имя темы значит убить `prefers-color-scheme`-фолбэк.
+   * Preference used when nothing is persisted. Either a theme name or `'system'` (follow the OS).
+   * Default `'system'`.
+   *
+   * An empty or whitespace-only string means "not set" (same as omitting the option) and resolves
+   * to `'system'`: that is how a missing value arrives over a JSON/env transport — Nitro coerces an
+   * unset `runtimeConfig` value to `''` — and treating it as a theme name would kill the
+   * `prefers-color-scheme` fallback.
    */
   default?: string
   /** Ключ localStorage; `null` отключает персист. Default `'themeon-theme'`. */
@@ -49,19 +55,33 @@ export interface UseThemeOptions {
 }
 
 export interface UseThemeReturn {
-  /** Активная тема. */
+  /**
+   * The user's *intent* — `'system'` (follow the OS) or an explicit theme name. This is the value
+   * that gets persisted, and the one a theme switcher should render as "selected".
+   *
+   * It is deliberately separate from `theme`: persisting the *resolved* theme instead of the intent
+   * would silently unsubscribe the user from `prefers-color-scheme` forever (they could never get
+   * back to "follow the OS"). Same split as VueUse `useColorMode` (`store`/`state`) and next-themes
+   * (`theme`/`resolvedTheme`).
+   */
+  readonly preference: Readonly<Ref<string>>
+  /** The *resolved* theme actually applied to the DOM (`'system'` already resolved via `system`). */
   readonly theme: Readonly<Ref<string>>
-  /** Системное предпочтение (`prefers-color-scheme`). */
+  /** The OS preference (`prefers-color-scheme`), tracked live. */
   readonly system: Readonly<Ref<SystemPreference>>
-  /** `theme === system.dark`-имя. */
+  /** Whether the resolved `theme` is the dark one. */
   readonly isDark: ComputedRef<boolean>
   /**
-   * Применяет тему: атрибут + персист (+ runtime-var-патч для тем из `runtimeVars`).
-   * Пустое/пробельное имя игнорируется — `console.warn` и выход БЕЗ записи в DOM/хранилище,
-   * текущая тема остаётся на месте (пустая строка — не тема, см. `UseThemeOptions.default`).
-   * Неизвестная тема при заданном `themes` — предупреждение, но тема применяется.
+   * Sets the preference: a theme name, or `'system'` to follow the OS again. Applies the resolved
+   * theme to the DOM (+ the `runtimeVars` patch, if any) and persists the *preference*.
+   *
+   * An empty or whitespace-only value is ignored — it warns and returns without touching the DOM or
+   * storage, leaving the current theme in place (an empty string is not a theme, see
+   * `UseThemeOptions.default`). An unknown theme (when `themes` is set) warns but is still applied.
    */
-  set(theme: string): void
+  set(preference: string): void
+  /** Cycles between two themes (by default the first two of `themes`), based on the resolved theme. */
   toggle(a?: string, b?: string): void
+  /** Client-only: reads persistence + `prefers-color-scheme`, resolves and applies the theme. */
   init(): void
 }

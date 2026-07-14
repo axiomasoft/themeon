@@ -63,19 +63,30 @@ export default defineNuxtModule<ModuleOptions>({
 
     addPlugin({ src: resolver.resolve('./runtime/plugin'), mode: 'all' })
 
-    // ── Анти-FOUC head-скрипт (D6, P-D24) ──
-    // ОДИН генератор `themeInitScript`, переиспользован из `@themeon/vue/anti-fouc` (pure,
-    // без vue в графе). Маршрут A — статический тег в `<head>`, не per-request nitro-инъекция
-    // (маршрут B — задел P6, намеренно не строится здесь).
+    // ── Анти-FOUC head-скрипт (D6, P-D24, P-D50) ──
+    // ОДИН генератор `themeInitScript`, переиспользован из `@themeon/vue/anti-fouc` (pure, без vue
+    // в графе) — на обоих маршрутах.
+    //
+    // МАРШРУТ B (SSR, дефолт с P3.8): серверный плагин генерит скрипт на КАЖДЫЙ запрос из
+    // `runtimeConfig` → `NUXT_PUBLIC_THEMEON_*`-override доезжает и до pre-paint скрипта, а не
+    // только до рантайма (иначе каналы расходятся и страница перекрашивается после гидрации).
+    //
+    // МАРШРУТ A (SPA, `ssr: false`): сервера нет — скрипт обязан быть запечён в статический
+    // `index.html`. Там и `runtimeConfig` запекается на сборке, поэтому env-override невозможен
+    // в принципе и запекание скрипта ничего не теряет.
     if (options.fouc !== false) {
-      nuxt.options.app.head ||= {}
-      nuxt.options.app.head.script ||= []
-      nuxt.options.app.head.script.push({
-        key: 'themeon-fouc',
-        innerHTML: themeInitScript(buildFoucScriptOptions(options)),
-        tagPosition: 'head',
-        tagPriority: 'critical',
-      })
+      if (nuxt.options.ssr === false) {
+        nuxt.options.app.head ||= {}
+        nuxt.options.app.head.script ||= []
+        nuxt.options.app.head.script.push({
+          key: 'themeon-fouc',
+          innerHTML: themeInitScript(buildFoucScriptOptions(options)),
+          tagPosition: 'head',
+          tagPriority: 'critical',
+        })
+      } else {
+        addPlugin({ src: resolver.resolve('./runtime/fouc.server'), mode: 'server' })
+      }
     }
 
     // ── Codegen пользовательской темы + dev-watcher по хэшу директории (D13) ──
