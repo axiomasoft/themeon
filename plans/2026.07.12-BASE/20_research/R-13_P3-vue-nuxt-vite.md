@@ -251,6 +251,15 @@ hotUpdate({ file, server }) {
 Совместимость: `handleHotUpdate` ещё работает в Vite 8 (deprecated, не удалён) — если нужен
 диапазон `vite: ^7 || ^8`, писать `hotUpdate` с fallback, но peer `^8` проще (§1).
 
+> ⚠️ **ОПРОВЕРГНУТО (2026-07-14, P8)**: паттерн выше (ручной `hot.send({type:'css-update',…})`
+> на `mod.url` виртуального модуля) — no-op в реальном Vite. `css-update` подменяет ТОЛЬКО
+> `<link>`-теги в DOM; виртуальный CSS-модуль подключается через JS-импорт (`import
+> 'virtual:themeon.css'`), а не `<link>`, поэтому `css-update` для него не применяется никогда.
+> Дополнительно: `mod.url` виртуального модуля — сырой `\0virtual:themeon.css` (внутренний
+> Rollup-префикс), не браузерный `/@id/...`-путь, так что и «правильный» `js-update` был бы
+> адресован в никуда. Канон HMR — `findings/P8-vite-channel-hmr.md` (Vite 8.1.4 + кросс-проверка
+> 7.3.6, живой Chromium по CDP); решение — **P-D55** (supersedes P-D26).
+
 ### 4.3 Эталон — UnoCSS `virtual:uno.css` (проверенный паттерн, R-06 §4)
 
 Из источника `packages-integrations/vite/src/modes/global/dev.ts`
@@ -263,6 +272,13 @@ hotUpdate({ file, server }) {
 - **debounce** (~10мс) на батч изменений — стоит воспроизвести (частые сохранения токенов).
 - Клиент: `import.meta.hot.accept` + `invalidate` (Vite HMR API https://vite.dev/guide/api-hmr).
 
+> ⚠️ **ОПРОВЕРГНУТО (2026-07-14, P8)**: этот пункт верно ЦИТИРУЕТ факт («UnoCSS шлёт
+> `js-update`, т.к. CSS импортится как JS-модуль»), но делает из него ОБРАТНЫЙ вывод —
+> «для чистого `.css`-virtual корректнее `css-update`» (см. §4.2 выше). ThemeOn virtual-модуль
+> тоже импортируется как JS (`import 'virtual:themeon.css'`), а не через `<link>`, значит по
+> ТОЙ ЖЕ логике донора нужен `js-update`, не `css-update` — R-13 сама привела правильную
+> предпосылку и свернула не туда. Канон — `findings/P8-vite-channel-hmr.md`; решение — **P-D55**.
+
 ### 4.4 Laravel / plain-Vite рецепт (§4.8)
 
 - Плагин в `vite.config.js`; в `resources/css/app.css` — `@import "virtual:themeon.css";` **или**
@@ -270,6 +286,15 @@ hotUpdate({ file, server }) {
   Vite-конвейер; наш плагин — обычный Vite-плагин, ставится рядом. Прецедент рецепта — R-06
   (BlatUI, laravel-vite-plugin). Виртуальный маршрут даёт HMR токенов в dev; статический
   `@themeon/css/tokens.css` — для тех, кто не хочет плагин (fallback, работает и без Vite-плагина).
+
+> ⚠️ **ОПРОВЕРГНУТО (2026-07-14, P8)**: `@import "virtual:themeon.css";` внутри CSS **не
+> работает** и не может работать — CSS `@import` резолвится PostCSS/`postcss-import` по
+> файловой системе, а не через плагинный `resolveId`/`load` конвейер Vite; virtual-модули
+> резолвятся только для JS-графа (`import`/`import()`). Это Blocker #1 аудита — единственный
+> документированный способ подключения `@themeon/vite` был нерабочим. Канон подключения —
+> `import 'virtual:themeon.css'` из JS-энтри; CSS-only остаётся только через статический
+> `@themeon/css/tokens.css` (без HMR темы). Канон — `findings/P8-vite-channel-hmr.md`;
+> решение — **P-D55** (supersedes P-D26).
 
 ## 5. Edge-cases и подводные камни (сводка для дизайна)
 
@@ -304,6 +329,12 @@ hotUpdate({ file, server }) {
    (Environment API: `this.environment.moduleGraph.invalidateModule` + `this.environment.hot.send
    ({type:'update',updates:[{type:'css-update',…}]})`); эталон — UnoCSS dev.ts (invalidate+debounce+
    sendUpdate); Laravel-рецепт — `@import "virtual:themeon.css"` (HMR) или статик `tokens.css` (fallback).
+
+> ⚠️ **ОПРОВЕРГНУТО (2026-07-14, P8)**: весь пункт 4 воспроизводит опровергнутые §4.2/§4.3/§4.4
+> выше — `css-update` для virtual-модуля no-op, CSS-`@import` виртуального модуля невозможен.
+> Канон — `import 'virtual:themeon.css'` из JS-энтри, HMR — `hotUpdate` возвращающий `[mod]`
+> (без ручного `hot.send`). Канон — `findings/P8-vite-channel-hmr.md`; решение — **P-D55**
+> (supersedes P-D26).
 5. **Инварианты:** единый источник записи DOM (`applyTheme`); SSR-разметка не зависит от темы;
    `data-theme` атрибут; N тем; persist localStorage + `prefers-color-scheme` дефолт.
 

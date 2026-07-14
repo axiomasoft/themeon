@@ -71,6 +71,14 @@ const overrides: GlobalThemeOverrides = {
   без hover/pressed в `NConfigProvider`, проверить, не падает ли seemly и корректны ли
   производные (issue-класс «слайдер не перекрашивается в dark» — Discussion #1373).
 
+> ⚠️ **ОПРОВЕРГНУТО/УТОЧНЕНО (2026-07-14, P8)**: VERIFY снят эмпирически (провенанс-скан 81
+> light/78 dark компонентных тем naive-ui 2.44.1) — `seemly@0.3.10` парсит регулярками ТОЛЬКО
+> `#rgb(a)`/`#rrggbb(aa)`/`rgb()`/`rgba()`/`hsl()`/CSS-имена/`transparent`; `oklch()` и, что
+> критичнее, **`var(--…)`-строки** (`resolved.vars`) не парсятся вовсе — `changeColor('var(--x)',
+> …)` бросает `[seemly/rgba]: Invalid color value`. Именно на этом упал Blocker #2: код читал
+> `.vars` (var-строки), а не `.tokens[].value` (литералы). Канон —
+> `findings/P8-naive-color-canon.md` §1.2/S6; решение — **P-D56/P-D57** (supersedes P-D29).
+
 ### 1.4 Breakpoint-мёрж (донор `mergeNaiveDesktopOverride`, R-01/R-02)
 - **`theme-overrides` НЕ реактивен к брейкпоинтам сам по себе** (подтверждено: prop не
   responsive). Публичного `useBreakpoint`-composable Naive **не экспортирует** — брейкпоинты
@@ -132,6 +140,16 @@ Runtime-`:root { --color-action-primary: … }` и `[data-theme] { … }` жив
 `tokens.css` (не в бридже). Утилиты Tailwind ссылаются на них через inline-подстановку →
 переключение темы работает без ребилда (несущая причина всей архитектуры, §4.4 master).
 
+> ⚠️ **ОПРОВЕРГНУТО (2026-07-14, P8)**: посылка «`@theme inline` НЕ создаёт глобальную
+> `--color-x`» ФАКТИЧЕСКИ НЕВЕРНА — 24 реальные компиляции Tailwind 4.3.2 × computed-стили в
+> headless Chrome показали, что `inline` управляет только тем, что попадает В УТИЛИТУ; эмиссию
+> переменной в `:root`/`:host` решают tree-shaking и `reference`/`static`-режим независимо. Это
+> Blocker #5: self-referential `@theme inline { --color-x: var(--color-x) }` всё равно кладёт
+> циклическую `--color-x: var(--color-x)` в `:root`, которая при обратном порядке подключения
+> CSS перебивает `tokens.css` и обнуляет ВСЕ токены. Канон —
+> `findings/P8-tailwind-bridge-form.md`; решение — **P-D54** (supersedes P-D31, мост переведён на
+> `@theme reference` + литералы).
+
 ### 2.2 EDGE-CASE: self-referential mapping в `@theme inline`
 Т.к. ThemeOn уже именует переменные в Tailwind-namespace (D5: `--color-*`, `--spacing-*`),
 имя в `@theme inline` **совпадает** с runtime-именем в `tokens.css` (`--color-action-primary:
@@ -144,6 +162,17 @@ var(--color-action-primary)`). Поскольку `@theme inline` **не эми�
 утилиты. Fallback-план если self-reference не работает: использовать разные имена
 (`--color-primary: var(--color-action-primary)` → утилита `.bg-primary`), ценой второго
 набора имён.
+
+> ⚠️ **ОПРОВЕРГНУТО (2026-07-14, P8)**: VERIFY снят реальными компиляциями — (b) НЕВЕРНО:
+> `--color-action-primary` появляется в `:root` дублем-циклом (Blocker #5, см. §2.1 выше).
+> Дополнительно вскрылся отдельный блокер той же self-referential формы: `breakpoint`,
+> включённый в self-ref `@theme inline`, генерирует `@media (width >= var(--breakpoint-md))` —
+> синтаксически невалидный media-query, из-за чего ВСЕ адаптивные варианты (`md:`/`lg:`)
+> перестают применяться (Blocker #4). Fallback-план (разные имена LHS/RHS) тоже НЕРЕАЛИЗУЕМ:
+> он переименовывает публичные классы (`bg-action-primary` → `bg-primary`). Канон —
+> `findings/P8-tailwind-bridge-form.md`; решение — **P-D54** (supersedes P-D31 вместе с
+> fallback-планом — мост переведён на `@theme reference` + литеральные значения, `breakpoint`
+> — литерал всегда).
 
 ### 2.3 Прочее по Tailwind v4
 - **Tailwind v4 генерирует утилиты ТОЛЬКО из `@theme`-объявленных переменных**, НЕ из
