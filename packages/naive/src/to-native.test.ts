@@ -151,6 +151,37 @@ describe('toNative — fail-loud (P8.8, §1.3)', () => {
     expect(out.common.primaryColor).toBeUndefined()
     expect(out.common.bodyColor).toMatch(HEX_RE)
   })
+
+  test('одна и та же плохая роль в сообщении не дублируется (общая для common-map + деривации)', () => {
+    const resolved = buildResolved([tok('--color-action-primary', 'var(--x)')])
+    let thrown: unknown
+    try {
+      toNative(resolved)
+    } catch (e) {
+      thrown = e
+    }
+    const message = (thrown as Error).message
+    const occurrences = message.split('--color-action-primary').length - 1
+    expect(occurrences).toBe(1)
+  })
+
+  test('присутствующая, но невалидная on-роль статуса НЕ фолбэчит на --color-on-primary — skip реально пропускает роль', () => {
+    const resolved = buildResolved([
+      tok('--color-status-success', 'oklch(0.5 0.15 155)'),
+      tok('--color-on-success', 'var(--broken)'),
+      tok('--color-on-primary', 'oklch(1 0 0)'),
+    ])
+    const skipped = toNative(resolved, { onInvalidColor: 'skip' }) as any
+    expect(skipped.Button?.textColorSuccess).toBeUndefined()
+
+    let thrown: unknown
+    try {
+      toNative(resolved)
+    } catch (e) {
+      thrown = e
+    }
+    expect((thrown as Error).message).toContain('--color-on-success')
+  })
 })
 
 describe('toNative — INK-таблица (P8.8, §2.4/§2.5)', () => {

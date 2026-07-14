@@ -71,7 +71,10 @@ export function toNative(resolved: ResolvedTheme, opts?: ToNativeOptions): Globa
   const appearance = appearanceOf(resolved, opts)
   const common: Record<string, unknown> = {}
   const componentOverrides: Record<string, Record<string, unknown>> = {}
-  const bad: string[] = []
+  // `varName → raw` — Map, не array: несколько таблиц (common-map, DERIVABLE_BASES, INK)
+  // читают одну и ту же роль (напр. `--color-action-primary`, `--color-on-primary`-фолбэк) —
+  // без дедупа сообщение об ошибке дублировало бы строки и завышало счётчик (code-review P8.8).
+  const bad = new Map<string, string>()
 
   const color = (varName: CssVarName): string | undefined => {
     const raw = lookup[varName]
@@ -79,7 +82,7 @@ export function toNative(resolved: ResolvedTheme, opts?: ToNativeOptions): Globa
     try {
       return toHexStrict(raw)
     } catch {
-      bad.push(`${varName}: ${raw}`)
+      bad.set(varName, raw)
       return undefined
     }
   }
@@ -108,7 +111,12 @@ export function toNative(resolved: ResolvedTheme, opts?: ToNativeOptions): Globa
   // владеет тема. `baseColor` намеренно не трогается (см. common-map.ts).
   for (const { base, onRole, suffix } of STATUS_INK_SOURCES) {
     if (lookup[base] === undefined) continue
-    const ink = onRole === '--color-on-primary' ? color(onRole) : (color(onRole) ?? color('--color-on-primary'))
+    // Фолбэк на --color-on-primary только когда своя on-роль ОТСУТСТВУЕТ в теме (D3). Если
+    // она присутствует, но невалидна, это не «роли нет» — тихая подмена на primary-чернила
+    // маскировала бы конфигурационную ошибку темы (code-review P8.8, onInvalidColor:'skip'
+    // обязан реально пропускать роль, а не подставлять другую).
+    const onRoleGiven = onRole === '--color-on-primary' || lookup[onRole] !== undefined
+    const ink = onRoleGiven ? color(onRole) : color('--color-on-primary')
     if (ink === undefined) continue
 
     for (const state of BUTTON_INK_STATES) setComponentKey(componentOverrides, 'Button', `textColor${state}${suffix}`, ink)
@@ -129,11 +137,12 @@ export function toNative(resolved: ResolvedTheme, opts?: ToNativeOptions): Globa
     for (const { component, key } of ACCENT_INK_TARGETS) setComponentKey(componentOverrides, component, key, accentInk)
   }
 
-  if (bad.length && (opts?.onInvalidColor ?? 'throw') === 'throw') {
+  if (bad.size && (opts?.onInvalidColor ?? 'throw') === 'throw') {
+    const lines = Array.from(bad, ([varName, raw]) => `${varName}: ${raw}`)
     throw new ThemeonError(
       'BAD_COLOR',
-      `@themeon/naive: ${bad.length} color role(s) are not literal colours — Naive/seemly cannot ` +
-        `consume them:\n  ${bad.join('\n  ')}\n` +
+      `@themeon/naive: ${bad.size} color role(s) are not literal colours — Naive/seemly cannot ` +
+        `consume them:\n  ${lines.join('\n  ')}\n` +
         'Colours must be resolvable by colorjs.io (hex/rgb/hsl/oklch/…). ' +
         'var()/color-mix()/light-dark()/currentColor/relative-color/calc() are not supported by seemly.',
     )

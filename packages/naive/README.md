@@ -46,6 +46,14 @@ is absent) — only for roles your theme actually defines. A second table paints
 `primaryColor` doubles as both a fill and canvas-text ink, and the fill-tuned `--color-on-
 primary` reads poorly there in a dark theme.
 
+A handful of ink targets (`Radio.buttonTextColorActive`, `FloatButton.textColorPrimary`,
+`Switch.iconColor`) only apply in dark — Naive's own light-mode stock values for these are
+already correct. `toNative` picks the branch from `opts.appearance`, falling back to
+`resolved.schemes[opts.theme]`, falling back to `'light'`. The `schemes` fallback only resolves
+to `'dark'` when the theme key is literally named `'dark'` (ThemeOn's naming convention) — if
+your dark theme has a different key (e.g. `'night'`), pass `{ appearance: 'dark' }` explicitly,
+or those three overrides silently stay on their (wrong) light-mode ink.
+
 ## Quickstart
 
 ```vue
