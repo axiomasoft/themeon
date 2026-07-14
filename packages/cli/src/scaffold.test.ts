@@ -129,4 +129,18 @@ describe('init → build → check на реальном скаффолде (Maj
 
     expect(findings.filter((f) => f.rule === 'hardcode')).toHaveLength(0)
   })
+
+  // Изолирует defense-in-depth #1 (путь) ОТ #2 (баннер, findings §4.2): файл по фактическому
+  // `--out` без баннера — единственная причина, по которой он не даёт hardcode-находку, это
+  // `scanIgnorePatterns` (adversarial-review commit 04aec27, MED#1 — иначе оба defense'а
+  // всегда совпадали, и путь-эксклюзия могла молча сломаться незамеченной).
+  it('path-based ignore работает САМ ПО СЕБЕ, без баннера (--out указывает на файл без generated-маркера)', async () => {
+    runInit({ cwd })
+    mkdirSync(join(cwd, 'src', 'styles'), { recursive: true })
+    writeFileSync(join(cwd, 'src', 'styles', 'theme.css'), ':root { --x: #ff0000; }\n', 'utf8')
+
+    const { findings } = await runCheck({ cwd, config: 'theme/theme.config.ts', out: 'src/styles/theme.css' })
+
+    expect(findings.filter((f) => f.rule === 'hardcode')).toHaveLength(0)
+  })
 })

@@ -121,7 +121,7 @@ export const checkCommand = defineCommand({
   args: {
     config: {
       type: 'string',
-      description: 'Path to theme.config.ts',
+      description: 'Path to the theme config file',
       default: DEFAULT_THEME_CONFIG_PATH,
     },
     src: {
