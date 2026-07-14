@@ -10,7 +10,7 @@ import {
 } from '@nuxt/kit'
 import { resolveTheme, serializeThemeCss } from '@themeon/core'
 import { themeInitScript } from '@themeon/vue/anti-fouc'
-import { resolve as resolveAbs, sep } from 'node:path'
+import { resolve as resolveAbs } from 'node:path'
 import {
   buildFoucScriptOptions,
   FOUNDATION_CSS,
@@ -19,7 +19,7 @@ import {
   toPublicRuntimeConfig,
 } from './internal/normalize'
 import { createThemeLoader } from './internal/theme-loader'
-import { resolveWatchTarget } from './internal/watch-target'
+import { isWithinWatchTarget, resolveWatchTarget } from './internal/watch-target'
 import type { ModuleOptions } from './types'
 
 export type { ModuleOptions } from './types'
@@ -136,13 +136,12 @@ export default defineNuxtModule<ModuleOptions>({
         if (target.kind === 'directory') {
           // Директория => granular CSS-HMR без рестарта (nuxt.options.watch сравнивает пути
           // строго по строке, поэтому только САМ путь директории даёт этот режим).
-          const withSep = target.path.endsWith(sep) ? target.path : `${target.path}${sep}`
           nuxt.hook('builder:watch', async (_event, path) => {
             // Nuxt 4 отдаёт `path` уже абсолютным (R-13 §3.4) — `resolve` относительно `srcDir`
             // (не `rootDir`: канон Nuxt, `index.mjs:7401`) идемпотентен для абс.путей, страхует
             // от гипотетического относительного.
             const abs = resolveAbs(nuxt.options.srcDir, path)
-            if (abs !== target.path && !abs.startsWith(withSep)) return
+            if (!isWithinWatchTarget(abs, target)) return
 
             const next = await buildCss()
             if (next === cachedCss) return

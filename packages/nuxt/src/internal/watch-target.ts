@@ -24,10 +24,16 @@ export function resolveWatchTarget(params: {
   const { themePath, tokensDir, rootDir, srcDir, buildDir } = params
 
   if (tokensDir) {
-    if (tokensDir === rootDir || buildDir === tokensDir || buildDir.startsWith(tokensDir + sep)) {
+    if (
+      tokensDir === rootDir ||
+      tokensDir === srcDir ||
+      buildDir === tokensDir ||
+      buildDir.startsWith(tokensDir + sep)
+    ) {
       throw new Error(
-        `[themeon] tokensDir не может быть корнем проекта (${tokensDir}): dev-watcher подписался бы ` +
-          `на весь rootDir и вытеснил бы узкие подписки Nuxt. Положите токены в отдельную директорию.`,
+        `[themeon] tokensDir не может быть rootDir/srcDir проекта (${tokensDir}) и не может содержать ` +
+          `buildDir: dev-watcher подписался бы на слишком широкий путь и вытеснил бы узкие подписки ` +
+          `Nuxt (granular watcher, "resolvePathsToWatch"). Положите токены в отдельную директорию.`,
       )
     }
     return { kind: 'directory', path: tokensDir }
@@ -40,4 +46,17 @@ export function resolveWatchTarget(params: {
   }
 
   return { kind: 'directory', path: themeDir }
+}
+
+/**
+ * `true`, если абсолютный путь `abs` лежит внутри директории `target.path` (сам путь директории
+ * или файл/поддиректория под ней) — по СТРОКЕ с разделителем-границей, не префиксом: `/app/theme`
+ * не матчит `/app/theme-old/x.ts` (адверсариальный ревью P8.4: сиблинг-директория с общим
+ * префиксом имени). Для `target.kind==='file'` сравнение точное — `builder:watch`-ветка вообще
+ * не регистрируется в этом режиме (module.ts), но предикат остаётся корректным и для него.
+ */
+export function isWithinWatchTarget(abs: string, target: WatchTarget): boolean {
+  if (target.kind === 'file') return abs === target.path
+  const withSep = target.path.endsWith(sep) ? target.path : `${target.path}${sep}`
+  return abs === target.path || abs.startsWith(withSep)
 }
