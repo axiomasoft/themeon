@@ -77,6 +77,26 @@ describe('load', () => {
   })
 })
 
+describe('configResolved — резолв tokensFiles', () => {
+  it('относительный tokensFiles резолвится в абсолютный путь от config.root (D3)', async () => {
+    const plugin = makePlugin({ tokensFiles: ['./theme.config.ts'] })
+    const mod = { url: '/virtual:themeon.css' }
+    const environment = {
+      moduleGraph: { getModuleById: vi.fn(() => mod), invalidateModule: vi.fn() },
+    }
+    callWith(plugin.configResolved, undefined, { root: '/proj' })
+
+    // hotUpdate({file}) Vite всегда даёт абсолютный путь — до фикса D3 это никогда не матчилось.
+    const result = await callWith(plugin.hotUpdate, { environment }, {
+      file: '/proj/theme.config.ts',
+      server: {},
+    })
+
+    expect(environment.moduleGraph.invalidateModule).toHaveBeenCalledWith(mod)
+    expect(result).toEqual([mod])
+  })
+})
+
 describe('hotUpdate', () => {
   function fakeEnvironment(mod: { url: string } | undefined) {
     return {
@@ -84,67 +104,73 @@ describe('hotUpdate', () => {
         getModuleById: vi.fn(() => mod),
         invalidateModule: vi.fn(),
       },
-      hot: { send: vi.fn() },
     }
   }
 
-  it('файл ∈ tokensFiles: invalidateModule + hot.send(css-update), возвращает []', () => {
-    const plugin = makePlugin({ tokensFiles: ['/proj/tokens/theme.ts'] })
-    const mod = { url: '/virtual:themeon.css' }
+  function withResolvedRoot(plugin: Plugin, root: string): Plugin {
+    callWith(plugin.configResolved, undefined, { root })
+    return plugin
+  }
+
+  it('файл ∈ tokensFiles: invalidateModule + возвращает [mod] (P-D55, supersedes P-D26)', async () => {
+    const plugin = withResolvedRoot(
+      makePlugin({ tokensFiles: ['/proj/tokens/theme.ts'] }),
+      '/proj',
+    )
+    const mod = { url: '/@id/__x00__virtual:themeon.css' }
     const environment = fakeEnvironment(mod)
 
-    const result = callWith(plugin.hotUpdate, { environment }, {
+    const result = await callWith(plugin.hotUpdate, { environment }, {
       file: '/proj/tokens/theme.ts',
       server: {},
     })
 
     expect(environment.moduleGraph.getModuleById).toHaveBeenCalledWith('\0virtual:themeon.css')
     expect(environment.moduleGraph.invalidateModule).toHaveBeenCalledWith(mod)
-    expect(environment.hot.send).toHaveBeenCalledWith({
-      type: 'update',
-      updates: [
-        expect.objectContaining({ type: 'css-update', path: mod.url, acceptedPath: mod.url }),
-      ],
-    })
-    expect(result).toEqual([])
+    expect(result).toEqual([mod])
   })
 
-  it('файл не из tokensFiles — no-op (hot.send не зовётся)', () => {
-    const plugin = makePlugin({ tokensFiles: ['/proj/tokens/theme.ts'] })
+  it('файл не из tokensFiles — no-op (undefined, invalidateModule не зовётся)', async () => {
+    const plugin = withResolvedRoot(
+      makePlugin({ tokensFiles: ['/proj/tokens/theme.ts'] }),
+      '/proj',
+    )
     const environment = fakeEnvironment({ url: '/virtual:themeon.css' })
 
-    callWith(plugin.hotUpdate, { environment }, {
+    const result = await callWith(plugin.hotUpdate, { environment }, {
       file: '/proj/other-file.ts',
       server: {},
     })
 
-    expect(environment.hot.send).not.toHaveBeenCalled()
+    expect(result).toBeUndefined()
     expect(environment.moduleGraph.invalidateModule).not.toHaveBeenCalled()
   })
 
-  it('без tokensFiles — HMR неактивен, любой файл — no-op', () => {
-    const plugin = makePlugin()
+  it('без tokensFiles — HMR неактивен, любой файл — no-op', async () => {
+    const plugin = withResolvedRoot(makePlugin(), '/proj')
     const environment = fakeEnvironment({ url: '/virtual:themeon.css' })
 
-    callWith(plugin.hotUpdate, { environment }, {
+    const result = await callWith(plugin.hotUpdate, { environment }, {
       file: '/proj/tokens/theme.ts',
       server: {},
     })
 
-    expect(environment.hot.send).not.toHaveBeenCalled()
+    expect(result).toBeUndefined()
   })
 
-  it('модуль ещё не в графе (никто не импортировал virtual) — no-op без падения', () => {
-    const plugin = makePlugin({ tokensFiles: ['/proj/tokens/theme.ts'] })
+  it('модуль ещё не в графе (никто не импортировал virtual) — no-op без падения', async () => {
+    const plugin = withResolvedRoot(
+      makePlugin({ tokensFiles: ['/proj/tokens/theme.ts'] }),
+      '/proj',
+    )
     const environment = fakeEnvironment(undefined)
 
-    expect(() =>
+    await expect(
       callWith(plugin.hotUpdate, { environment }, {
         file: '/proj/tokens/theme.ts',
         server: {},
       }),
-    ).not.toThrow()
-    expect(environment.hot.send).not.toHaveBeenCalled()
+    ).resolves.toBeUndefined()
   })
 })
 

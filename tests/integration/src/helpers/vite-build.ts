@@ -20,14 +20,14 @@ interface RollupLikeOutputItem {
  */
 export async function viteBuild(
   root: string,
-  options: { plugins?: PluginOption[] } = {},
+  options: { plugins?: PluginOption[]; rollupOptions?: { input?: string } } = {},
 ): Promise<ViteBuildResult> {
   const out = (await build({
     root,
     logLevel: 'silent',
     configFile: false,
     plugins: options.plugins ?? [],
-    build: { write: false, minify: false },
+    build: { write: false, minify: false, rollupOptions: options.rollupOptions },
   })) as { output: RollupLikeOutputItem[] }
 
   const css = out.output

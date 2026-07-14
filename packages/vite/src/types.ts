@@ -25,6 +25,15 @@ export interface ThemeonViteOptions {
   /** Id виртуального модуля. Default `'virtual:themeon.css'`. */
   virtualId?: string
   /**
+   * CSS-first канал для проектов без JS-энтри (напр. Laravel Blade): плагин пишет CSS темы в
+   * реальный файл на диске и алиасит `virtualId` на него (`resolve.alias`) — документированный
+   * `@import 'virtual:themeon.css'` в CSS остаётся рабочим, потому что резолвится как обычный
+   * файл, а не virtual-модуль (virtual-модули в CSS `@import` не резолвятся — Blocker #1,
+   * `findings/P8-vite-channel-hmr.md`). ДОПОЛНИТЕЛЬНАЯ опция, канон — `import` из JS (см. выше).
+   * `true` — дефолтный путь `<root>/.themeon/theme.css`; объект — кастомный относительный путь.
+   */
+  cssImport?: boolean | { file?: string }
+  /**
    * Вставить анти-FOUC скрипт (`themeInitScript`, единый генератор P3.2) в `index.html` через
    * `transformIndexHtml`. `true` — с дефолтными опциями скрипта, объект — проброс опций.
    */

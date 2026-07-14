@@ -46,3 +46,24 @@ export async function withChromium<T>(
     await page.close()
   }
 }
+
+/**
+ * Тонкий хелпер: настоящая навигация Chromium на `url` (для живого dev-сервера, не статический
+ * `setContent`) — `fn` получает страницу ПОСЛЕ первой загрузки. Браузер переиспользуется.
+ */
+export async function withPage<T>(
+  url: string,
+  fn: (page: Page) => Promise<T>,
+  options: Pick<ChromiumOptions, 'width' | 'height'> = {},
+): Promise<T> {
+  const browser = await getBrowser()
+  const page = await browser.newPage({
+    viewport: { width: options.width ?? 1280, height: options.height ?? 600 },
+  })
+  try {
+    await page.goto(url)
+    return await fn(page)
+  } finally {
+    await page.close()
+  }
+}
