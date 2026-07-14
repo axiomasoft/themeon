@@ -227,6 +227,9 @@ importers:
 
   packages/naive:
     dependencies:
+      '@themeon/colors':
+        specifier: workspace:*
+        version: link:../colors
       '@themeon/core':
         specifier: workspace:*
         version: link:../core
@@ -385,6 +388,9 @@ importers:
       '@themeon/vue':
         specifier: workspace:*
         version: link:../../packages/vue
+      colorjs.io:
+        specifier: 'catalog:'
+        version: 0.7.0
       jsdom:
         specifier: 29.1.1
         version: 29.1.1

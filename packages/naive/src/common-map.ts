@@ -65,10 +65,14 @@ export interface CommonMapEntry {
  * поверхность в light, корректные чернила для акцентных ролей, которых тема не задаёт
  * (D3-толерантность). Чернила ThemeOn (`--color-on-*`/`--color-link`) подаются точечно,
  * per-component, через `ink-map.ts` — не через `common`.
+ *
+ * `*Hover`/`*Pressed`/`*Suppl` не входят в эту карту вообще — их читает и деривит `DERIVABLE_
+ * BASES` (P8.9, findings/P8-naive-color-canon.md §3.3): одна таблица владеет и явной ролью
+ * темы, и derived-фолбэком, вместо двух разошедшихся источников (было: `-hover` жил здесь
+ * жёстко, `-pressed`/`-suppl` не читались из темы вовсе — Rule 4 не выполнялось для них).
  */
 export const NAIVE_COMMON_MAP: Readonly<Record<CssVarName, CommonMapEntry>> = {
   '--color-action-primary': { key: 'primaryColor', kind: 'color' },
-  '--color-action-primary-hover': { key: 'primaryColorHover', kind: 'color' },
   '--color-status-success': { key: 'successColor', kind: 'color' },
   '--color-status-warning': { key: 'warningColor', kind: 'color' },
   '--color-status-error': { key: 'errorColor', kind: 'color' },
@@ -91,41 +95,65 @@ export const NAIVE_COMMON_MAP: Readonly<Record<CssVarName, CommonMapEntry>> = {
   '--text-lg': { key: 'fontSizeLarge', kind: 'raw' },
 }
 
-/** Базовая color-роль для каждого статуса/primary — источник derived hover/pressed/suppl. */
-export const DERIVABLE_BASES: ReadonlyArray<{
-  base: CssVarName
-  hover: NaiveCommonKey
-  pressed: NaiveCommonKey
-  suppl: NaiveCommonKey
-}> = [
+export interface DerivableBase {
+  /** Базовая (solid) роль ThemeOn — источник деривации. */
+  readonly base: CssVarName
+  /** Явная роль `<base>-hover` темы, если задана — победит деривацию (Rule 4). */
+  readonly hoverVar: CssVarName
+  /** Явная роль `<base>-pressed` темы, если задана — победит деривацию (Rule 4). */
+  readonly pressedVar: CssVarName
+  /** Явная роль `<base>-suppl` темы, если задана — победит деривацию (Rule 4). */
+  readonly supplVar: CssVarName
+  readonly hoverKey: NaiveCommonKey
+  readonly pressedKey: NaiveCommonKey
+  readonly supplKey: NaiveCommonKey
+}
+
+/** Базовая color-роль + явные theme-роли для каждого статуса/primary — вход `deriveInteractionStates` (P8.9). */
+export const DERIVABLE_BASES: readonly DerivableBase[] = [
   {
     base: '--color-action-primary',
-    hover: 'primaryColorHover',
-    pressed: 'primaryColorPressed',
-    suppl: 'primaryColorSuppl',
+    hoverVar: '--color-action-primary-hover',
+    pressedVar: '--color-action-primary-pressed',
+    supplVar: '--color-action-primary-suppl',
+    hoverKey: 'primaryColorHover',
+    pressedKey: 'primaryColorPressed',
+    supplKey: 'primaryColorSuppl',
   },
   {
     base: '--color-status-success',
-    hover: 'successColorHover',
-    pressed: 'successColorPressed',
-    suppl: 'successColorSuppl',
+    hoverVar: '--color-status-success-hover',
+    pressedVar: '--color-status-success-pressed',
+    supplVar: '--color-status-success-suppl',
+    hoverKey: 'successColorHover',
+    pressedKey: 'successColorPressed',
+    supplKey: 'successColorSuppl',
   },
   {
     base: '--color-status-warning',
-    hover: 'warningColorHover',
-    pressed: 'warningColorPressed',
-    suppl: 'warningColorSuppl',
+    hoverVar: '--color-status-warning-hover',
+    pressedVar: '--color-status-warning-pressed',
+    supplVar: '--color-status-warning-suppl',
+    hoverKey: 'warningColorHover',
+    pressedKey: 'warningColorPressed',
+    supplKey: 'warningColorSuppl',
   },
   {
     base: '--color-status-error',
-    hover: 'errorColorHover',
-    pressed: 'errorColorPressed',
-    suppl: 'errorColorSuppl',
+    hoverVar: '--color-status-error-hover',
+    pressedVar: '--color-status-error-pressed',
+    supplVar: '--color-status-error-suppl',
+    hoverKey: 'errorColorHover',
+    pressedKey: 'errorColorPressed',
+    supplKey: 'errorColorSuppl',
   },
   {
     base: '--color-status-info',
-    hover: 'infoColorHover',
-    pressed: 'infoColorPressed',
-    suppl: 'infoColorSuppl',
+    hoverVar: '--color-status-info-hover',
+    pressedVar: '--color-status-info-pressed',
+    supplVar: '--color-status-info-suppl',
+    hoverKey: 'infoColorHover',
+    pressedKey: 'infoColorPressed',
+    supplKey: 'infoColorSuppl',
   },
 ]

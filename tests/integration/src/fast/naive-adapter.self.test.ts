@@ -4,9 +4,10 @@ import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, test } from 'vitest'
 import { changeColor } from 'seemly'
+import Color from 'colorjs.io'
 import { defineTheme, resolveTheme } from '@themeon/core'
 import { contrastAPCA } from '@themeon/colors'
-import { toNative } from '@themeon/naive'
+import { toHex, toNative } from '@themeon/naive'
 
 import { alertLight } from 'naive-ui/es/alert/styles/index'
 import { buttonDark, buttonLight } from 'naive-ui/es/button/styles/index'
@@ -20,12 +21,15 @@ import { commonDark, commonLight } from 'naive-ui/es/_styles/common/index'
  * не самодельной `vars`-фикстурой — ровно эта дыра пропустила Blocker #2 мимо старых юнит-
  * тестов (`to-native.test.ts` строил `vars` из литералов напрямую).
  *
- * T8/T9/T10 (findings §6) в этот файл не входят — они проверяют деривацию `*Hover/*Pressed/
- * *Suppl` по новому канону §3, которая Scope Excluded этого item'а (P8.9, `phases/P8.md`
- * P8.8 Scope Excluded).
+ * T8/T9/T10 (findings §6) — деривация `*Hover/*Pressed/*Suppl` по канону §3.3 (P8.9).
  */
 
 const HEX_RE = /^#[0-9a-f]{6}([0-9a-f]{2})?$/i
+
+/** OKLCH-lightness канал hex-цвета (T8: различимость hover/pressed по канону §3.3). */
+function oklchL(hex: string): number {
+  return new Color(hex).to('oklch').oklch.l as number
+}
 
 // Литералы — те же, что реальная дефолт-тема `@themeon/css` резолвит в `dist/tokens.css`
 // (accent-9/10/11, neutral-шкала); `status.*` дефолт-тема не несёт (P8.7) — добавлены здесь,
@@ -256,6 +260,45 @@ describe('@themeon/naive — toNative(resolveTheme(theme)) через насто
         expect(Math.abs(contrastAPCA(out.Checkbox.checkMarkColor, chk.colorChecked!)), `Checkbox ${appearance}`).toBeGreaterThanOrEqual(60)
       }
     }
+  })
+
+  test('T8: ΔL(primaryColorHover, primaryColorPressed) ≥ 0.03 в обеих темах (различимость, было 0.007)', () => {
+    const resolved = resolveTheme(fixtureTheme())
+    for (const theme of [undefined, 'dark'] as const) {
+      const out = toNative(resolved, { theme }) as unknown as {
+        common: { primaryColor: string; primaryColorHover: string; primaryColorPressed: string }
+      }
+      const { primaryColor, primaryColorHover, primaryColorPressed } = out.common
+      expect(primaryColorPressed, `${theme ?? 'light'}`).not.toBe(primaryColorHover)
+      expect(primaryColorHover, `${theme ?? 'light'}`).not.toBe(primaryColor)
+      const dLhp = Math.abs(oklchL(primaryColorHover) - oklchL(primaryColorPressed))
+      expect(dLhp, `${theme ?? 'light'} ΔL(hover,pressed)`).toBeGreaterThanOrEqual(0.03)
+    }
+  })
+
+  test('T9: primaryColorSuppl = primaryColor (identity); alertDark.self(merged).colorInfo — валидный rgba (seemly не бросил)', () => {
+    const resolved = resolveTheme(fixtureTheme())
+    const outDark = toNative(resolved, { theme: 'dark' }) as unknown as {
+      common: { primaryColor: string; primaryColorSuppl: string }
+    }
+    expect(outDark.common.primaryColorSuppl).toBe(outDark.common.primaryColor)
+
+    const mergedDark = merged(commonDark, outDark as unknown as { common: Record<string, unknown> })
+    const alertDark = callSelf(alertLight, mergedDark) as { colorInfo: string }
+    expect(() => changeColor(alertDark.colorInfo, { alpha: 0.5 })).not.toThrow()
+  })
+
+  test('T10: явная роль темы сильнее деривации — --color-action-primary-pressed побеждает байт-в-байт (Rule 4)', () => {
+    const theme = defineTheme({
+      base: {
+        color: {
+          action: { primary: 'oklch(0.5546 0.1427 153.03)', primaryPressed: 'oklch(0.40 0.10 150)' },
+        },
+      },
+    })
+    const resolved = resolveTheme(theme)
+    const out = toNative(resolved) as unknown as { common: { primaryColorPressed: string } }
+    expect(out.common.primaryColorPressed).toBe(toHex('oklch(0.40 0.10 150)'))
   })
 
   test('T11: dark — меню/канва: ACCENT-INK Menu.itemTextColorActive на bodyColor ≥ 60 (было 30.8, §4.1)', () => {

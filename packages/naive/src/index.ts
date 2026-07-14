@@ -10,4 +10,5 @@ export { mergeOverrides } from './merge'
 export { toNative } from './to-native'
 export { resolveResponsiveOverrides } from './responsive'
 
+export type { DeriveInput } from './color'
 export type { ToNativeOptions, BreakpointOverrides } from './types'

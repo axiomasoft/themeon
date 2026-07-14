@@ -17,6 +17,7 @@ test('публичная поверхность заморожена (ранта
       "ColorsError",
       "LC_THRESHOLDS",
       "SEMANTIC_CONTRAST_PAIRS",
+      "STEP10_DELTA",
       "STEP_ROLES",
       "checkContrast",
       "checkThemeContrast",

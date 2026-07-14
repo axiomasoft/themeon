@@ -11,5 +11,5 @@ export type {
   SemanticPairSpec,
 } from './contrast'
 
-export { STEP_ROLES, generateScale, generateScalePair, scaleToTokens } from './scale'
+export { STEP_ROLES, STEP10_DELTA, generateScale, generateScalePair, scaleToTokens } from './scale'
 export type { Scale, ScaleOptions, ScaleStep } from './scale'

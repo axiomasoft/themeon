@@ -58,6 +58,15 @@ const RAMP: Readonly<
   dark: { bg: [0.187, 0.212, 0.26, 0.295, 0.335, 0.386, 0.45, 0.532], l11: 0.781, l12: 0.914, d10: 0.041 },
 }
 
+/**
+ * ΔL(oklch) между шагом 9 (solid) и шагом 10 (hover solid) — публичный экспорт (P8.9,
+ * findings/P8-naive-color-canon.md §3.3): единственная внешняя константа, нужная адаптерам
+ * для деривации interaction-состояний без доступа к самой шкале (см. `@themeon/naive`
+ * `deriveInteractionStates`). Раньше жила только внутри `RAMP` — публикуем её же, не
+ * дублируем число вторым источником правды.
+ */
+export const STEP10_DELTA: Readonly<Record<'light' | 'dark', number>> = { light: RAMP.light.d10, dark: RAMP.dark.d10 }
+
 /** Пик гауссианы chroma по lightness (не изменён P8.5 — только база/cap chroma). */
 const MU: Readonly<Record<'light' | 'dark', number>> = { light: 0.6, dark: 0.66 }
 

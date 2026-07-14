@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+import type { DeriveInput } from './color'
 import type { ToNativeOptions } from './types'
 
 /**
@@ -38,6 +39,30 @@ test('ToNativeOptions — публичные поля заморожены (type
       "onInvalidColor",
       "overrides",
       "theme",
+    ]
+  `)
+})
+
+/**
+ * `DeriveInput` — параметр `deriveInteractionStates` (P8.9, findings/P8-naive-color-canon.md
+ * §5): та же дисциплина, что `ToNativeOptions` выше — типизированный литерал ловит tsc
+ * excess/missing-property, снапшот ключей ловит переименование.
+ */
+test('DeriveInput — публичные поля заморожены (typecheck ловит переименование/удаление)', () => {
+  const input: Required<DeriveInput> = {
+    base: '#008a48',
+    appearance: 'light',
+    hover: '#007a40',
+    pressed: '#0c7a43',
+    suppl: '#008a48',
+  }
+  expect(Object.keys(input).sort()).toMatchInlineSnapshot(`
+    [
+      "appearance",
+      "base",
+      "hover",
+      "pressed",
+      "suppl",
     ]
   `)
 })

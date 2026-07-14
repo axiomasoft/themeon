@@ -95,16 +95,20 @@ export function toNative(resolved: ResolvedTheme, opts?: ToNativeOptions): Globa
     setKey(common, entry.key, value)
   }
 
-  // Derived hover/pressed/suppl — только для отсутствующих в lookup суффиксов (Rule 4:
-  // явная роль темы всегда сильнее деривации).
-  for (const { base, hover, pressed, suppl } of DERIVABLE_BASES) {
+  // hover/pressed/suppl (P8.9, findings/P8-naive-color-canon.md §3.3): явная роль темы
+  // побеждает деривацию (Rule 4) — `deriveInteractionStates` сама решает, какие состояния
+  // взять готовыми, какие вывести по канону (pressed = экстраполяция base→hover, suppl = base).
+  for (const { base, hoverVar, pressedVar, supplVar, hoverKey, pressedKey, supplKey } of DERIVABLE_BASES) {
     if (lookup[base] === undefined) continue
     const baseHex = color(base)
     if (baseHex === undefined) continue
-    const derived = deriveInteractionStates(baseHex)
-    if (common[hover] === undefined) common[hover] = derived.hover
-    if (common[pressed] === undefined) common[pressed] = derived.pressed
-    if (common[suppl] === undefined) common[suppl] = derived.suppl
+    const hover = lookup[hoverVar] !== undefined ? color(hoverVar) : undefined
+    const pressed = lookup[pressedVar] !== undefined ? color(pressedVar) : undefined
+    const suppl = lookup[supplVar] !== undefined ? color(supplVar) : undefined
+    const derived = deriveInteractionStates({ base: baseHex, appearance, hover, pressed, suppl })
+    common[hoverKey] = derived.hover
+    common[pressedKey] = derived.pressed
+    common[supplKey] = derived.suppl
   }
 
   // INK-таблица (§2.5): чернила на заливках, per-component, только для ролей, которыми

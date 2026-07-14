@@ -17,9 +17,19 @@ source of truth.
 Naive derives interaction states (`*Hover`/`*Pressed`/`*Suppl`) internally via `seemly`, whose
 oklch support is not confirmed. To avoid depending on unverified upstream colour math, this
 adapter converts every colour to hex (or hex8 when the source has alpha) via `colorjs.io`
-**before** handing it to Naive, and computes `hover`/`pressed`/`suppl` itself — from an OKLCH
-lightness shift — whenever the theme does not define them explicitly. An explicit role in the
-theme (e.g. `--color-action-primary-hover`) always wins over the derived value.
+**before** handing it to Naive, and computes `hover`/`pressed`/`suppl` itself whenever the theme
+does not define them explicitly — an explicit role (`--color-action-primary-hover/-pressed/
+-suppl`, and the same suffixes on `--color-status-{success,warning,error,info}`) always wins
+byte-for-byte over the derived value.
+
+The derivation follows the theme's own scale rather than a fixed shift: `hover = base +
+Δ(appearance)`, where `Δ` is `STEP10_DELTA` from `@themeon/colors` (the same step 9→10
+lightness delta the colour scale itself uses — light themes get a darker hover, dark themes a
+lighter one, matching Radix step 10). `pressed`, absent an explicit role, extrapolates the
+`base → hover` vector one more step (`k=2`) in OKLCH — this works for any theme's scale, not
+just Radix-shaped ones, because the direction comes from the vector itself. `suppl`, absent an
+explicit role, is `base` unchanged: Naive's own dark-theme `*ColorSuppl` sits in roughly the
+same lightness band ThemeOn's solid accent already occupies, so no shift is needed.
 
 ## Literals, not `var()` — and fail-loud on the rest
 
@@ -110,8 +120,9 @@ intentionally **not** hardcoded here; it is your theme's concern, deep-merged on
 | ThemeOn var | Naive key(s) |
 |:--|:--|
 | `--color-action-primary` | `primaryColor` |
-| `--color-action-primary-hover` | `primaryColorHover` |
+| `--color-action-primary-hover/-pressed/-suppl` | `primaryColorHover`/`primaryColorPressed`/`primaryColorSuppl` (derived if absent — see above) |
 | `--color-status-success/warning/error/info` | `successColor`/`warningColor`/`errorColor`/`infoColor` |
+| `--color-status-{success,warning,error,info}-hover/-pressed/-suppl` | same, `{status}ColorHover/Pressed/Suppl` (derived if absent) |
 | `--color-bg-page` | `bodyColor` |
 | `--color-bg-subtle` | `actionColor`, `tableHeaderColor`, `tabColor` |
 | `--color-bg-elevated` | `cardColor`, `modalColor`, `popoverColor`, `tableColor` |

@@ -20,6 +20,7 @@
     "tailwindcss": "catalog:",
     "naive-ui": "catalog:",
     "seemly": "0.3.10",
+    "colorjs.io": "catalog:",
     "vue": "catalog:",
     "nuxt": "catalog:",
     "playwright": "1.61.1",
