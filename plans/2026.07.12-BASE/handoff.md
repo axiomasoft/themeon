@@ -1,89 +1,90 @@
-# HANDOFF — 2026-07-13 — after P3.7
+# HANDOFF — 2026-07-14 — after P3.8 + аудит закрытых фаз
 
-**Next:** Обязательный adversarial-review (opus/xhigh) по коммиту `62e81e7` (P3.7 — фикс
-`default: ''`), затем возврат к P5.9 (доисполнение vintera поверх свежего `dist`
-`@themeon/vue`+`@themeon/nuxt`). Фаза **P7** задизайнена облегчённо в отдельной side-сессии
-(см. Done ниже) — это НЕ меняет реальный следующий шаг.
+**Next:** Детализировать НОВУЮ фазу **P8 — ремедиация аудита** (`/task:plan-design`). Аудит закрытых
+фаз P1–P4 нашёл **28 подтверждённых расхождений, из них 5 Blocker**: пакет сломан на собственных
+документированных happy-path'ах. Пилоты (P5.9/P5.11) **заблокированы** — обновлять их на `dist`, в
+котором `@themeon/vite` не работает, а `@themeon/naive` кормит Naive строками `var(--…)`, бессмысленно.
 
 | Параметр | Значение |
 |:--|:--|
-| Model | opus |
-| Thinking | xhigh — обязательный adversarial-review прод-риск-фикса (Routing `plan.md` §3, строка P3.7) |
-| Context | continue (/clear) — ручной item |
-| Суть | Adversarial-review коммита `62e81e7`: корректность `normalizeThemeName`/`state.ts`/`anti-fouc.ts`/`nuxt/normalize.ts` по всем 7 инвариантам фазы P3 и Implementation Rules P3.7 (особенно правило 7 — api.test.ts снапшоты не двигаются). Читать `phases/P3.md` P3.7 целиком перед ревью. |
+| Model | **opus** |
+| Thinking | **high** (пинится самим `/task:plan-design`) |
+| Context | **новая сессия / `/clear`** — контекст этой сессии исчерпан аудитом |
+| Суть | Развернуть 28 находок `90_audit/AUDIT_2026-07-14_research-conformance.md` в исполняемую фазу P8 до Definition of Detailed. Порядок item'ов — по риску (5 Blocker первыми). **Обязательно:** (1) внешние факты перепроверять RAG'ом, а не цитировать R-13/R-14 — они содержат ЛОЖНЫЕ утверждения, которые и породили 3 из 5 блокеров; (2) на каждый Blocker — интеграционный тест через НАСТОЯЩУЮ трубу (реальный `vite build`, реальная компиляция Tailwind, реальный naive-ui), а не мок границы; (3) отдельный item на исправление самих R-13 §4.3/§4.4 и R-14 §2.1 |
 
 ```
-/task:review 2026.07.12-BASE P3.7
+/task:plan-design 2026.07.12-BASE P8
 ```
 
-**Cold-start reads:** `plans/2026.07.12-BASE/plan.md` (§2 Execution Rules, §3 Routing, §4 Status Board)
-→ `plans/2026.07.12-BASE/phases/P3.md` (Phase Context: фаза переоткрывалась, теперь снова терминальна
-7/7; item **P3.7** целиком, включая Completion Notes) → код коммита `62e81e7`: `packages/vue/src/
-{theme-name.ts,state.ts,anti-fouc.ts}`, `packages/nuxt/src/{internal/normalize.ts,types.ts}`.
+**Cold-start reads (по порядку):**
+1. `plans/2026.07.12-BASE/90_audit/AUDIT_2026-07-14_research-conformance.md` — **главный вход**:
+   системный вывод + 28 находок с кодом/сценарием/RAG-цитатами + 9 отсеянных (не чинить их без
+   перепроверки).
+2. `plans/2026.07.12-BASE/plan.md` — §2 Execution Rules, §3 Routing, §4 Status Board (строка P8),
+   §5 Decision Log (P-D48/49/50 — свежие).
+3. `plans/2026.07.12-BASE/phases/P3.md` — item **P3.8** целиком (образец того, как лечится этот
+   класс дефекта: `parity.test.ts` — проверка результата через настоящую трубу, а не форму строки).
 
-**Done:**
+**Done (эта сессия):**
 
-- `packages/vue/src/theme-name.ts` (новый, pure) — `normalizeThemeName()`.
-- `packages/vue/src/state.ts` — один резолв `explicitDefault`, нормализация персиста ДО
-  `storedIsKnown`, guard в `set()` против пустого имени.
-- `packages/vue/src/anti-fouc.ts` — ветвление `themeInitScript` по `normalizeThemeName`.
-- `packages/nuxt/src/internal/normalize.ts` — `default: options.default ?? ''`.
-- `packages/nuxt/src/types.ts` — `default: string` (было `string | undefined`).
-- `packages/nuxt/README.md`, `apps/playground/nuxt.config.ts` (снят `default: 'light'`).
-- Тесты: `theme-name.test.ts` (новый), дополнения `use-theme.test.ts` (+3)/`anti-fouc.test.ts` (+1),
-  переписан контракт в `module.test.ts`. `pnpm test` — 505 тестов, все зелёные.
-- `pnpm typecheck`/`pnpm build`/`pnpm lint`/`pnpm check:pack` — все exit 0.
-- Живой смок playground (port 4177): HTTP 200, `prefers-color-scheme` в head, `__NUXT__`
-  runtimeConfig `themeon.default:""`. Сервер остановлен.
-- Коммит `62e81e7`. `plans/2026.07.12-BASE/{plan.md,phases/P3.md}` обновлены (Status Board 7/7,
-  Update Log, Phase Handoff).
-- **Фаза P7 задизайнена облегчённо** (`/task:plan-design 2026.07.12-BASE P7`, sonnet/high,
-  P-D47): 6 trigger-gated backlog-items (`phases/P7.md`) — registry пресетов, Bootstrap/
-  Vuetify/PrimeVue-адаптеры, Vue-обёртки, Blade-composer; ни один не начат (0/6 ⬜), реального
-  потребителя ни у одного нет. `plan.md` Status Board/Decision Log/Update Log обновлены.
+- **Adversarial-ревью P3.7** (`/task:review`, opus/xhigh, 16 измерений: 5 классических + 10
+  conformance-скиллов реестра skiller + плановая конституция; 48 сырых → 27 подтверждённых).
+  Вскрыло: ревью P3.7 УЖЕ проводилось (4 фикс-коммита, PR #1), но план о них не знал; пост-ревью-фиксы
+  вышли за границы ТЗ и внесли новый дефект того же класса (`.trim()` в скрипте).
+- **P3.8 закрыт 🟢** (коммит `f8aab87`): фиксы ревью + **смена курса по RAG**.
+  - **P-D49** — канон `preference` (намерение, персистится) / `theme` (резолв, в DOM) / `system`.
+    `init()` больше не пишет в хранилище; `set('system')` возвращает живое следование за ОС.
+    Изначальная рекомендация давалась ПО ПАМЯТИ и была опровергнута RAG (VueUse/next-themes);
+    канон уже был в собственном research `R-13` §2.1, но P3.1 его не реализовал.
+  - **P-D50** — анти-FOUC скрипт Nuxt генерится per-request из `runtimeConfig` (server-плагин +
+    `useHead`). `NUXT_PUBLIC_THEMEON_DEFAULT` доехал до pre-paint скрипта — доказано живым смоком.
+  - **P-D48** — опция `ThemeInitScriptOptions.themes` узаконена; api-freeze расширен на подпуть
+    `./anti-fouc` и на ФОРМУ типов (компайл-тайм; негативно проверен).
+  - `parity.test.ts` (новый, 361 кейс, мутационно проверен) — исполняемый инвариант согласия двух
+    каналов. Гейты: 886 тестов, typecheck/lint/build/check:pack 9/9 зелёные.
+- **Аудит закрытых фаз P1–P4 против research** (81 агент): 28 подтверждённых расхождений →
+  `90_audit/AUDIT_2026-07-14_research-conformance.md`; фаза P8 заведена в Status Board (🔴 Blocked,
+  не детализирована).
 
 **Remaining:**
 
-1. **Adversarial-review P3.7** (opus/xhigh, обязателен по Routing) — по коммиту `62e81e7`.
-2. **P5.9** — доисполнение vintera поверх P3.7: yalc-обновление `@themeon/{vue,nuxt}` в ветке →
-   гейты → живая матрица тем (строки 1 и 5 — прямые регресс-тесты блокера) → adversarial-review.
-3. **P5.11** — dterema: то же yalc-обновление + матрица (dterema без тумблера: `matchMedia` —
-   единственный путь в dark).
-4. **P5.10** — снятие легаси-алиасов + `themeon check --coverage` + визуал (последний item фазы).
-5. **P7** (низкий приоритет, не блокирует P5/P6) — 6 items ждут реального потребителя; при
-   появлении любого триггера — `/task:plan-design 2026.07.12-BASE P7.m` заново (полный DoD +
-   свежий RAG), облегчённый текст сегодня не заменяет это.
+1. **P8** (следующий шаг) — детализация + исполнение ремедиации. 5 Blocker:
+   `@themeon/vite` не работает ни одним документированным способом · `@themeon/naive` `toNative()`
+   отдаёт `var(--…)`-строки вместо цветов · `--color-bg-subtle` → `baseColor` (чужая роль Naive) ·
+   `breakpoint` в `@theme inline` убивает все `md:`/`lg:` · `@theme inline` эмитит циклическую
+   глобальную переменную, способную обнулить все токены.
+2. **P5.9 / P5.11** (пилоты) — ЗАБЛОКИРОВАНЫ до P8. Плюс: публичный контракт `useTheme()` изменён
+   (P-D49) → пилоты мигрируют на `preference`/`theme`, а не просто обновляют `dist`.
+3. **P5.10** — снятие легаси-алиасов + `themeon check --coverage` + визуал (последний item P5).
+4. **P6 / P7** — без изменений.
 
 **Sources of truth:**
 
-- План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT во время exec; зеркало
-  Vault — `rsync -a --delete` после правок, `/home/vostrikov/Vaults/Brain/05-Projects/03-Packages/
-  ThemeOn/plans/2026.07.12-BASE/`).
-- Пилоты: `~/projects/vintera/vintera` (ветка `themeon-migration/P5`, HEAD `4666633`),
-  `~/projects/dterema/app` (ветка `themeon-migration/P5`, HEAD `821b561`) — обе ветки НЕ смёржены,
-  ещё не обновлены на свежий `@themeon/{vue,nuxt}` (P5.9/P5.11).
-- Пакеты: `~/projects/packages/themeon/packages/{vue,nuxt}` — фикс P3.7 закоммичен, `dist` свежий
-  (`pnpm build` прогнан после правок), готов к yalc.
+- План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT; зеркало Vault —
+  `rsync -a --delete` после правок).
+- Пакеты: `~/projects/packages/themeon/packages/*` — HEAD `f8aab87`, дерево чистое, `dist` свежий
+  (но БРАТЬ ЕГО В ПИЛОТЫ НЕЛЬЗЯ до P8 — см. блокеры).
+- Пилоты: `~/projects/vintera/vintera` и `~/projects/dterema/app`, ветки `themeon-migration/P5`,
+  НЕ смёржены. **Оба сайта НЕ запущены** — подстраиваются под пакет, а не наоборот (решение
+  пользователя 2026-07-14); канон пакета важнее совместимости с текущим кодом пилотов.
 
 **Open risks:**
 
-- **Дефект `default: ''` всё ещё сидит в коммитах ОБОИХ пилотов** до yalc-обновления в P5.9/P5.11 —
-  merge веток в main раньше этого шага отдаст в прод сломанный system-preference-фолбэк.
-- `Catalog.vue` 993–1023px drawer dead-band (P5.8 MED, не починена) — решение человека перед merge.
-- Визуал-сайнофф человека (P-D29 Naive-состояния + сдвиг breakpoint-порогов P-D41) — до merge.
-- `plans/` в репозитории пакета НЕ под git (`?? plans/`) — коммит-гейт протокола на неотслеживаемом
-  плане не работает; см. `open-questions.md` Q5.
-- Наследие P5.5–P5.7: GitHub CI не проверен живьём, npm-org может быть занята, ThemeOn-пакеты версии
-  `0.0.0`, yalc-канал не-mergeable перед реальным merge.
+- **Research дефектен и его нельзя цитировать как истину:** `R-13` §4.4 (рецепт CSS-`@import`
+  virtual-модуля — не работает), `R-14` §2.1 («`@theme inline` не создаёт глобальную переменную» —
+  ложно), `R-13` §4.3 (из верного факта сделан обратный вывод). Три из пяти блокеров порождены
+  именно этими строками. P8 обязана их исправить, иначе следующая фаза наступит на те же грабли.
+- **Метод тестирования пакета порочен:** каждый тест мокает границу (плагин Vite — на фейковом
+  контексте, Tailwind-мост — строковыми ассертами, Naive — на нетиповом `refLayer`). Пока это не
+  исправлено структурно, зелёный `pnpm test` ничего не значит для интеграции.
+- `themeon check` заваливает собственную дефолтную тему пакета (Major #22).
+- `plans/` теперь под git (Q5 закрыт де-факто, коммит `45da5d3`).
 
 **Workarounds / Deferred / Open questions:**
 
-- **workarounds:** `NUXT_TYPECHECK=0` для `nuxt dev` в vintera (баг `vite-plugin-checker`, не связан
-  с ThemeOn).
-- **deferred:** `types/theme-tokens.ts` + большая часть `types/theme.ts` (vintera) осиротели —
-  кандидаты на удаление в P5.10; короткие Tailwind-утилиты для 7 ключей; хардкод vintera за пределами
-  именованного списка P5.7; `toNative()` var-name→role маппинг (генерализация пакета, найдено P5.4).
-- **open_questions:** `open-questions.md` — Q3 (`@bg-dev/nuxt-naiveui`: оставить/снять/урезать) и Q5
-  (`plans/` под git?) ждут владельца; Q4 (генерализация пакета: `toNative` `varMap`, `aliases`/
-  `refLayer` в модуле, breakpoints-мост) — Exploration, кандидат в отдельную фазу после P5. **P7
-  остаётся отдельным backlog** (не поглощает Q4 — так решил пользователь при дизайне P7 2026-07-13).
+- **deferred (из P3.8):** `dispose()` у `UseThemeReturn` (снятие `matchMedia`-слушателя) — рост
+  публичной поверхности без потребителя; перевод русских JSDoc публичных типов на английский
+  (инвариант фазы 6) — репо-широкий долг, отдельный item.
+- **open_questions:** `open-questions.md` — Q3 (`@bg-dev/nuxt-naiveui`), Q4 (генерализация пакета:
+  `toNative` `varMap`, `aliases`/`refLayer` в модуле, breakpoints-мост). **Q4 частично поглощена
+  аудитом** — находка #2 (`toNative` читает не тот слой) это ровно она, но как Blocker.
