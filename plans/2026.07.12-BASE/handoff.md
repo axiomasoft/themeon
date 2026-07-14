@@ -1,90 +1,85 @@
-# HANDOFF — 2026-07-14 — after P3.8 + аудит закрытых фаз
+# HANDOFF — 2026-07-14 — after P8.1
 
-**Next:** Детализировать НОВУЮ фазу **P8 — ремедиация аудита** (`/task:plan-design`). Аудит закрытых
-фаз P1–P4 нашёл **28 подтверждённых расхождений, из них 5 Blocker**: пакет сломан на собственных
-документированных happy-path'ах. Пилоты (P5.9/P5.11) **заблокированы** — обновлять их на `dist`, в
-котором `@themeon/vite` не работает, а `@themeon/naive` кормит Naive строками `var(--…)`, бессмысленно.
+**Next:** Исполнить **P8.2 — `@themeon/vite`: рабочий канал подключения + живой HMR** (второй item фазы
+P8, следующий по порядку риск ∩ зависимости данных). ТЗ детерминировано `findings/P8-vite-channel-hmr.md`
+до эталонного кода. После коммита — ОБЯЗАТЕЛЬНЫЙ adversarial-review (opus/xhigh, P-D51).
 
 | Параметр | Значение |
 |:--|:--|
-| Model | **opus** |
-| Thinking | **high** (пинится самим `/task:plan-design`) |
-| Context | **новая сессия / `/clear`** — контекст этой сессии исчерпан аудитом |
-| Суть | Развернуть 28 находок `90_audit/AUDIT_2026-07-14_research-conformance.md` в исполняемую фазу P8 до Definition of Detailed. Порядок item'ов — по риску (5 Blocker первыми). **Обязательно:** (1) внешние факты перепроверять RAG'ом, а не цитировать R-13/R-14 — они содержат ЛОЖНЫЕ утверждения, которые и породили 3 из 5 блокеров; (2) на каждый Blocker — интеграционный тест через НАСТОЯЩУЮ трубу (реальный `vite build`, реальная компиляция Tailwind, реальный naive-ui), а не мок границы; (3) отдельный item на исправление самих R-13 §4.3/§4.4 и R-14 §2.1 |
+| Model | **sonnet** |
+| Thinking | **medium** (пинится самим `/task:plan-exec`) |
+| Context | **continue (/clear) — manual item** |
+| Суть | Починить оба документированных канала подключения `@themeon/vite` (JS-import и CSS-`@import`, Blocker #1) и живой HMR (используя тест-стенд P8.1: `tests/integration` — 4 яруса линкуют пакеты через `dist`) |
 
 ```
-/task:plan-design 2026.07.12-BASE P8
+/task:plan-exec 2026.07.12-BASE P8.2
 ```
 
 **Cold-start reads (по порядку):**
-1. `plans/2026.07.12-BASE/90_audit/AUDIT_2026-07-14_research-conformance.md` — **главный вход**:
-   системный вывод + 28 находок с кодом/сценарием/RAG-цитатами + 9 отсеянных (не чинить их без
-   перепроверки).
-2. `plans/2026.07.12-BASE/plan.md` — §2 Execution Rules, §3 Routing, §4 Status Board (строка P8),
-   §5 Decision Log (P-D48/49/50 — свежие).
-3. `plans/2026.07.12-BASE/phases/P3.md` — item **P3.8** целиком (образец того, как лечится этот
-   класс дефекта: `parity.test.ts` — проверка результата через настоящую трубу, а не форму строки).
+1. `plans/2026.07.12-BASE/phases/P8.md` — Phase Context (инварианты фазы) + item **P8.2** целиком.
+2. `plans/2026.07.12-BASE/findings/P8-vite-channel-hmr.md` — канон фикса, эталонный код.
+3. `plans/2026.07.12-BASE/plan.md` — §3 Routing (строка P8.1–P8.14), §5 Decision Log (P-D51..P-D63),
+   §4 Status Board.
+4. `tests/integration/` (P8.1, этот item) — стенд, которым P8.2 обязан доказать свой фикс: хелперы
+   `src/helpers/vite-build.ts` (`viteBuild`) + `src/helpers/fixture.ts` (`mkFixture`/`rmFixture`);
+   пример self-теста — `src/fast/vite-build.self.test.ts`.
 
-**Done (эта сессия):**
+**Done:** (эта сессия)
 
-- **Adversarial-ревью P3.7** (`/task:review`, opus/xhigh, 16 измерений: 5 классических + 10
-  conformance-скиллов реестра skiller + плановая конституция; 48 сырых → 27 подтверждённых).
-  Вскрыло: ревью P3.7 УЖЕ проводилось (4 фикс-коммита, PR #1), но план о них не знал; пост-ревью-фиксы
-  вышли за границы ТЗ и внесли новый дефект того же класса (`.trim()` в скрипте).
-- **P3.8 закрыт 🟢** (коммит `f8aab87`): фиксы ревью + **смена курса по RAG**.
-  - **P-D49** — канон `preference` (намерение, персистится) / `theme` (резолв, в DOM) / `system`.
-    `init()` больше не пишет в хранилище; `set('system')` возвращает живое следование за ОС.
-    Изначальная рекомендация давалась ПО ПАМЯТИ и была опровергнута RAG (VueUse/next-themes);
-    канон уже был в собственном research `R-13` §2.1, но P3.1 его не реализовал.
-  - **P-D50** — анти-FOUC скрипт Nuxt генерится per-request из `runtimeConfig` (server-плагин +
-    `useHead`). `NUXT_PUBLIC_THEMEON_DEFAULT` доехал до pre-paint скрипта — доказано живым смоком.
-  - **P-D48** — опция `ThemeInitScriptOptions.themes` узаконена; api-freeze расширен на подпуть
-    `./anti-fouc` и на ФОРМУ типов (компайл-тайм; негативно проверен).
-  - `parity.test.ts` (новый, 361 кейс, мутационно проверен) — исполняемый инвариант согласия двух
-    каналов. Гейты: 886 тестов, typecheck/lint/build/check:pack 9/9 зелёные.
-- **Аудит закрытых фаз P1–P4 против research** (81 агент): 28 подтверждённых расхождений →
-  `90_audit/AUDIT_2026-07-14_research-conformance.md`; фаза P8 заведена в Status Board (🔴 Blocked,
-  не детализирована).
+- **P8.1 закрыт 🟠 Done with deviations.** Новый workspace-пакет `tests/integration` (`pnpm-workspace.yaml`:
+  `tests/*`): 4 быстрых яруса (`vite build`/Tailwind/`naive-ui`/Chromium) + slow-ярус живого `nuxt dev`,
+  все — тонкие хелперы + self-тесты хелперов (зелёные на текущем сломанном коде пакетов, как и требует
+  Code Guidance item'а — красные тесты ПАКЕТОВ несут P8.2–P8.13 вместе со своими фиксами).
+- Починен порядок CI: `install → build → lint → typecheck → test → test:int → check:pack` (+ отдельный
+  job `integration-slow` на `test:int:slow`) — было `install → lint → typecheck → test → build →
+  check:pack`, из-за чего CI был красным 4 прогона подряд (кросс-пакетные импорты идут через
+  `exports → dist`, а `dist` собирался ПОСЛЕ typecheck/test).
+- Валидация item'а (все зелёные): `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:int`;
+  `pnpm test:int:slow`; регрессия порядка воспроизведена и починена (`rm -rf packages/*/dist && pnpm
+  typecheck` → `TS2307` на 3 пакетах; `pnpm build && pnpm typecheck` → зелёное). Замеры: `pnpm build`
+  ~5.3 с; `pnpm test` ~1.1 с; `pnpm test:int` ~7.1 с (build+4 теста); `pnpm test:int:slow` ~8.5 с
+  (build+живой nuxt dev).
+- **Known Deviation (см. `phases/P8.md` P8.1 Completion Notes):** регекс-парсинг URL из stdout `nuxt dev`
+  (findings §6e) в этой среде исполнения недостижим — дочерний процесс реально поднимается и слушает порт
+  (доказано прямым `curl`), но не доставляет ни байта в переданный pipe stdout/stderr родителя. Хелпер
+  `spawnNuxtDev` вместо этого сам выбирает свободный порт и ждёт готовности HTTP-поллингом — функционально
+  эквивалентно цели findings, без зависимости от захвата stdout.
 
 **Remaining:**
 
-1. **P8** (следующий шаг) — детализация + исполнение ремедиации. 5 Blocker:
-   `@themeon/vite` не работает ни одним документированным способом · `@themeon/naive` `toNative()`
-   отдаёт `var(--…)`-строки вместо цветов · `--color-bg-subtle` → `baseColor` (чужая роль Naive) ·
-   `breakpoint` в `@theme inline` убивает все `md:`/`lg:` · `@theme inline` эмитит циклическую
-   глобальную переменную, способную обнулить все токены.
-2. **P5.9 / P5.11** (пилоты) — ЗАБЛОКИРОВАНЫ до P8. Плюс: публичный контракт `useTheme()` изменён
-   (P-D49) → пилоты мигрируют на `preference`/`theme`, а не просто обновляют `dist`.
-3. **P5.10** — снятие легаси-алиасов + `themeon check --coverage` + визуал (последний item P5).
-4. **P6 / P7** — без изменений.
+1. **P8.2–P8.14** — 13 items, порядок: P8.2 (vite) → P8.3 (tailwind) → P8.4 (nuxt) → P8.5/P8.6 (colors) →
+   P8.7 (css) → P8.8/P8.9 (naive) → P8.10 (vue) → P8.11/P8.12 (DTCG) → P8.13 (CLI) → P8.14 (research +
+   финальная сверка). Каждый — `/task:plan-exec` (sonnet/medium) + ОБЯЗАТЕЛЬНЫЙ adversarial-review
+   (opus/xhigh) по коммиту.
+2. **P5.9 / P5.11 / P5.10** (пилоты) — ЗАБЛОКИРОВАНЫ до закрытия ВСЕЙ P8 (решение владельца 2026-07-14).
+3. **P6 / P7** — без изменений.
 
 **Sources of truth:**
 
-- План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT; зеркало Vault —
-  `rsync -a --delete` после правок).
-- Пакеты: `~/projects/packages/themeon/packages/*` — HEAD `f8aab87`, дерево чистое, `dist` свежий
-  (но БРАТЬ ЕГО В ПИЛОТЫ НЕЛЬЗЯ до P8 — см. блокеры).
-- Пилоты: `~/projects/vintera/vintera` и `~/projects/dterema/app`, ветки `themeon-migration/P5`,
-  НЕ смёржены. **Оба сайта НЕ запущены** — подстраиваются под пакет, а не наоборот (решение
-  пользователя 2026-07-14); канон пакета важнее совместимости с текущим кодом пилотов.
+- План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT; Vault — зеркало).
+- Входы фазы P8 — `findings/P8-*.md`, НЕ `20_research/R-xx` (R-11 §1, R-13 §4.3/§4.4, R-14 §2.1 — ложные
+  утверждения, P8.14 их размечает).
+- Тест-стенд P8.1 — `tests/integration/` (см. Required Reads выше); `pnpm test:int` не идёт в `pnpm test`
+  (отдельная команда), CI гоняет его отдельным шагом после `pnpm build`.
+- Пакеты: `~/projects/packages/themeon/packages/*` — HEAD (после коммита P8.1), дерево чистое кроме
+  P8.1-коммита. `dist` БРАТЬ В ПИЛОТЫ НЕЛЬЗЯ до закрытия P8.
 
 **Open risks:**
 
-- **Research дефектен и его нельзя цитировать как истину:** `R-13` §4.4 (рецепт CSS-`@import`
-  virtual-модуля — не работает), `R-14` §2.1 («`@theme inline` не создаёт глобальную переменную» —
-  ложно), `R-13` §4.3 (из верного факта сделан обратный вывод). Три из пяти блокеров порождены
-  именно этими строками. P8 обязана их исправить, иначе следующая фаза наступит на те же грабли.
-- **Метод тестирования пакета порочен:** каждый тест мокает границу (плагин Vite — на фейковом
-  контексте, Tailwind-мост — строковыми ассертами, Naive — на нетиповом `refLayer`). Пока это не
-  исправлено структурно, зелёный `pnpm test` ничего не значит для интеграции.
-- `themeon check` заваливает собственную дефолтную тему пакета (Major #22).
-- `plans/` теперь под git (Q5 закрыт де-факто, коммит `45da5d3`).
+- P8.1 сам по себе не чинит НИ ОДНОГО блокера — только даёт стенду, которым P8.2–P8.13 обязаны доказать
+  свои фиксы. Пока P8.2 не закрыт, `tests/integration` детектирует Blocker #1 (`virtual:themeon.css`
+  `@import` не резолвится) только имплицитно (через `viteBuild`/`mkFixture`, использованных в self-тестах
+  P8.1 без утверждений про блокер) — явный красный/зелёный тест на Blocker #1 появится вместе с P8.2.
+- Прочие риски фазы (Naive dark APCA, `textMuted` запас над floor'ом) — без изменений, см. предыдущую
+  версию этого файла / `phases/P8.md`.
 
 **Workarounds / Deferred / Open questions:**
 
-- **deferred (из P3.8):** `dispose()` у `UseThemeReturn` (снятие `matchMedia`-слушателя) — рост
-  публичной поверхности без потребителя; перевод русских JSDoc публичных типов на английский
-  (инвариант фазы 6) — репо-широкий долг, отдельный item.
-- **open_questions:** `open-questions.md` — Q3 (`@bg-dev/nuxt-naiveui`), Q4 (генерализация пакета:
-  `toNative` `varMap`, `aliases`/`refLayer` в модуле, breakpoints-мост). **Q4 частично поглощена
-  аудитом** — находка #2 (`toNative` читает не тот слой) это ровно она, но как Blocker.
+- **workarounds:** `spawnNuxtDev` выбирает порт сам и ждёт HTTP-поллингом вместо парсинга stdout
+  (см. Known Deviation выше) — специфика этой среды исполнения, пересмотреть при переносе в CI (GitHub
+  Actions), где парсинг stdout может снова заработать штатно; сохранить текущий (env-независимый) подход,
+  если не появится причина вернуться.
+- **deferred:** `dispose()` у `UseThemeReturn` (P3.8); перевод русских JSDoc публичных типов на английский
+  (репо-широкий долг); структурный DTCG-эмит `shadow`/`gradient` (в P8 — `$extensions`-мост).
+- **open_questions:** `open-questions.md` — Q3 (`@bg-dev/nuxt-naiveui`, нужен владелец до merge веток
+  пилотов), Q4 (генерализация — частично поглощена P8); Q1/Q2/Q5 закрыты.
