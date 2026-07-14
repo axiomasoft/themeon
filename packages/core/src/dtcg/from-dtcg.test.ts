@@ -149,9 +149,18 @@ describe('round-trip ядра', () => {
     const back = fromDTCG(toDTCG(def).files)
     expect(back.warnings).toEqual([])
 
+    // P8.11: `text` эмитится примитивами (`fontSize`/`lineHeight`), не `typography` (модель
+    // ThemeOn не несёт 5 полей §9.8) — импорт видит два отдельных токена группы, а не композит,
+    // отсюда `--text-2xl-font-size`/`--text-2xl-line-height` вместо `--text-2xl`/`--text-2xl--line-height`
+    // (композитный round-trip `text` — предмет P8.12, здесь важна СТАБИЛЬНОСТЬ остальных типов).
     const original = resolveTheme(def, { refLayer: 'referenced' })
     const roundTripped = resolveTheme(back.definition, { refLayer: 'referenced' })
-    expect(roundTripped.vars).toEqual(original.vars)
+    const { '--text-2xl': _origText, '--text-2xl--line-height': _origLh, ...restOriginal } = original.vars
+    const { '--text-2xl-font-size': roundFontSize, '--text-2xl-line-height': roundLh, ...restRoundTripped } =
+      roundTripped.vars
+    expect(restRoundTripped).toEqual(restOriginal)
+    expect(roundFontSize).toBe(_origText)
+    expect(String(roundLh)).toBe(String(_origLh))
   })
 
   test('round-trip сохраняет var-chain ссылки в базе', () => {

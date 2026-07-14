@@ -31,6 +31,8 @@
     "test": "vitest run --root ../.. --project @themeon/core"
   },
   "devDependencies": {
+    "@terrazzo/parser": "catalog:",
+    "colorjs.io": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

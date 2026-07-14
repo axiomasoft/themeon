@@ -96,8 +96,16 @@ applier consume verbatim.
 
 `toDTCG(def)` exports a multi-file DTCG 2025.10 bundle (`base.tokens.json`,
 `<theme>.tokens.json`, `themeon.resolver.json`) that Terrazzo / Style Dictionary consume
-directly; `fromDTCG(files)` imports one back into a `ThemeDefinition`. See the
-[DTCG format spec](https://www.designtokens.org/TR/2025.10/format/).
+directly (validated against `@terrazzo/parser`); `fromDTCG(files)` imports one back into a
+`ThemeDefinition`. See the [DTCG format spec](https://www.designtokens.org/TR/2025.10/format/).
+
+`toDTCG` returns `{ files, warnings }`. Colors get a zero-dep `hex` fallback (OKLCH→sRGB, CSS
+Color 4 gamut-mapped); `text` is emitted as `fontSize`/`lineHeight` primitives, not
+`typography` (the spec requires 5 fields, the ThemeOn text model carries 2); `shadow`/
+`gradient` have no structural form yet. Anything not representable in the spec (a `%`/`em`
+dimension, an unparsable color, an unknown easing keyword) is skipped, reported in
+`warnings`, and bridged losslessly via a root `$extensions["com.themeon"]` block rather than
+emitted as an invalid or silently-truncated value.
 
 ## License
 

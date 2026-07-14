@@ -17,6 +17,7 @@ catalog:
   vite: 8.1.4
   colorjs.io: 0.7.0
   culori: 4.0.2
+  "@terrazzo/parser": 2.4.0
   "naive-ui": 2.44.1
   citty: 0.2.2
   consola: 3.4.2

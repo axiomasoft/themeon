@@ -8,6 +8,7 @@ export type ThemeonErrorCode =
   | 'UNSAFE_PATH' // сегмент пути — `__proto__`/`constructor`/`prototype` (prototype pollution)
   | 'UNSAFE_CSS_TOKEN' // значение, интерполируемое в CSS-селектор/at-rule/комментарий, содержит `{`, `}` или `*/` (CSS-инъекция)
   | 'BAD_COLOR' // адаптер (@themeon/naive) получил цвет, непарсибельный consumer'ом (var()/color-mix()/…)
+  | 'DTCG_NAME_COLLISION' // два разных пути токенов экранируются в одно DTCG-имя (P8.11)
 
 /** Единая ошибка пакета: код + сообщение (публичная поверхность — сообщение на английском). */
 export class ThemeonError extends Error {

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import Color from 'colorjs.io'
 import { formatColor, parseColor } from './color'
 import type { DTCGColorValue } from './types'
 
@@ -33,10 +34,11 @@ describe('parseColor', () => {
     expect(parseColor('rgba(0, 0, 0, 0.5)')!.alpha).toBe(0.5)
   })
 
-  test('oklch() → структурная форма без hex, точность сохраняется', () => {
+  test('oklch() → структурная форма + zero-dep hex-fallback (findings §4)', () => {
     expect(parseColor('oklch(0.72 0.11 221.19)')).toEqual({
       colorSpace: 'oklch',
       components: [0.72, 0.11, 221.19],
+      hex: '#44b4d5',
     })
   })
 
@@ -44,13 +46,69 @@ describe('parseColor', () => {
     expect(parseColor('oklch(0.55 0.13 155 / 0.5)')).toEqual({
       colorSpace: 'oklch',
       components: [0.55, 0.13, 155],
+      hex: '#14874e',
       alpha: 0.5,
     })
   })
 
-  test('нераспознанные нотации → null (legacy-строка у потребителя)', () => {
-    expect(parseColor('hsl(200 50% 50%)')).toBeNull()
-    expect(parseColor('rebeccapurple')).toBeNull()
+  test('hex-fallback OKLCH сверен с colorjs.io@0.7.0 live (findings §4/§9.3, in-gamut → байт-в-байт)', () => {
+    const inGamutCases: Array<[number, number, number]> = [
+      [0.5, 0.1, 0],
+      [0.5, 0.1, 90],
+      [0.5, 0.05, 180],
+      [0.5, 0.1, 270],
+      [0.9, 0.05, 155],
+      [0.2, 0.05, 30],
+      [0.99, 0, 0],
+      [0.15, 0, 0],
+    ]
+    for (const [L, C, H] of inGamutCases) {
+      const c = new Color('oklch', [L, C, H])
+      expect(c.inGamut('srgb')).toBe(true) // сэмплы отобраны in-gamut — иначе сравнение не байт-в-байт
+      const refHex = c.to('srgb').toString({ format: 'hex', collapse: false }).toLowerCase()
+      expect(parseColor(`oklch(${L} ${C} ${H})`)?.hex).toBe(refHex)
+    }
+  })
+
+  test('hsl()/hwb()/lab()/lch()/oklab() → структурная форма без конверсии (1:1 по colorSpace)', () => {
+    expect(parseColor('hsl(200 50% 50%)')).toEqual({ colorSpace: 'hsl', components: [200, 50, 50] })
+    expect(parseColor('hsla(200, 50%, 50%, 0.5)')).toEqual({
+      colorSpace: 'hsl',
+      components: [200, 50, 50],
+      alpha: 0.5,
+    })
+    expect(parseColor('hwb(200 20% 10%)')).toEqual({ colorSpace: 'hwb', components: [200, 20, 10] })
+    expect(parseColor('lab(50 40 -30)')).toEqual({ colorSpace: 'lab', components: [50, 40, -30] })
+    expect(parseColor('lch(50 40 30)')).toEqual({ colorSpace: 'lch', components: [50, 40, 30] })
+    expect(parseColor('oklab(0.6 0.05 -0.02)')).toEqual({ colorSpace: 'oklab', components: [0.6, 0.05, -0.02] })
+    expect(parseColor('oklab(60% 0.05 -0.02)')).toEqual({ colorSpace: 'oklab', components: [0.6, 0.05, -0.02] })
+  })
+
+  test('color(<space> …) → остальные colorSpace спеки без конверсии', () => {
+    expect(parseColor('color(display-p3 1 0.5 0)')).toEqual({
+      colorSpace: 'display-p3',
+      components: [1, 0.5, 0],
+    })
+    expect(parseColor('color(xyz-d65 0.2 0.3 0.1 / 0.8)')).toEqual({
+      colorSpace: 'xyz-d65',
+      components: [0.2, 0.3, 0.1],
+      alpha: 0.8,
+    })
+    expect(parseColor('color(xyz 0.2 0.3 0.1)')).toEqual({ colorSpace: 'xyz-d65', components: [0.2, 0.3, 0.1] })
+    expect(parseColor('color(unknown-space 1 1 1)')).toBeNull()
+  })
+
+  test('именованные CSS-цвета → srgb с hex-fallback (структурная форма)', () => {
+    expect(parseColor('rebeccapurple')).toEqual({ colorSpace: 'srgb', components: [0.4, 0.2, 0.6], hex: '#663399' })
+    expect(parseColor('RebeccaPurple')).toEqual({ colorSpace: 'srgb', components: [0.4, 0.2, 0.6], hex: '#663399' })
+    const t = parseColor('transparent')!
+    expect(t.hex).toBe('#000000')
+    expect(t.alpha).toBe(0)
+  })
+
+  test('непарсибельные значения → null (legacy-строка у потребителя)', () => {
+    expect(parseColor('var(--x)')).toBeNull()
+    expect(parseColor('color-mix(in oklch, red, blue)')).toBeNull()
     expect(parseColor('not-a-color')).toBeNull()
   })
 })
