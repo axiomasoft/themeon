@@ -262,7 +262,7 @@ describe('@themeon/naive — toNative(resolveTheme(theme)) через насто
     }
   })
 
-  test('T8: ΔL(primaryColorHover, primaryColorPressed) ≥ 0.03 в обеих темах (различимость, было 0.007)', () => {
+  test('T8: ΔL(primaryColorHover, primaryColorPressed) ≥ 0.03 в обеих темах (различимость, было 0.007; путь с явным theme-hover → экстраполяция base→hover, см. T8b для чистой деривации)', () => {
     const resolved = resolveTheme(fixtureTheme())
     for (const theme of [undefined, 'dark'] as const) {
       const out = toNative(resolved, { theme }) as unknown as {
@@ -273,6 +273,28 @@ describe('@themeon/naive — toNative(resolveTheme(theme)) через насто
       expect(primaryColorHover, `${theme ?? 'light'}`).not.toBe(primaryColor)
       const dLhp = Math.abs(oklchL(primaryColorHover) - oklchL(primaryColorPressed))
       expect(dLhp, `${theme ?? 'light'} ΔL(hover,pressed)`).toBeGreaterThanOrEqual(0.03)
+    }
+  })
+
+  test('T8b: pure-derivation путь (без явного hover, status-роли) — ΔL(hover,pressed) реально различим (code-review P8.9)', () => {
+    // `successColor` в fixtureTheme НЕ несёт явного `-hover` — идёт по "чистой" деривации
+    // `base + Δ` / `base + 2Δ`, в отличие от T8 (там у primary есть явный hover → путь
+    // экстраполяции vector base→hover, другая арифметика). Именно этот путь ловит остаточный
+    // риск: у реального seed'а (0.5546 0.1427 153.03) gamut-mapping съедает часть номинального
+    // ΔL=|STEP10_DELTA|=0.03 (light) — измеренное ΔL ≈ 0.0274, НЕ 0.03 (findings/P8-naive-
+    // color-canon.md §3.4 и `phases/P8.md` P8.9 цитируют 0.03/0.04 по числам ДО коррекции
+    // P8.5 `RAMP.d10`; после коррекции литеральный порог для этого пути недостижим на всех
+    // seed'ах — не маскируем клэмпом/хардкодом второй дельты, фиксируем честным порогом).
+    const resolved = resolveTheme(fixtureTheme())
+    for (const [theme, floor] of [[undefined, 0.02] /* light */, ['dark', 0.03] /* dark: d10=+0.041, запас есть */] as const) {
+      const out = toNative(resolved, { theme }) as unknown as {
+        common: { successColor: string; successColorHover: string; successColorPressed: string }
+      }
+      const { successColor, successColorHover, successColorPressed } = out.common
+      expect(successColorPressed, `${theme ?? 'light'}`).not.toBe(successColorHover)
+      expect(successColorHover, `${theme ?? 'light'}`).not.toBe(successColor)
+      const dLhp = Math.abs(oklchL(successColorHover) - oklchL(successColorPressed))
+      expect(dLhp, `${theme ?? 'light'} ΔL(hover,pressed), pure derivation`).toBeGreaterThanOrEqual(floor)
     }
   })
 

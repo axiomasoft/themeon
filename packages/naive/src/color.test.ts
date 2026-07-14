@@ -1,3 +1,4 @@
+import Color from 'colorjs.io'
 import { describe, expect, test } from 'vitest'
 import { deriveInteractionStates, toHex } from './color'
 
@@ -62,5 +63,20 @@ describe('deriveInteractionStates', () => {
     const nearBlack = toHex('oklch(0.02 0.02 155)')
     expect(deriveInteractionStates({ base: nearWhite, appearance: 'light' }).hover).toMatch(HEX_RE)
     expect(deriveInteractionStates({ base: nearBlack, appearance: 'dark' }).pressed).toMatch(HEX_RE)
+  })
+
+  test('ахроматический base + хроматичный явный hover — hue экстраполяции идёт к hover, не в случайную сторону (code-review P8.9: colorjs.io отдаёт oklch.h=null для ахроматики, не NaN)', () => {
+    const base = toHex('oklch(0.5 0 0)') // серый: chroma=0 → colorjs.io отдаёт oklch.h === null
+    const hover = toHex('oklch(0.55 0.15 250)') // насыщенный синий, hue 250°
+    expect(new Color(base).to('oklch').oklch.h).toBeNull() // фиксирует сам сентинел (не NaN)
+
+    const { pressed } = deriveInteractionStates({ base, appearance: 'light', hover })
+    const pressedHue = new Color(pressed).to('oklch').oklch.h as number
+    // База ахроматична — направление hue задаёт ТОЛЬКО hover (extrapolateHue отдаёт h1 без
+    // экстраполяции, когда исходный угол не определён). Сломанный guard (`Number.isNaN(null)
+    // === false`) коэрсил null в 0 и уводил результат в hue ~140° (зелёный) вместо ~250 (синий).
+    // gamut-mapping (toGamut) слегка сдвигает hue у насыщенных синих на границе sRGB — допуск
+    // 10° всё ещё на порядок точнее, чем ~110° ошибки сломанного guard'а (уводил в hue ~140°).
+    expect(Math.abs(pressedHue - 250)).toBeLessThan(10)
   })
 })

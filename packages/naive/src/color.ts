@@ -39,10 +39,16 @@ function shiftL(hex: string, delta: number): string {
   return c.toGamut({ space: 'srgb' }).toString({ format: 'hex', collapse: false })
 }
 
-/** Кратчайшая дуга h0→h1 (deg, wrap 360), экстраполированная на коэффициент `k`. NaN-hue (ахроматика) не двигает угол. */
+/**
+ * Кратчайшая дуга h0→h1 (deg, wrap 360), экстраполированная на коэффициент `k`.
+ * Ахроматика (chroma≈0) не двигает угол — colorjs.io 0.7.0 в рантайме отдаёт для нее
+ * `oklch.h === null` (НЕ `NaN`, вопреки типам `.d.ts`), поэтому проверка на `NaN` одна не
+ * ловит этот случай (code-review P8.9: сентинел null проходил мимо guard'а и коэрсился в 0).
+ */
 function extrapolateHue(h0: number, h1: number, k: number): number {
-  if (Number.isNaN(h0)) return h1
-  if (Number.isNaN(h1)) return h0
+  const isAchromatic = (h: number): boolean => h === null || h === undefined || Number.isNaN(h)
+  if (isAchromatic(h0)) return h1
+  if (isAchromatic(h1)) return h0
   const shortestDelta = ((((h1 - h0) % 360) + 540) % 360) - 180
   return (((h0 + k * shortestDelta) % 360) + 360) % 360
 }
