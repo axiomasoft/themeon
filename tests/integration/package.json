@@ -1,0 +1,27 @@
+{
+  "name": "tests-integration",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@themeon/core": "workspace:*",
+    "@themeon/vite": "workspace:*",
+    "@themeon/tailwind": "workspace:*",
+    "@themeon/naive": "workspace:*",
+    "@themeon/vue": "workspace:*",
+    "@themeon/nuxt": "workspace:*",
+    "vite": "catalog:",
+    "@tailwindcss/node": "catalog:",
+    "tailwindcss": "catalog:",
+    "naive-ui": "catalog:",
+    "vue": "catalog:",
+    "nuxt": "catalog:",
+    "playwright": "1.61.1",
+    "jsdom": "29.1.1",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
