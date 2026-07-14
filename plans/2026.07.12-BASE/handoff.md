@@ -1,60 +1,63 @@
-# HANDOFF — 2026-07-14 — after P8.2
+# HANDOFF — 2026-07-14 — after P8.3
 
-**Next:** Исполнить **P8.3 — `@themeon/tailwind`: мост на `@theme reference`** (третий item фазы P8,
-следующий по порядку риск ∩ зависимости данных). ТЗ детерминировано `findings/P8-tailwind-bridge-form.md`
-до эталонного кода. После коммита — ОБЯЗАТЕЛЬНЫЙ adversarial-review (opus/xhigh, P-D51).
+**Next:** Исполнить **P8.4 — `@themeon/nuxt`: загрузка темы + живой dev-watcher** (четвёртый item фазы
+P8). ТЗ детерминировано `findings/P8-nuxt-vue-runtime.md` до эталонного кода. После коммита —
+ОБЯЗАТЕЛЬНЫЙ adversarial-review (opus/xhigh, P-D51).
 
 | Параметр | Значение |
 |:--|:--|
 | Model | **sonnet** |
 | Thinking | **medium** (пинится самим `/task:plan-exec`) |
 | Context | **continue (/clear) — manual item** |
-| Суть | Заменить форму Tailwind-моста на `@theme reference` + литеральные значения (Blocker #4 — `--breakpoint-*` в `@media` невалиден; Blocker #5 — self-referential `--x: var(--x)` цикл убивает токены при обратном порядке `@import`) |
+| Суть | Починить `themeon.theme`, который в Nuxt не грузился НИКОГДА (`interopDefault` давится на замороженном объекте `defineTheme`); удалить `hash-dir.ts`, дедуп — по сгенерированному CSS |
 
 ```
-/task:plan-exec 2026.07.12-BASE P8.3
+/task:plan-exec 2026.07.12-BASE P8.4
 ```
 
 **Cold-start reads (по порядку):**
-1. `plans/2026.07.12-BASE/phases/P8.md` — Phase Context (инварианты фазы) + item **P8.3** целиком.
-2. `plans/2026.07.12-BASE/findings/P8-tailwind-bridge-form.md` — канон фикса, матрица кандидатов,
-   эталонный код §4, RAG §0.
-3. `plans/2026.07.12-BASE/plan.md` — §3 Routing (строка P8.1–P8.14), §5 Decision Log (P-D54, P-D61),
-   §4 Status Board.
-4. `plans/2026.07.12-BASE/findings/P8-css-layers-cli-checks.md` §1 (порядок `@layer` — смежный канон,
-   не противоречит).
-5. `packages/tailwind/src/bridge.ts`, `packages/tailwind/src/namespaces.ts` (текущий код).
+1. `plans/2026.07.12-BASE/phases/P8.md` — Phase Context (инварианты фазы) + item **P8.4** целиком.
+2. `plans/2026.07.12-BASE/findings/P8-nuxt-vue-runtime.md` — канон фикса, эталонный код, RAG.
+3. `plans/2026.07.12-BASE/plan.md` — §3 Routing (строка P8.1–P8.14), §5 Decision Log (P-D63), §4 Status
+   Board.
+4. `packages/nuxt/src/module.ts`, `packages/nuxt/src/internal/hash-dir.ts`, `packages/nuxt/src/types.ts`
+   (текущий код).
 
 **Done:** (эта сессия)
 
-- **P8.2 закрыт 🟢 Done.** `packages/vite/src/index.ts`: канал подключения — `import
-  'virtual:themeon.css'` из JS-энтри (канон, P-D55; CSS-`@import` виртуального модуля физически
-  невозможен — Blocker #1); `hotUpdate` возвращает `[mod]` вместо ручного `hot.send({type:'css-update'})`
-  (supersedes P-D26, Major #18); `tokensFiles` резолвятся в абсолютные пути в новом хуке
-  `configResolved` (D3-регресс — относительные пути из README раньше никогда не матчались). Добавлена
-  доп. опция `cssImport?: boolean | {file}` — CSS-first канал без JS-энтри: плагин пишет CSS темы в
-  реальный файл на диске и алиасит `virtualId` на него через `resolve.alias`.
-- `packages/vite/README.md` переписан: 3 рецепта на JS-import, секция «Live HMR» (`jiti`-фабрика,
-  честная оговорка про config-dependency/full-reload — D4), секция «CSS-only projects» (`cssImport`),
-  секция «Why not CSS `@import`?».
-- 7 новых интеграционных тестов через настоящую трубу (`tests/integration/`, хелперы P8.1 + новые
-  `helpers/vite-dev.ts` и `chromium.ts::withPage`): `src/fast/vite-plugin.test.ts` (4) +
-  `src/browser/vite-hmr.test.ts` (3, реальный `createServer()` + реальный Chromium). **4 из 7 были
-  красными до фикса** (доказано `git stash` на `index.ts`/`types.ts` + ребилд + прогон) — `cssImport`
-  T6/T7 (ENOENT/фича не существовала) и обе живые HMR-эффект пробы (таймаут 5000ms). T1 и регресс-тест
-  на Blocker #1, а также T5 — регрессионные якоря контракта, ожидаемо зелёные и до, и после.
-- Валидация item'а (все зелёные): `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:int`
-  (887 unit + 12 integration); `pnpm --filter @themeon/vite typecheck` отдельно.
-- **Known Deviation:** покрытие таблицы T1–T7 findings §7 не 1:1 по файлам — T2+T3+T4 объединены в
-  один browser-тест (живой эффект через `getComputedStyle`, сильнее per Implementation Rule 4, чем
-  снятие сырых WS-payload'ов), T5 — отдельный. Итоговое число тестов (7) и покрытие строк сохранены.
+- **P8.3 закрыт 🟢 Done.** `packages/tailwind/src/bridge.ts`: мост переписан на `@theme reference` +
+  литеральные значения (P-D54, supersedes P-D31) — Tailwind при `reference` НИКОГДА не эмитит
+  переменные ThemeOn в `:root, :host`, порядок подключения CSS больше не проблема. `--breakpoint-*` —
+  литерал ВСЕГДА (Blocker #4: `var()` невалиден в `@media`); `--shadow-*` — единственное исключение,
+  остаётся `var()` (иначе dark-своп теней не доходит). Companion (`--x--line-height`) уже был включён
+  в прежнем коде, поведение не менялось.
+- `packages/tailwind/src/bridge.test.ts` переписан под новую форму (13 тестов); `tailwind-compile.test.ts`
+  — старый ассерт `selfRefCount===1` (закреплял цикл-баг) заменён на «var(--x, литерал)» + «Tailwind не
+  эмитит сам».
+- 8 новых интеграционных тестов через настоящую трубу: `tests/integration/src/fast/tailwind-bridge.test.ts`
+  (6: `md:`-литерал в `@media`, нулевая эмиссия, анти-цикл, инвариантность порядка O1/O2/O3, companion,
+  форма bridge.css) + `tests/integration/src/browser/tailwind-bridge.test.ts` (2: реальный Chromium —
+  dark-своп/spacing/text-companion/`md:` на 1000px vs 400px; `shadow-md` своп в dark). **7 тестов были
+  красными до фикса** (доказано `git stash packages/tailwind/src/bridge.ts` + ребилд + прогон, включая
+  живой Chromium: `md:bg-action-primary` на 1000px давал `rgba(0,0,0,0)`).
+- `packages/tailwind/README.md` переписан (секция "Why `@theme reference`", "Limitation: breakpoints…").
+- Downstream-правка отдельным коммитом (`5110a87`): `packages/cli/{templates.ts, commands/build.ts,
+  README.md, src/build.test.ts, src/init.test.ts}` — ссылались текстом/ассертом на устаревший
+  `@theme inline`.
+- Валидация item'а (все зелёные): `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:int -- tailwind`
+  (890 unit + 20 integration, 9 файлов).
+- **Known Deviations:** тесты положены по конвенции `tests/integration/src/{fast,browser}/*.test.ts`
+  (не `tests/integration/tailwind/**` из буквального текста ТЗ — такой директории в репо нет, это
+  устаревший путь плана); тест «инвариантность к порядку» использует 3 перестановки import'ов среди
+  `{tailwindcss, bridge.css, tokens.css}` без реального `@themeon/css` (не входит в зависимости
+  `tests/integration/package.json`) — фундаментальное свойство `@theme reference` делает результат
+  порядко-независимым по построению, полный `@themeon/css`-layered O3 не добавляет доказательной силы.
 
 **Remaining:**
 
-1. **P8.3–P8.14** — 12 items, порядок: P8.3 (tailwind) → P8.4 (nuxt) → P8.5/P8.6 (colors) →
-   P8.7 (css) → P8.8/P8.9 (naive) → P8.10 (vue) → P8.11/P8.12 (DTCG) → P8.13 (CLI) → P8.14 (research +
-   финальная сверка). Каждый — `/task:plan-exec` (sonnet/medium) + ОБЯЗАТЕЛЬНЫЙ adversarial-review
-   (opus/xhigh) по коммиту.
+1. **P8.4–P8.14** — 11 items, порядок: P8.4 (nuxt) → P8.5/P8.6 (colors) → P8.7 (css) → P8.8/P8.9
+   (naive) → P8.10 (vue) → P8.11/P8.12 (DTCG) → P8.13 (CLI) → P8.14 (research + финальная сверка).
+   Каждый — `/task:plan-exec` (sonnet/medium) + ОБЯЗАТЕЛЬНЫЙ adversarial-review (opus/xhigh) по коммиту.
 2. **P5.9 / P5.11 / P5.10** (пилоты) — ЗАБЛОКИРОВАНЫ до закрытия ВСЕЙ P8 (решение владельца 2026-07-14).
 3. **P6 / P7** — без изменений.
 
@@ -65,7 +68,7 @@
   ложные утверждения, P8.14 их размечает).
 - Тест-стенд P8.1 — `tests/integration/` (см. Required Reads выше); `pnpm test:int` не идёт в `pnpm test`
   (отдельная команда), CI гоняет его отдельным шагом после `pnpm build`.
-- Пакеты: `~/projects/packages/themeon/packages/*` — HEAD (после коммита P8.2), дерево чистое.
+- Пакеты: `~/projects/packages/themeon/packages/*` — HEAD (после коммита P8.3), дерево чистое.
   `dist` БРАТЬ В ПИЛОТЫ НЕЛЬЗЯ до закрытия P8.
 
 **Open risks:**
