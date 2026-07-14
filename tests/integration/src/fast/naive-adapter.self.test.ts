@@ -1,31 +1,17 @@
+import { existsSync, readdirSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { dirname, join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { describe, expect, test } from 'vitest'
 import { changeColor } from 'seemly'
 import { defineTheme, resolveTheme } from '@themeon/core'
 import { contrastAPCA } from '@themeon/colors'
 import { toNative } from '@themeon/naive'
 
-import { anchorDark, anchorLight } from 'naive-ui/es/anchor/styles/index'
-import { alertDark, alertLight } from 'naive-ui/es/alert/styles/index'
-import { badgeDark, badgeLight } from 'naive-ui/es/badge/styles/index'
+import { alertLight } from 'naive-ui/es/alert/styles/index'
 import { buttonDark, buttonLight } from 'naive-ui/es/button/styles/index'
-import { calendarDark, calendarLight } from 'naive-ui/es/calendar/styles/index'
 import { checkboxDark, checkboxLight } from 'naive-ui/es/checkbox/styles/index'
 import { commonDark, commonLight } from 'naive-ui/es/_styles/common/index'
-import { datePickerDark, datePickerLight } from 'naive-ui/es/date-picker/styles/index'
-import { dropdownDark, dropdownLight } from 'naive-ui/es/dropdown/styles/index'
-import { floatButtonDark, floatButtonLight } from 'naive-ui/es/float-button/styles/index'
-import { iconWrapperDark, iconWrapperLight } from 'naive-ui/es/icon-wrapper/styles/index'
-import { inputDark, inputLight } from 'naive-ui/es/input/styles/index'
-import { menuDark, menuLight } from 'naive-ui/es/menu/styles/index'
-import { paginationDark, paginationLight } from 'naive-ui/es/pagination/styles/index'
-import { radioDark, radioLight } from 'naive-ui/es/radio/styles/index'
-import { sliderDark, sliderLight } from 'naive-ui/es/slider/styles/index'
-import { stepsDark, stepsLight } from 'naive-ui/es/steps/styles/index'
-import { switchDark, switchLight } from 'naive-ui/es/switch/styles/index'
-import { tabsDark, tabsLight } from 'naive-ui/es/tabs/styles/index'
-import { tagDark, tagLight } from 'naive-ui/es/tag/styles/index'
-import { tooltipDark, tooltipLight } from 'naive-ui/es/tooltip/styles/index'
-import { typographyDark, typographyLight } from 'naive-ui/es/typography/styles/index'
 
 /**
  * `@themeon/naive` — реальная труба (P8.8, Blocker #2/#3 + новые находки §4.1/§4.2,
@@ -123,33 +109,27 @@ function merged(builtin: Record<string, unknown>, out: Record<string, unknown>):
 }
 
 /** `Theme.self` типизирован под конкретный `CommonThemeVars` — здесь гоняем произвольный merge. */
-function callSelf(theme: { self?: (vars: never) => unknown }, vars: Record<string, unknown>): unknown {
-  return (theme.self as unknown as (v: Record<string, unknown>) => unknown)(vars)
+function callSelf(theme: { self?: unknown }, vars: Record<string, unknown>): unknown {
+  return (theme.self as (v: Record<string, unknown>) => unknown)(vars)
 }
 
-const SELF_COMPONENTS: ReadonlyArray<{ light: object; dark: object }> = [
-  { light: buttonLight, dark: buttonDark },
-  { light: checkboxLight, dark: checkboxDark },
-  { light: radioLight, dark: radioDark },
-  { light: dropdownLight, dark: dropdownDark },
-  { light: anchorLight, dark: anchorDark },
-  { light: alertLight, dark: alertDark },
-  { light: inputLight, dark: inputDark },
-  { light: tagLight, dark: tagDark },
-  { light: tooltipLight, dark: tooltipDark },
-  { light: sliderLight, dark: sliderDark },
-  { light: switchLight, dark: switchDark },
-  { light: badgeLight, dark: badgeDark },
-  { light: menuLight, dark: menuDark },
-  { light: iconWrapperLight, dark: iconWrapperDark },
-  { light: stepsLight, dark: stepsDark },
-  { light: calendarLight, dark: calendarDark },
-  { light: datePickerLight, dark: datePickerDark },
-  { light: floatButtonLight, dark: floatButtonDark },
-  { light: tabsLight, dark: tabsDark },
-  { light: paginationLight, dark: paginationDark },
-  { light: typographyLight, dark: typographyDark },
-]
+/**
+ * Все директории `es/<component>/styles/` реального пакета `naive-ui`, несущие и `light.mjs`,
+ * и `dark.mjs` (Implementation Rule 4, P8.8: "self() 81 light / 78 dark обязаны дать НОЛЬ
+ * throw" — не curated-подмножество из 13 компонентов finding §6, а прогон ПО ВСЕМ). Дискавери
+ * через `fs.readdirSync` на установленном пакете, не хардкод-список: если 2.44.x добавит
+ * компонент, тест подхватит его сам.
+ */
+function naiveStyleDirs(): string[] {
+  const require = createRequire(import.meta.url)
+  const esRoot = join(dirname(require.resolve('naive-ui/package.json')), 'es')
+  return readdirSync(esRoot, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && !d.name.startsWith('_'))
+    .map((d) => join(esRoot, d.name, 'styles'))
+    .filter((dir) => existsSync(join(dir, 'light.mjs')) && existsSync(join(dir, 'dark.mjs')))
+}
+
+const STYLE_DIRS = naiveStyleDirs()
 
 describe('@themeon/naive — toNative(resolveTheme(theme)) через настоящий naive-ui 2.44.1', () => {
   test('T1: каждое цветовое значение common — валидный hex, ни одной var(-строки', () => {
@@ -163,14 +143,36 @@ describe('@themeon/naive — toNative(resolveTheme(theme)) через насто
     }
   })
 
-  test('T2: self() всех компонентов (light+dark) — ноль throw', () => {
+  test('T2: self() ВСЕХ компонентных тем naive-ui (light+dark) — ноль throw (Rule 4: 81/78)', async () => {
     const resolved = resolveTheme(fixtureTheme())
     const outLight = toNative(resolved) as unknown as { common: Record<string, unknown> }
     const outDark = toNative(resolved, { theme: 'dark' }) as unknown as { common: Record<string, unknown> }
-    for (const { light, dark } of SELF_COMPONENTS) {
-      expect(() => callSelf(light, merged(commonLight, outLight))).not.toThrow()
-      expect(() => callSelf(dark, merged(commonDark, outDark))).not.toThrow()
+    const mLight = merged(commonLight, outLight)
+    const mDark = merged(commonDark, outDark)
+
+    let lightChecked = 0
+    let darkChecked = 0
+    for (const dir of STYLE_DIRS) {
+      const [lightMod, darkMod] = await Promise.all([
+        import(pathToFileURL(join(dir, 'light.mjs')).href) as Promise<{ default?: { self?: unknown; name?: string } }>,
+        import(pathToFileURL(join(dir, 'dark.mjs')).href) as Promise<{ default?: { self?: unknown; name?: string } }>,
+      ])
+      const lightTheme = lightMod.default
+      const darkTheme = darkMod.default
+      if (typeof lightTheme?.self === 'function') {
+        expect(() => callSelf(lightTheme, mLight), `${lightTheme.name} (light)`).not.toThrow()
+        lightChecked++
+      }
+      if (typeof darkTheme?.self === 'function') {
+        expect(() => callSelf(darkTheme, mDark), `${darkTheme.name} (dark)`).not.toThrow()
+        darkChecked++
+      }
     }
+    // Нижняя граница вместо точного 81/78 — findings §2.6 считала по установленному 2.44.1
+    // (2026-07-14); патч-релиз может добавить компонент, снижение ниже порога сигналит регресс
+    // дискавери (пустой STYLE_DIRS молча дал бы "0 throw" — ложно-зелёный тест).
+    expect(lightChecked).toBeGreaterThanOrEqual(75)
+    expect(darkChecked).toBeGreaterThanOrEqual(72)
   })
 
   test('T3: changeColor(out.common.primaryColor, {alpha:.5}) — не бросает (прямой контракт seemly)', () => {
