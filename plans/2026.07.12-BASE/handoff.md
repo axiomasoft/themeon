@@ -1,90 +1,102 @@
-# HANDOFF — 2026-07-14 — after P5.9
+# HANDOFF — 2026-07-15 — after P5.9
 
-**Next:** **ESCALATION-REQUIRED: P5.9 — конфликт правил (живая матрица тем строка 5 vs P-D49)**.
-Требуется **plan-design** сессия, НЕ `plan-exec` — item P5.9 остаётся `🔴 Blocked` до ре-дизайна.
+**Next:** **ESCALATION-REQUIRED: P5.9 — конфликт правил (`@layer`-приоритет `themeon.tokens` vs
+Tailwind-дефолты).** Требуется **plan-design** сессия, НЕ `plan-exec` — item P5.9 остаётся
+`🔴 Blocked` до ре-дизайна.
 
 | Параметр | Значение |
 |:--|:--|
 | Model | **opus** |
 | Thinking | **xhigh** (Routing `plan.md` §3 «P5 (пилоты) — opus/xhigh») |
 | Context | **NEW SESSION — шаг-не-item** |
-| Суть | Разрешить конфликт: акцептанс строки 5 живой матрицы тем P5.9 («после `init()` в хранилище — `'dark'`, не `''`») написан 2026-07-13, ДО закрытого 2026-07-14 решения **P-D49** (`init()` НЕ пишет в хранилище — персист только через явный `set()`). Актуализировать текст строки 5 Code Guidance/Validation `phases/P5.md` P5.9 под P-D49 (тема экрана обязана самоисцеляться — подтверждено живьём; персист-намерение НЕ переписывается — это осознанный контракт), решить, нужен ли новый D#, снять эскалацию, вернуть Status в `🟡 In progress`. |
+| Суть | Разрешить конфликт правил: P-D40 предписывает `<link base-vars.css>` ПЕРВЫМ ради каскад-порядка (дименсия 1 обязательного review — app/Tailwind-CSS после токенов), но этот же порядок регистрирует `@layer themeon.tokens` РАНЬШЕ Tailwind-слоёв → структурно ГАРАНТИРУЕТ, что `@layer theme` (Tailwind-дефолты) бьёт любые ThemeOn-имена, совпадающие с built-in Tailwind-токенами (`--radius-*`, `--font-*`, `--text-*` — совпадение неслучайно, D5 намеренно зеркалит Tailwind-неймспейсы). Решить архитектурно: явный `@layer`-приоритет поверх link-порядка (напр. `@layer themeon.tokens, theme;` объявление раньше обоих файлов) / расширение `@theme inline`-моста P5.7 на `--radius-*`/`--font-*`/`--text-*` (по образцу фикса 7 `--color-*`-пар, P5.7 MED-1) / переименование коллидирующих ThemeOn-токенов — завести новый D#, решить, чья это фаза-владелец (P2 `@themeon/css` слой-контракт / P4 `@themeon/tailwind` / переоткрытие P5.7). |
 
 ```
 /task:plan-design 2026.07.12-BASE P5.9
 ```
 
 **Cold-start reads (по порядку):**
-1. `plans/2026.07.12-BASE/phases/P5.md` — item **P5.9** целиком, включая ДВА blockquote
-   (ESCALATION 2026-07-13 разрешена + **ESCALATION 2026-07-14** — новая, эта сессия) и
-   Completion Notes «Доисполнение 2026-07-14».
-2. `plans/2026.07.12-BASE/plan.md` §5 Decision Log — **P-D49** (полный текст решения + RAG-источник).
-3. `plans/2026.07.12-BASE/phases/P3.md` — item **P3.8** (где P-D49 принято) — контекст решения.
 
-**Done:** (эта сессия — доисполнение P5.9 поверх закрытой фазы P8)
+1. `plans/2026.07.12-BASE/phases/P5.md` — item **P5.9** целиком, включая ВСЕ blockquote (две
+   ESCALATION 2026-07-13/2026-07-14 разрешены plan-design → эта, третья, 2026-07-15 — НОВАЯ,
+   ещё не разрешена) и Completion Notes «Доисполнение 2026-07-15» (живая матрица + гейты +
+   review-отчёт дословно).
+2. `plans/2026.07.12-BASE/phases/P5.md` — item **P5.7** Completion Notes, MED-1 (тот же класс
+   дефекта — самоссылочные `--color-*` в `@theme inline` били layer-приоритетом, там точечно
+   починено удалением 7 пар из моста; новая находка — Tailwind СОБСТВЕННЫЕ built-in имена, не
+   входящие в мост вообще).
+3. `plans/2026.07.12-BASE/plan.md` §5 Decision Log — **P-D40** (полный текст: почему link-порядок
+   обязателен) и **P-D36** (короткие Tailwind-классы vintera, контекст alias-моста).
 
-- ThemeOn-монорепо: `pnpm build` (11 пакетов, свежий `dist` с фиксами P3.7/P3.8) на `9fe80c0`.
-  `npx yalc publish` `@themeon/vue` + `@themeon/nuxt`.
-- vintera (`themeon-migration/P5`): `npx yalc update` → фикс подтверждён в установленной копии
-  (`grep trim()`) ДО живых прогонов → `yarn install` зелёный → коммит **`c8d5bee`**
-  `chore(deps): P5.9 обновление yalc-копий @themeon/{vue,nuxt} после фикса P3.7` (17 файлов,
-  только `.yalc/**` + `yalc.lock`, `package.json`/`yarn.lock` без изменений).
-- **Гейты на `c8d5bee`:** parity `themeon-parity.mjs` (пересоздан в scratchpad, Code Guidance P5.1)
-  → exit 0 (`base-vars.css` байт-в-байт не изменился с P5.8, `git diff --stat 6e84299 HEAD` пуст);
-  `yarn typecheck` exit 0; `yarn lint` exit 0; `yarn test` **37/37**; `yarn lint:css`
-  **0 errors / 122 warnings** (та же база P5.7/P5.8).
-- **Живая матрица тем (Playwright/Chromium, `nuxt dev`):** первый прогон дал ложный негатив
-  (стале Vite dep-optimize кэш держал допатчевую сборку `@themeon/vue` — `node_modules/.cache/vite`
-  не инвалидировался авто-обновлением yalc-зависимости); `rm -rf node_modules/.cache .nuxt` + рестарт
-  → повторный прогон: **5/6 строк полностью зелёные** (data-theme/`--color-bg-base`/body-фон верны
-  во ВСЕХ строках 1–5, регресс-строки 1 и 5 включительно — тема на экране корректна на OS=dark без
-  персиста и с отравленным `''`-персистом). Строка 5 частично красная только по хранилищу
-  (`localStorage['theme']` остаётся `''`, акцептанс ждал самозапись `'dark'`) — см. ESCALATION.
-- SSR-head/каскад-порядок (P-D40) подтверждён живьём (`<link base-vars.css>` первым перед
-  app/Tailwind CSS); анти-FOUC инициализатор один.
-- Обязательный adversarial-review (opus/xhigh) **НЕ проводился** — начинать его до снятия
-  эскалации не имеет смысла: акцептанс, по которому ревьюер сверял бы строку 5, сам под вопросом.
-- Полные детали, таблица матрицы, точные команды — `phases/P5.md` P5.9 Completion Notes
-  «Доисполнение 2026-07-14».
+**Суть находки (одним абзацем):** обязательный adversarial-review (opus/xhigh, read-only, по
+`c8d5bee`) прошёл 4 измерения из 5 (каскад-порядок, Sass-грep, визуал/Naive/мёртвые копии,
+конформанс P-D49 — все PASS). Измерение 2 (Computed-кросс-чек, P-D39) — **FAIL**: 13 `--*`-токенов
+(`--radius-md/lg/xl`, `--font-sans/mono`, `--text-xs/sm/lg`+`--size-xs/sm/lg`) на живой странице
+отдают Tailwind-дефолтные значения вместо значений `base-vars.css`, идентично в light/dark. Причина
+(подтверждена по сгенерированному CSS): `tailwind.css` (`@import "tailwindcss"`) эмитит СВОИ
+built-in `--radius-*`/`--font-*`/`--text-*` в `@layer theme`; `base-vars.css` — `@layer
+themeon.tokens`. `base-vars.css` грузится ПЕРВЫМ (обязательно по P-D40 для дименсии 1), поэтому его
+слой регистрируется РАНЬШЕ → получает НИЗШИЙ приоритет в CSS-каскаде → Tailwind-дефолты для
+совпадающих имён побеждают. Реальные потребители задеты: border-radius на 7 компонентах
+(Hero/WatchSection/Ads/PopularChannels/CurrentProgram/Meta) и **font-family всего сайта**
+(`reset.sass:11`, `typography.sass:6` — брендовый `"Commissioner"` подменяется `ui-sans-serif`).
+Код пилота НЕ трогался (дифф на `c8d5bee` пуст) — находка пред-существующая, впервые вскрыта именно
+этим измерением review.
+
+**Done:** (эта сессия — только живые проверки + review, ни строчки кода пилота/пакетов)
+
+- Preflight: vintera чист по Scope (`HEAD c8d5bee`, ветка `themeon-migration/P5`, посторонний дифф
+  не тронут), фикс P3.7 подтверждён в установленной yalc-копии (`trim()` присутствует).
+- **Живая матрица тем (Playwright/Chromium 149, все 6 строк, обе колонки) — ЗЕЛЁНАЯ ЦЕЛИКОМ** по
+  акцептансу P-D64/P-D65, включая новую строку 6 («живое следование за ОС», `emulateMedia` без
+  reload) — ни разу раньше не снималась.
+- **Детерминированные гейты (на `c8d5bee`)** — все зелёные: parity exit 0 (без `[added]`), `git diff
+  --stat 6e84299 HEAD -- base-vars.css` пусто, typecheck/lint/test(37/37)/lint:css(0 errors/122
+  warnings), SSR-head cascade-order, removed-files grep, Sass-грep.
+- **Обязательный adversarial-review (opus/xhigh, read-only, `c8d5bee`) — ПРОВЕДЁН впервые.**
+  4/5 PASS + 1×MAJOR (см. выше). Полный отчёт — `phases/P5.md` P5.9 Completion Notes «Доисполнение
+  2026-07-15».
+- `phases/P5.md` — P5.9: НОВЫЙ blockquote ESCALATION, Status → 🔴 Blocked, Escalation Needed → yes,
+  Completion Notes дополнены дословными результатами. `## Phase Status` строка P5.9 → 🔴 Blocked.
+- `plan.md` — Meta (Status/Last Updated), `## 4.` Status Board (P5 → 🔴 Blocked), Update Log.
 
 **Remaining:**
 
-1. **P5.9** — снять эскалацию (plan-design), затем доисполнить: обязательный adversarial-review
-   (opus/xhigh) по коммиту `c8d5bee`, живая проверка строки 6 (тумблер UI, не прогонялась этой
-   сессией — не относится к блокеру), закрытие item'а.
-2. **P5.11 / P5.10** — по-прежнему за P5.9 в очереди.
+1. **P5.9** — разрешить эскалацию (`plan-design`): архитектурное решение по `@layer`-приоритету
+   ThemeOn vs Tailwind-дефолты, новый D#, синхронизация Scope Included/Code Guidance/Validation
+   P5.9 под решение, снять эскалацию, вернуть Status в `🟡 In progress`. Затем доисполнить (сама
+   правка + перепрогон дименсии 2 review + закрытие item'а).
+2. **P5.11 / P5.10** — по-прежнему за P5.9 в очереди; P5.11 (dterema, без Tailwind) этой находкой
+   НЕ затронут (коллизия специфична Tailwind-пилоту vintera).
 3. **P6 / P7** — без изменений, скелет/backlog.
 
 **Sources of truth:**
 
 - План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT; Vault — зеркало).
-- vintera: `~/projects/vintera/vintera`, ветка `themeon-migration/P5`, `HEAD` = `c8d5bee`
-  (родитель `4666633` = первая волна P5.9). Working tree несёт ПОСТОРОННИЙ дифф (файлы
-  `.agents/skills/**`, `.swissknifeman/config.json`, `skills-lock.json`, untracked
-  `.claude/analyst/`) — НЕ трогать, не мой Scope, не коммитить/не стэшить.
-  Живой `nuxt dev` этой сессии остановлен (порт 3002, PID'ы убиты) — не оставлен висеть.
-- dterema: не тронут этой сессией (P5.11 — отдельный item).
-- Пакеты ThemeOn: `~/projects/packages/themeon/packages/*` — `HEAD` `9fe80c0`, дерево чистое
-  (правок пакетов эта сессия не делала — P5 запрещает патчить пакеты из пилота).
-- Scratchpad этой сессии (не переживёт сессию): `themeon-parity.mjs`, `p5.9-theme-matrix.mjs`,
-  `p5.9-debug2.mjs` — код скриптов задокументирован в Completion Notes P5.9, воспроизводим с нуля
-  по Code Guidance P5.1/P5.9 при следующей сессии.
+- vintera: `~/projects/vintera/vintera`, ветка `themeon-migration/P5`, **`HEAD` = `c8d5bee`**
+  (не изменился этой сессией). Working tree несёт ПОСТОРОННИЙ дифф (`.agents/skills/**`,
+  `.swissknifeman/config.json`, `skills-lock.json`, untracked `.claude/analyst/`) — НЕ трогать.
+- Пакеты ThemeOn: `~/projects/packages/themeon/packages/*`, `HEAD` `782d568` (не изменился). Правка
+  пакетов из пилота запрещена (P-D45) — находка живёт в пакете/мосте, чья фаза-владелец решит
+  plan-design.
+- Scratchpad не переживает сессию: `matrix.js` (Playwright-матрица), `themeon-parity.mjs` +
+  `baseline-vintera-p5.9.json` воспроизводятся с нуля по Code Guidance P5.1/P5.9. Playwright/Chromium
+  временная установка — тоже не переживает сессию.
 
 **Open risks:**
 
-- Ровно тот же класс «стале Vite dep-cache после yalc update» повторится при доисполнении P5.11
-  (dterema) — Code Guidance P5.11 стоит предупредить `rm -rf node_modules/.cache .nuxt` ПЕРЕД живой
-  матрицей, иначе тот же ложный негатив.
-- Открытый Q3 `open-questions.md` (`@bg-dev/nuxt-naiveui`, владелец до merge веток) и
-  P5.7/P5.8 собственные Escalation Needed (визуал-сайнофф) — не относятся к этой эскалации,
-  остаются в очереди перед мёржем веток.
-- Прочие Open risks фазы P8 (APCA-запас, двойной инстанс core в vite, dark-лестница контраста и
-  т.д.) — без изменений, см. предыдущий handoff/`phases/P8.md` Phase Handoff.
+- **Соблазн «починить» находку локальным обходом в пилоте** (напр. переименовать классы в
+  компонентах на хардкод-px вместо `var(--radius-*)`) — запрещено: находка архитектурная, фикс —
+  решение plan-design, не точечный патч P-D45-нарушающего типа.
+- Находка, вероятно, СИСТЕМНАЯ для любого будущего Tailwind-пилота (не только vintera) — plan-design
+  должен рассмотреть фикс на уровне пакета (`@themeon/css`/`@themeon/tailwind`), а не только vintera.
+- Стале Vite dep-cache (см. предыдущие сессии) — не проявился этой сессией (кэш чистился ДО
+  `nuxt dev`), но остаётся риском при повторном прогоне без очистки.
 
 **Workarounds / Deferred / Open questions:**
 
-- **workarounds:** без изменений (см. предыдущий handoff — `spawnNuxtDev`, `GENERATED_BANNER_RE`).
-- **deferred:** без изменений + добавить в Code Guidance P5.11 предупреждение о Vite dep-cache
-  (см. Open risks выше) — сделать при plan-design P5.9, заодно с актуализацией строки 5.
-- **open_questions:** Q3 (владелец `@bg-dev/nuxt-naiveui` до мёржа веток) остаётся открытым;
-  Q4 — без изменений (частично поглощена P8).
+- **Q6** — легаси-персист донора: чистить `localStorage['theme']` на мёрже? Владельцу, до merge
+  веток. P5.9 не блокирует (P-D66).
+- **Q3** — судьба `@bg-dev/nuxt-naiveui` (владельцу, до merge).
+- P5.7/P5.8 — собственные merge-time эскалации (визуал-сайнофф сдвига порогов + мёртвая полоса
+  `Catalog.vue` 993–1023px). Перед мёржем веток, не перед закрытием P5.9.
