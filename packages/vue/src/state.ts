@@ -211,13 +211,6 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
 
     const media = getMedia('(prefers-color-scheme: dark)')
     system.value = media.matches ? 'dark' : 'light'
-    // подписка живёт, только если seam её предоставляет (реальный MediaQueryList — умеет)
-    media.addEventListener?.('change', () => {
-      system.value = media.matches ? 'dark' : 'light'
-      // Предпочтение «следовать за системой» — ЖИВОЕ: смена темы ОС при открытой вкладке
-      // перекрашивает страницу (P-D49). Явно выбранная тема системную ветку перебивает.
-      if (preference.value === SYSTEM_PREFERENCE) apply(SYSTEM_PREFERENCE)
-    })
 
     // Персист валиден, если это `'system'` (намерение следовать за ОС) либо известная тема.
     // `themes` не задан явно (open set — например, только `runtimeVars`) — доверяем персисту
@@ -230,6 +223,18 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     // побочный эффект первого визита. Отравленный/протухший персист не «лечится» перезаписью —
     // оба канала игнорируют его одинаково.
     apply(storedIsUsable ? (stored as string) : defaultPreference)
+
+    // Подписка — ПОСЛЕ успешного `apply()`, не раньше: если `apply()` бросит (кастомный `target`
+    // seam, `applyTheme`/`clearTheme` ядра на `runtimeVars`), повторный `init()` вызовет `getMedia()`
+    // заново (дефолтный seam отдаёт СВЕЖИЙ `MediaQueryList` на каждый вызов) — ранняя подписка
+    // оставила бы первый MQL жить осиротевшим слушателем (дублирующие записи `system.value` + утечка).
+    // Живёт, только если seam её предоставляет (реальный MediaQueryList — умеет).
+    media.addEventListener?.('change', () => {
+      system.value = media.matches ? 'dark' : 'light'
+      // Предпочтение «следовать за системой» — ЖИВОЕ: смена темы ОС при открытой вкладке
+      // перекрашивает страницу (P-D49). Явно выбранная тема системную ветку перебивает.
+      if (preference.value === SYSTEM_PREFERENCE) apply(SYSTEM_PREFERENCE)
+    })
 
     // Флаг ТОЛЬКО после успешного прохода: брось что-нибудь выше (сломанный seam, экзотический
     // SecurityError) — и повторный `init()` обязан отработать, а не молча выйти по `if (initialized)`.
