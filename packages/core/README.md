@@ -96,8 +96,8 @@ applier consume verbatim.
 
 `toDTCG(def)` exports a multi-file DTCG 2025.10 bundle (`base.tokens.json`,
 `<theme>.tokens.json`, `themeon.resolver.json`) that Terrazzo / Style Dictionary consume
-directly (validated against `@terrazzo/parser`); `fromDTCG(files)` imports one back into a
-`ThemeDefinition`. See the [DTCG format spec](https://www.designtokens.org/TR/2025.10/format/).
+directly (validated against `@terrazzo/parser`); `fromDTCG(files, opts?)` imports one back
+into a `ThemeDefinition`. See the [DTCG format spec](https://www.designtokens.org/TR/2025.10/format/).
 
 `toDTCG` returns `{ files, warnings }`. Colors get a zero-dep `hex` fallback (OKLCH→sRGB, CSS
 Color 4 gamut-mapped); `text` is emitted as `fontSize`/`lineHeight` primitives, not
@@ -106,6 +106,16 @@ Color 4 gamut-mapped); `text` is emitted as `fontSize`/`lineHeight` primitives, 
 dimension, an unparsable color, an unknown easing keyword) is skipped, reported in
 `warnings`, and bridged losslessly via a root `$extensions["com.themeon"]` block rather than
 emitted as an invalid or silently-truncated value.
+
+`fromDTCG` accepts a single document or a `<name>.json → document` bundle from any tool (file
+names are not normative per the spec). Base vs. theme files are told apart in this order: a
+resolver document present in the bundle (any filename; the only normative composition
+mechanism) → explicit `opts.base`/`opts.themes` filenames → a subset-of-paths heuristic (the
+file with the most unique token paths is the base, files whose paths are a subset of it are
+themes). Tokens Studio `$themes.json`/`$metadata.json` are recognized and skipped rather than
+imported as junk groups. `$type` is inherited down groups including the document root. An
+import that resolves zero tokens is never silent — a loud `warnings` entry by default, or
+`opts.onEmpty: 'error'` to throw a `ThemeonError`.
 
 ## License
 

@@ -120,7 +120,6 @@ describe('fromDTCG — multi-file', () => {
     const files: Record<string, DTCGDocument> = {
       'base.tokens.json': { color: { bg: { $type: 'color', $value: '#ffffff' } } },
       'dark.tokens.json': { color: { bg: { $type: 'color', $value: '#000000' } } },
-      'themeon.resolver.json': { version: '2025.10' },
     }
     const { definition } = fromDTCG(files)
     const r = resolveTheme(definition)
@@ -130,6 +129,133 @@ describe('fromDTCG — multi-file', () => {
     ])
     // тема 'dark' по конвенции P-D16 получает color-scheme dark.
     expect(r.schemes).toEqual({ dark: 'dark' })
+  })
+})
+
+describe('fromDTCG — P8.12: корневой $type (Major #8)', () => {
+  test('{"$type":"color", "brand": {...}} — самый частый экспорт Tokens Studio — не пуст', () => {
+    const doc: DTCGDocument = {
+      $type: 'color',
+      color: { brand: { primary: { $value: { colorSpace: 'oklch', components: [0.6, 0.15, 250] } } } },
+    }
+    const { definition, warnings } = fromDTCG(doc)
+    expect(resolveTheme(definition).vars['--color-brand-primary']).toBe('oklch(0.6 0.15 250)')
+    expect(warnings).toEqual([])
+  })
+})
+
+describe('fromDTCG — P8.12: multi-file под чужими именами (Major #9)', () => {
+  test('чужой бандл {global.json, dark.json} импортируется НЕ пустым (наибольший файл — база)', () => {
+    const files: Record<string, DTCGDocument> = {
+      'global.json': {
+        color: {
+          $type: 'color',
+          bg: { $value: { colorSpace: 'srgb', components: [1, 1, 1] } },
+          fg: { $value: { colorSpace: 'srgb', components: [0, 0, 0] } },
+        },
+      },
+      'dark.json': {
+        color: { $type: 'color', bg: { $value: { colorSpace: 'srgb', components: [0, 0, 0] } } },
+      },
+    }
+    const { definition, warnings } = fromDTCG(files)
+    const r = resolveTheme(definition)
+    expect(r.vars['--color-bg']).toBe('#ffffff')
+    expect(r.vars['--color-fg']).toBe('#000000')
+    expect(r.themes.dark).toEqual([{ path: ['color', 'bg'], varName: '--color-bg', type: 'color', value: '#000000' }])
+    expect(warnings).toEqual([])
+  })
+
+  test('резолвер-документ с произвольным именем файла разбирает базу/темы, не по именам файлов', () => {
+    const files: Record<string, DTCGDocument> = {
+      'core.json': { color: { bg: { $type: 'color', $value: '#ffffff' } } },
+      'light-mode.json': { color: { bg: { $type: 'color', $value: '#eeeeee' } } },
+      'weird-name.json': {
+        version: '2025.10',
+        sets: { base: { sources: [{ $ref: './core.json' }] } },
+        modifiers: { theme: { contexts: { light: [{ $ref: './light-mode.json' }], default: [] }, default: 'default' } },
+      },
+    }
+    const { definition, warnings } = fromDTCG(files)
+    const r = resolveTheme(definition)
+    expect(r.vars['--color-bg']).toBe('#ffffff')
+    expect(r.themes.light).toEqual([{ path: ['color', 'bg'], varName: '--color-bg', type: 'color', value: '#eeeeee' }])
+    expect(warnings).toEqual([])
+  })
+
+  test('$themes.json/$metadata.json (Tokens Studio) распознаются и пропускаются, в sys не попадают', () => {
+    const files: Record<string, DTCGDocument> = {
+      'global.json': { color: { bg: { $type: 'color', $value: '#ffffff' } } },
+      '$themes.json': [{ id: 'x', name: 'dark' }] as unknown as DTCGDocument,
+      '$metadata.json': { tokenSetOrder: ['global'] } as unknown as DTCGDocument,
+    }
+    const { definition, warnings } = fromDTCG(files)
+    expect(resolveTheme(definition).vars['--color-bg']).toBe('#ffffff')
+    expect(Object.keys(definition.themes)).toEqual([])
+    expect(warnings).toEqual([])
+  })
+
+  test('onEmpty: без опций — громкий warning с диагнозом; opts.onEmpty="error" — ThemeonError', () => {
+    const files: Record<string, DTCGDocument> = {
+      '$themes.json': [] as unknown as DTCGDocument,
+      '$metadata.json': {} as unknown as DTCGDocument,
+    }
+    const { definition, warnings } = fromDTCG(files)
+    expect(resolveTheme(definition).vars).toEqual({})
+    expect(warnings.some((w) => w.includes('0 tokens parsed'))).toBe(true)
+    expect(() => fromDTCG(files, { onEmpty: 'error' })).toThrow(/0 tokens parsed/)
+  })
+})
+
+describe('fromDTCG — P8.12: явные опции opts.base/opts.themes', () => {
+  test('opts.base/opts.themes переопределяют автодетект по произвольным именам файлов', () => {
+    const files: Record<string, DTCGDocument> = {
+      'a.json': { color: { bg: { $type: 'color', $value: '#ffffff' } } },
+      'b.json': { color: { bg: { $type: 'color', $value: '#eeeeee' } } },
+      'c.json': { color: { bg: { $type: 'color', $value: '#111111' } } },
+    }
+    const { definition, warnings } = fromDTCG(files, { base: 'b.json', themes: { night: 'c.json' } })
+    const r = resolveTheme(definition)
+    expect(r.vars['--color-bg']).toBe('#eeeeee')
+    expect(r.themes.night).toEqual([{ path: ['color', 'bg'], varName: '--color-bg', type: 'color', value: '#111111' }])
+    expect(warnings).toEqual([])
+  })
+})
+
+describe('fromDTCG — P8.12: $value рядом с дочерними ключами (§6.1 MUST report error)', () => {
+  test('узел с $value и дочерним non-$ ключом одновременно → ThemeonError', () => {
+    expect(() => fromDTCG({ color: { a: { $type: 'color', $value: '#000000', nested: { b: 1 } } } })).toThrow(
+      /MUST NOT also be a group/,
+    )
+  })
+})
+
+describe('fromDTCG — P8.12: токен без резолвимого $type (§5.2.2 MUST NOT guess)', () => {
+  test('токен без своего/унаследованного $type → warning, тип не угадывается по значению', () => {
+    const { definition, warnings } = fromDTCG({ mystery: { a: { $value: '#000000' } } })
+    expect(resolveTheme(definition).vars).toEqual({})
+    expect(warnings.some((w) => w.includes('no resolvable $type') && w.includes('mystery.a'))).toBe(true)
+  })
+})
+
+describe('fromDTCG — P8.12: round-trip fromDTCG(TokensStudioBundle) → toDTCG (#16)', () => {
+  test('чужой бандл (не наш toDTCG-вывод) реимпортируется, а повторный toDTCG остаётся валиден терразцо-подобно', () => {
+    const files: Record<string, DTCGDocument> = {
+      'global.json': {
+        color: {
+          $type: 'color',
+          bg: { $value: { colorSpace: 'srgb', components: [1, 1, 1] } },
+        },
+        space: { $type: 'dimension', base: { $value: { value: 1, unit: 'rem' } } },
+      },
+      'dark.json': { color: { bg: { $type: 'color', $value: { colorSpace: 'srgb', components: [0, 0, 0] } } } },
+    }
+    const { definition, warnings } = fromDTCG(files)
+    expect(warnings).toEqual([])
+    const reExported = toDTCG(definition)
+    expect(reExported.warnings).toEqual([])
+    expect(reExported.files['base.tokens.json']).toBeDefined()
+    expect(reExported.files['dark.tokens.json']).toBeDefined()
   })
 })
 
