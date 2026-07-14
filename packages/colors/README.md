@@ -63,8 +63,8 @@ the before/after lightness when this happens).
 
 ## APCA contrast (`contrastAPCA` / `checkContrast`)
 
-`contrastAPCA(fg, bg)` returns the **signed** APCA Lc (negative = light-on-dark) — compare by
-`Math.abs()`. `checkContrast` batches pairs and is fail-closed: an unparsable color in any
+`contrastAPCA(fg, bg, opts?)` returns the **signed** APCA Lc (negative = light-on-dark) — compare
+by `Math.abs()`. `checkContrast` batches pairs and is fail-closed: an unparsable color in any
 pair throws `ColorsError('BAD_COLOR')` immediately, it never reports `pass: false` for a bad
 input.
 
@@ -79,6 +79,40 @@ Thresholds follow the [APCA in a Nutshell](https://git.apcacontrast.com/document
 guidance. APCA is a **guardrail metric** — it is not yet a ratified standard (it underlies the
 WCAG 3 draft, still in development); treat the gate as "catches egregiously low contrast",
 not as a legal accessibility certification.
+
+### Alpha needs an actual backdrop
+
+APCA's own contract (alpha is legal on fg only; a translucent bg must be composited onto its
+**real** backdrop, never onto an unconditional white) is enforced via `opts.base`:
+
+```ts
+contrastAPCA(fg, bg) // bg is translucent → throws ColorsError('ALPHA_NEEDS_BASE')
+contrastAPCA(fg, bg, { base: '#131313' }) // composited onto the actual page background
+```
+
+There is no silent white-backdrop fallback — a translucent `bg` without `base` is a hard error,
+not a guess. `ContrastPair.base` carries the same option through `checkContrast`.
+
+### `SEMANTIC_CONTRAST_PAIRS` / `checkThemeContrast`
+
+`SEMANTIC_CONTRAST_PAIRS` is the single source of truth for the 14 role pairs that gate
+`@themeon/css`'s default theme (`text`/`bg`, `link`/`bg`, `focusRing`/`bg`, …) — both
+`packages/css/scripts/gen-tokens.mjs` and `themeon check` are meant to consume it instead of
+keeping their own copies, so the two gates can no longer disagree on the same question.
+`checkThemeContrast(lookup)` runs the table against a flat `varName → literal value` dictionary
+for one theme, resolving the alpha backdrop from that theme's own `--color-bg-page`; a pair
+whose role is absent from `lookup` is skipped, not failed.
+
+```ts
+import { checkThemeContrast } from '@themeon/colors'
+
+const result = checkThemeContrast({
+  '--color-text': '#1a1a1a',
+  '--color-bg-page': '#ffffff',
+  // …other roles
+})
+result.pass // true | false
+```
 
 ## License note
 

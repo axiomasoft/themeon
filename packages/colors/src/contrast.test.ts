@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
 import { ColorsError } from './errors'
-import { LC_THRESHOLDS, checkContrast, contrastAPCA } from './contrast'
+import { LC_THRESHOLDS, SEMANTIC_CONTRAST_PAIRS, checkContrast, checkThemeContrast, contrastAPCA } from './contrast'
 
 // Референс-векторы APCA 0.0.98G — официальный тест-сьют apca-w3 (тот же алгоритм, что
 // реализует colorjs.io contrastAPCA, см. contrast.ts):
@@ -126,5 +126,97 @@ describe('checkContrast — батч-гейт', () => {
 
   test('непарсибельная пара — throw (fail-closed), не skip', () => {
     expect(() => checkContrast([{ fg: 'мусор', bg: '#fff', usage: 'text' }])).toThrow(ColorsError)
+  })
+})
+
+// P8.6 (Major #15 аудита): flattenAlpha безусловно композитил bg на белое — числа dark-темы
+// взяты из findings/P8-colors-scale-apca.md §3.4 (dark, --color-text=#e3e5e9,
+// --color-bg-page=#131313, --color-bg-elevated при alpha 0.60).
+describe('contrastAPCA — подложка для полупрозрачного bg (P8.6, Major #15)', () => {
+  const fg = '#e3e5e9'
+  const bgElevatedTranslucent = 'rgba(37, 37, 37, 0.6)' // --color-bg-elevated dark, alpha 0.60
+  const base = '#131313' // --color-bg-page dark
+
+  test('без base — throw ALPHA_NEEDS_BASE (не безусловный белый)', () => {
+    expect(() => contrastAPCA(fg, bgElevatedTranslucent)).toThrow(ColorsError)
+    try {
+      contrastAPCA(fg, bgElevatedTranslucent)
+      expect.unreachable()
+    } catch (err) {
+      expect(err).toBeInstanceOf(ColorsError)
+      expect((err as ColorsError).code).toBe('ALPHA_NEEDS_BASE')
+    }
+  })
+
+  test('с base=bg.page — |Lc| ≈ 89 (композит на фактическую тёмную подложку, не на белое)', () => {
+    // Композит на белое (старое поведение) дал бы |Lc| в районе 55-65 (fg почти теряет контраст
+    // на посветлевшем bg); композит на фактическую тёмную подложку держит bg тёмным — |Lc| ≥ 85.
+    const lc = contrastAPCA(fg, bgElevatedTranslucent, { base })
+    expect(Math.abs(lc)).toBeGreaterThan(85)
+    expect(Math.abs(lc)).toBeLessThan(95)
+  })
+
+  test('base сама полупрозрачна — throw ALPHA_NEEDS_BASE', () => {
+    expect(() => contrastAPCA(fg, bgElevatedTranslucent, { base: 'rgba(19, 19, 19, 0.5)' })).toThrow(ColorsError)
+  })
+
+  test('checkContrast прокидывает pair.base в contrastAPCA', () => {
+    const result = checkContrast([{ fg, bg: bgElevatedTranslucent, usage: 'body', base }])
+    expect(Math.abs(result.reports[0]!.lc)).toBeGreaterThan(85)
+    expect(result.pass).toBe(true)
+  })
+})
+
+// P8.6 (Major #22): таблица пар раньше жила отдельно в CLI (usage 'body' на всё) и в
+// gen-tokens.mjs (свой набор usage) — один и тот же вопрос имел два ответа. Теперь оба
+// потребителя (P8.7/P8.13) обязаны звать checkThemeContrast — этот тест доказывает, что
+// вердикт не зависит от того, кто именно резолвит пары из SSOT, пока используется один lookup.
+describe('checkThemeContrast — SSOT (паритет вердиктов, P8.6, Major #22)', () => {
+  const lookup: Readonly<Record<string, string>> = {
+    '--color-text': '#1a1a1a',
+    '--color-text-muted': '#5a5a5a',
+    '--color-bg-page': '#ffffff',
+    '--color-bg-subtle': '#f5f5f5',
+    '--color-bg-elevated': '#ffffff',
+    '--color-link': '#0645ad',
+    '--color-link-hover': '#0b0080',
+    '--color-on-primary': '#ffffff',
+    '--color-action-primary': '#1a4fd6',
+    '--color-action-primary-hover': '#123a9e',
+    '--color-focus-ring': '#1a4fd6',
+  }
+
+  test('прогоняет все 14 пар SSOT (роли присутствуют в lookup)', () => {
+    const result = checkThemeContrast(lookup)
+    expect(result.reports).toHaveLength(SEMANTIC_CONTRAST_PAIRS.length)
+  })
+
+  test('паритет: вручную построенные пары из SEMANTIC_CONTRAST_PAIRS дают тот же вердикт, что checkThemeContrast', () => {
+    // Симулирует то, что раньше делали CLI/gen-tokens по отдельности каждый со своей таблицей —
+    // теперь оба читают ОДИН SEMANTIC_CONTRAST_PAIRS, поэтому построение вручную из SSOT и вызов
+    // checkThemeContrast обязаны сойтись 1:1.
+    const manualPairs = SEMANTIC_CONTRAST_PAIRS.map((spec) => ({
+      fg: lookup[spec.fg]!,
+      bg: lookup[spec.bg]!,
+      usage: spec.usage,
+      label: spec.label,
+      base: lookup['--color-bg-page'],
+    }))
+    const manual = checkContrast(manualPairs)
+    const viaSsot = checkThemeContrast(lookup)
+
+    expect(viaSsot.pass).toBe(manual.pass)
+    expect(viaSsot.reports.map((r) => r.lc)).toEqual(manual.reports.map((r) => r.lc))
+    expect(viaSsot.reports.map((r) => r.pass)).toEqual(manual.reports.map((r) => r.pass))
+  })
+
+  test('роль отсутствует в lookup — пара пропускается, не throw', () => {
+    const partial: Readonly<Record<string, string>> = {
+      '--color-text': '#1a1a1a',
+      '--color-bg-page': '#ffffff',
+    }
+    const result = checkThemeContrast(partial)
+    expect(result.reports).toHaveLength(1)
+    expect(result.reports[0]!.pair.label).toBe('text/bg.page')
   })
 })

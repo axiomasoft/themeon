@@ -1,5 +1,5 @@
-/** Коды ошибок @themeon/colors (P2.1; SEED_OUT_OF_BAND/CONTRAST_UNREACHABLE — P8.5). */
-export type ColorsErrorCode = 'BAD_COLOR' | 'BAD_SEED' | 'SEED_OUT_OF_BAND' | 'CONTRAST_UNREACHABLE'
+/** Коды ошибок @themeon/colors (P2.1; SEED_OUT_OF_BAND/CONTRAST_UNREACHABLE — P8.5; ALPHA_NEEDS_BASE — P8.6). */
+export type ColorsErrorCode = 'BAD_COLOR' | 'BAD_SEED' | 'SEED_OUT_OF_BAND' | 'CONTRAST_UNREACHABLE' | 'ALPHA_NEEDS_BASE'
 
 /** Ошибка @themeon/colors. Гейт fail-closed: непарсибельный вход всегда бросает, не пропускает. */
 export class ColorsError extends Error {
