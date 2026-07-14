@@ -313,10 +313,25 @@ function isTokensStudioMetaFile(name: string): boolean {
   return base === '$themes.json' || base === '$metadata.json'
 }
 
-/** Детект resolver-документа по содержимому (§7 (а)), НЕ по имени файла (S3 §4.1.2/§4.1.4/§4.1.5). */
+/** true, если `sets`/`modifiers` содержат хотя бы одну запись реальной resolver-формы (`sources`/`contexts`). */
+function hasResolverShapedEntries(container: unknown, shapeKey: 'sources' | 'contexts'): boolean {
+  if (container === null || typeof container !== 'object' || Array.isArray(container)) return false
+  return Object.values(container as Record<string, unknown>).some(
+    (v) => v !== null && typeof v === 'object' && shapeKey in (v as Record<string, unknown>),
+  )
+}
+
+/**
+ * Детект resolver-документа по содержимому (§7 (а)), НЕ по имени файла (S3 §4.1.2/§4.1.4/§4.1.5).
+ * `version === '2025.10'` в сочетании с ГРУППАМИ, названными `sets`/`modifiers`, само по себе не
+ * редкость (обычные токен-документы вполне могут так называть свои группы) — дополнительно
+ * требуем, чтобы хотя бы одна запись внутри реально несла форму `{sources: [...]}`/
+ * `{contexts: {...}}`, иначе это ложное срабатывание на чужом токен-документе.
+ */
 function isLikelyResolver(doc: DTCGDocument): boolean {
   const d = doc as Record<string, unknown>
-  return d.version === '2025.10' && (typeof d.sets === 'object' || typeof d.modifiers === 'object')
+  if (d.version !== '2025.10') return false
+  return hasResolverShapedEntries(d.sets, 'sources') || hasResolverShapedEntries(d.modifiers, 'contexts')
 }
 
 /** Пути всех листьев-токенов документа (для эвристики «подмножество путей», без семантики типов). */
@@ -386,9 +401,12 @@ function resolveFromResolverDoc(
 
   let baseDoc: DTCGDocument = {}
   if (d.sets && typeof d.sets === 'object') {
-    for (const setDef of Object.values(d.sets as Record<string, unknown>)) {
+    for (const [setName, setDef] of Object.entries(d.sets as Record<string, unknown>)) {
       const sources = (setDef as { sources?: unknown } | null)?.sources
-      if (!Array.isArray(sources)) continue
+      if (!Array.isArray(sources)) {
+        warnings.push(`resolver "${resolverName}" set "${setName}" has no "sources" array, skipped (its tokens are dropped)`)
+        continue
+      }
       for (const src of sources) baseDoc = deepMergeDocs(baseDoc, resolveRefDoc(src, files, resolverName, warnings))
     }
   }
@@ -406,7 +424,11 @@ function resolveFromResolverDoc(
     const contexts = modifier?.contexts
     if (contexts && typeof contexts === 'object') {
       for (const [ctxName, sources] of Object.entries(contexts as Record<string, unknown>)) {
-        if (!Array.isArray(sources) || sources.length === 0) continue // base-only sentinel context (P8.11 pickResolverDefaultKey), не тема
+        if (!Array.isArray(sources)) {
+          warnings.push(`resolver "${resolverName}" modifier context "${ctxName}" has a non-array "sources", skipped`)
+          continue
+        }
+        if (sources.length === 0) continue // base-only sentinel context (P8.11 pickResolverDefaultKey), не тема
         let ctxDoc: DTCGDocument = {}
         for (const src of sources) ctxDoc = deepMergeDocs(ctxDoc, resolveRefDoc(src, files, resolverName, warnings))
         themeDocs[ctxName] = ctxDoc
@@ -457,12 +479,22 @@ function resolveByHeuristic(
 
   let baseName = names[0]!
   let baseSize = pathSets.get(baseName)!.size
+  let tieNames = [baseName]
   for (const name of names.slice(1)) {
     const size = pathSets.get(name)!.size
     if (size > baseSize) {
       baseName = name
       baseSize = size
+      tieNames = [name]
+    } else if (size === baseSize) {
+      tieNames.push(name)
     }
+  }
+  if (tieNames.length > 1) {
+    warnings.push(
+      `bundle files ${tieNames.map((n) => `"${n}"`).join(', ')} tie for the most unique token paths — ` +
+        `using "${baseName}" as the base (first in bundle order), ambiguous`,
+    )
   }
   const basePaths = pathSets.get(baseName)!
 
@@ -481,12 +513,16 @@ function resolveByHeuristic(
         break
       }
     }
-    if (isSubset) {
-      const themeName = name.replace(/\.tokens\.json$/, '').replace(/\.json$/, '')
-      themeDocs[themeName] = candidates[name]!
-    } else {
+    if (!isSubset) {
       warnings.push(`bundle file "${name}" is neither the base (fewer unique paths than "${baseName}") nor a strict patch of it, skipped`)
+      continue
     }
+    const themeName = name.replace(/\.tokens\.json$/, '').replace(/\.json$/, '')
+    if (Object.hasOwn(themeDocs, themeName)) {
+      warnings.push(`bundle file "${name}" normalizes to theme name "${themeName}", which collides with another bundle file already using it, skipped`)
+      continue
+    }
+    themeDocs[themeName] = candidates[name]!
   }
   return { baseDoc: candidates[baseName]!, themeDocs }
 }

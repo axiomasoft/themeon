@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { defineConfig, parse } from '@terrazzo/parser'
 import { fromDTCG } from './from-dtcg'
 import { toDTCG } from './to-dtcg'
 import { defineTheme, defineTokens } from '../define'
@@ -7,6 +8,13 @@ import { isToken } from '../types'
 import type { DTCGDocument } from './types'
 import type { TokenTreeInput } from '../types'
 import { walkTree } from '../internal/walk'
+
+/** Прогоняет пачку DTCG-файлов через `@terrazzo/parser` (см. `to-dtcg.test.ts` — тот же приём). */
+async function validateWithTerrazzo(files: Record<string, DTCGDocument>): Promise<void> {
+  const config = defineConfig({}, { cwd: new URL('file:///tmp/') })
+  const inputs = Object.entries(files).map(([name, doc]) => ({ filename: new URL(`file:///${name}`), src: doc }))
+  await parse(inputs, { config })
+}
 
 describe('fromDTCG — формы значений', () => {
   test('color: строковая и структурная формы принимаются одинаково', () => {
@@ -239,7 +247,7 @@ describe('fromDTCG — P8.12: токен без резолвимого $type (§
 })
 
 describe('fromDTCG — P8.12: round-trip fromDTCG(TokensStudioBundle) → toDTCG (#16)', () => {
-  test('чужой бандл (не наш toDTCG-вывод) реимпортируется, а повторный toDTCG остаётся валиден терразцо-подобно', () => {
+  test('чужой бандл (не наш toDTCG-вывод) реимпортируется, а повторный toDTCG снова валиден по @terrazzo/parser', async () => {
     const files: Record<string, DTCGDocument> = {
       'global.json': {
         color: {
@@ -252,10 +260,78 @@ describe('fromDTCG — P8.12: round-trip fromDTCG(TokensStudioBundle) → toDTCG
     }
     const { definition, warnings } = fromDTCG(files)
     expect(warnings).toEqual([])
-    const reExported = toDTCG(definition)
+    const reExported = toDTCG(definition, { resolverFile: false })
     expect(reExported.warnings).toEqual([])
     expect(reExported.files['base.tokens.json']).toBeDefined()
     expect(reExported.files['dark.tokens.json']).toBeDefined()
+    // Вердикт «валидно» даёт сторонний парсер (findings §9.14/§9.16), а не наш ассерт.
+    await expect(validateWithTerrazzo(reExported.files)).resolves.toBeUndefined()
+  })
+})
+
+describe('fromDTCG — P8.12: коллизия имени темы в эвристике (review finding, silent overwrite)', () => {
+  test('два файла бандла нормализуются в одно имя темы → второй пропущен с warning, а не тихо затирает первый', () => {
+    const files: Record<string, DTCGDocument> = {
+      'base.tokens.json': {
+        color: { bg: { $type: 'color', $value: '#ffffff' }, fg: { $type: 'color', $value: '#000000' } },
+      },
+      'dark.tokens.json': { color: { bg: { $type: 'color', $value: '#111111' } } },
+      'dark.json': { color: { bg: { $type: 'color', $value: '#222222' } } },
+    }
+    const { definition, warnings } = fromDTCG(files)
+    expect(Object.keys(definition.themes)).toEqual(['dark'])
+    expect(resolveTheme(definition).themes.dark).toEqual([
+      { path: ['color', 'bg'], varName: '--color-bg', type: 'color', value: '#111111' },
+    ])
+    expect(warnings.some((w) => w.includes('collides with another bundle file'))).toBe(true)
+  })
+})
+
+describe('fromDTCG — P8.12: малоформенный resolver-документ не роняет токены молча (review finding)', () => {
+  test('set без "sources" → warning, а не тихая потеря токенов этого сета', () => {
+    const files: Record<string, DTCGDocument> = {
+      'core.json': { color: { bg: { $type: 'color', $value: '#ffffff' } } },
+      'extra.json': { color: { fg: { $type: 'color', $value: '#000000' } } },
+      'bundle.resolver.json': {
+        version: '2025.10',
+        sets: { base: { sources: [{ $ref: './core.json' }] }, extra: { notSources: [{ $ref: './extra.json' }] } },
+      },
+    }
+    const { definition, warnings } = fromDTCG(files)
+    const vars = resolveTheme(definition).vars
+    expect(vars['--color-bg']).toBe('#ffffff')
+    expect(vars['--color-fg']).toBeUndefined()
+    expect(warnings.some((w) => w.includes('set "extra"') && w.includes('no "sources" array'))).toBe(true)
+  })
+
+  test('modifier context с не-массивом "sources" → warning, не тихий пропуск', () => {
+    const files: Record<string, DTCGDocument> = {
+      'core.json': { color: { bg: { $type: 'color', $value: '#ffffff' } } },
+      'bundle.resolver.json': {
+        version: '2025.10',
+        sets: { base: { sources: [{ $ref: './core.json' }] } },
+        modifiers: { theme: { contexts: { light: 'not-an-array', default: [] } } },
+      },
+    }
+    const { warnings } = fromDTCG(files)
+    expect(warnings.some((w) => w.includes('context "light"') && w.includes('non-array "sources"'))).toBe(true)
+  })
+})
+
+describe('fromDTCG — P8.12: isLikelyResolver не ловит обычный токен-документ с группами sets/modifiers', () => {
+  test('токен-документ, у которого группы буквально названы "sets"/"modifiers", не принимается за resolver', () => {
+    // `version` — метаданные СТОРОННЕГО инструмента (не $-поле, невалидно как токен-группа само по
+    // себе — отсюда ожидаемый warning), но по содержимому `sets`/`modifiers` документ НЕ должен
+    // быть спутан с resolver-документом: `sets.icon` не несёт формы `{sources: [...]}`.
+    const files: Record<string, DTCGDocument> = {
+      'weird.json': {
+        version: '2025.10',
+        sets: { icon: { $type: 'dimension', width: { $value: { value: 16, unit: 'px' } } } },
+      },
+    }
+    const { definition, warnings } = fromDTCG(files)
+    expect(resolveTheme(definition).vars['--sets-icon-width']).toBe('16px')
+    expect(warnings).toEqual(['unexpected non-object at "version", skipped'])
   })
 })
 
