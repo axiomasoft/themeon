@@ -43,9 +43,23 @@ result.pass // true | false
 | 11 | Low-contrast text |
 | 12 | High-contrast text |
 
-Steps 11–12 are **contrast-solved**: their lightness is found by binary search so that
-`|contrastAPCA(step, step 2)|` reaches a target Lc, not just interpolated — text readability
-is guaranteed by construction for any seed, not "usually good enough".
+Steps 1–8, 11, 12 sit on a **fixed lightness ramp** (medians of 31 published Radix Colors
+3.0.0 scales) — step 9 is the seed, step 10 is `seed ± delta`. Steps 11/12 additionally carry
+a contrast **floor guarantee**: `|contrastAPCA(step11, step2)| ≥ 60` and
+`|contrastAPCA(step12, step2)| ≥ 90` (Radix's own documented floors, not exact targets). When
+the fixed ramp value already clears the floor — the common case — it is used as-is; only when
+it doesn't does a binary-search guard push the lightness toward the domain edge until the
+floor is reached. An unreachable floor throws `ColorsError('CONTRAST_UNREACHABLE')` — it never
+silently clamps.
+
+### Seed validity band
+
+`generateScale`/`generateScalePair` require the seed's lightness to fall in
+`[SEED_L_MIN, SEED_L_MAX]` = `[0.50, 0.93]` — the band in which a color can plausibly play the
+role of step 9 ("solid background"). A seed outside the band (e.g. a near-black corporate navy)
+throws `ColorsError('SEED_OUT_OF_BAND')` by default — pass `seedPolicy: 'clamp'` to normalize
+the seed's lightness into the band instead (hue/chroma preserved; `onSeedAdjusted` fires with
+the before/after lightness when this happens).
 
 ## APCA contrast (`contrastAPCA` / `checkContrast`)
 
