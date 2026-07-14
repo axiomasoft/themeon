@@ -8,6 +8,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { defineCommand } from 'citty'
 import { consola } from 'consola'
+import { DEFAULT_THEME_CONFIG_PATH } from '../constants'
 import { APP_CSS_IMPORT, TAILWIND_BRIDGE_HINT, THEME_CONFIG_TEMPLATE } from '../templates'
 
 export interface InitOptions {
@@ -26,7 +27,7 @@ export function runInit(opts: InitOptions): InitResult {
   const created: string[] = []
   const skipped: string[] = []
 
-  writeScaffoldFile(opts.cwd, 'theme.config.ts', THEME_CONFIG_TEMPLATE, opts.force, created, skipped)
+  writeScaffoldFile(opts.cwd, DEFAULT_THEME_CONFIG_PATH, THEME_CONFIG_TEMPLATE, opts.force, created, skipped)
 
   if (opts.tailwind) {
     writeScaffoldFile(opts.cwd, 'tailwind-bridge.css', TAILWIND_BRIDGE_HINT, opts.force, created, skipped)
@@ -81,7 +82,7 @@ export const initCommand = defineCommand({
     for (const file of created) consola.success(`created ${file}`)
     for (const file of skipped) consola.warn(`skipped ${file} (already exists, use --force to overwrite)`)
 
-    if (created.includes('theme.config.ts')) {
+    if (created.includes(DEFAULT_THEME_CONFIG_PATH)) {
       consola.info(`next step: add \`${APP_CSS_IMPORT}\` to your CSS entry`)
     }
   },

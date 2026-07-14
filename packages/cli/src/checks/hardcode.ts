@@ -2,8 +2,12 @@
  * `checkHardcode` (P4.5, линтер 3/3) — сырые hex/px/цветовые литералы в стилях потребителя,
  * конструктивная замена молча-нарушаемому skill-запрету (vintera регрессировал, master §2).
  * Уровень — всегда `warning` (билд не ломается по умолчанию; error — только coverage-dead и
- * contrast-fail, Rule 5 `commands/check.ts`). `tokens.css` и файл-конфиг темы (`*.config.ts`)
- * исключены из скана — там литералы легитимны (это и есть источник значений).
+ * contrast-fail, Rule 5 `commands/check.ts`). Исключения по имени файла здесь НЕ живут (P8.13,
+ * Major #23): раньше локальный `EXCLUDE_FILE_RE` ловил только буквальное имя `tokens.css`,
+ * молча пропуская любой другой `--out` (`src/styles/theme.css` и т.п.), а `coverage.ts` вообще
+ * не исключал ничего — те же сгенерированные файлы давали 8 ложных hardcode-находок и попутно
+ * съедали unused-детект coverage. Исключения теперь принадлежат сканеру (`commands/check.ts`
+ * `scanIgnorePatterns`+баннер-фильтр) — единый список для всех линтеров сразу.
  */
 import type { Finding, SourceFile } from './types'
 
@@ -18,9 +22,6 @@ const HEX_RE = /#[0-9a-fA-F]{3,8}\b/g
 const PX_RE = /\b(\d+)px\b/g
 const COLOR_FN_RE = /\b(rgb|hsl|oklch)\(/g
 
-/** `tokens.css` (любой путь) и файл-конфиг темы (`*.config.ts`) — литералы там легитимны. */
-const EXCLUDE_FILE_RE = /(^|\/)tokens\.css$|\.config\.ts$/
-
 function lineAt(content: string, index: number): number {
   return content.slice(0, index).split('\n').length
 }
@@ -30,8 +31,6 @@ export function checkHardcode(sources: readonly SourceFile[], opts?: HardcodeOpt
   const findings: Finding[] = []
 
   for (const source of sources) {
-    if (EXCLUDE_FILE_RE.test(source.file)) continue
-
     HEX_RE.lastIndex = 0
     for (let m = HEX_RE.exec(source.content); m !== null; m = HEX_RE.exec(source.content)) {
       findings.push({

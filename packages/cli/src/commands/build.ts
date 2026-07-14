@@ -12,6 +12,7 @@ import { consola } from 'consola'
 import { resolveTheme, serializeThemeCss } from '@themeon/core'
 import type { AliasesOption } from '@themeon/core'
 import { tailwindBridge } from '@themeon/tailwind'
+import { DEFAULT_THEME_CONFIG_PATH } from '../constants'
 import { loadThemeConfig } from '../load-theme'
 
 export interface BuildOptions {
@@ -81,7 +82,7 @@ export const buildCommand = defineCommand({
     config: {
       type: 'string',
       description: 'Path to theme.config.ts',
-      default: 'theme.config.ts',
+      default: DEFAULT_THEME_CONFIG_PATH,
     },
     out: {
       type: 'string',

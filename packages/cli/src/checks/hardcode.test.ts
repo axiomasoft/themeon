@@ -35,12 +35,12 @@ describe('checkHardcode', () => {
     expect(findings).toHaveLength(0)
   })
 
-  it('tokens.css исключён из скана', () => {
-    expect(checkHardcode([src('.x{color:#ff0000}', 'dist/tokens.css')])).toEqual([])
-  })
-
-  it('файл-конфиг темы (*.config.ts) исключён из скана', () => {
-    expect(checkHardcode([src("export default { c: '#ff0000' }", 'theme.config.ts')])).toEqual([])
+  // Исключение сгенерированных/конфиг-файлов из скана переехало в `commands/check.ts`
+  // `scanIgnorePatterns`+баннер-фильтр (P8.13, Major #23) — `checkHardcode` теперь считает
+  // литералы в ЛЮБОМ переданном ему источнике, что и проверено ниже.
+  it('checkHardcode больше не фильтрует по имени файла — исключения выше по стеку (P8.13)', () => {
+    const findings = checkHardcode([src('.x{color:#ff0000}', 'dist/tokens.css')])
+    expect(findings).toContainEqual(expect.objectContaining({ message: 'hardcoded hex #ff0000' }))
   })
 
   it('rgb/hsl/oklch литералы — warning', () => {

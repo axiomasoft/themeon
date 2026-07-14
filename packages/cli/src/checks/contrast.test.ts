@@ -30,7 +30,7 @@ describe('checkContrastPairs', () => {
     expect(findings).toContainEqual(
       expect.objectContaining({ level: 'error', rule: 'contrast' }),
     )
-    expect(findings[0]!.message).toContain('text on bg.page')
+    expect(findings[0]!.message).toContain('text/bg.page')
   })
 
   it('проходная пара — пусто', () => {

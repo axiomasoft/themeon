@@ -1,21 +1,17 @@
 /**
  * `checkContrastPairs` (P4.5, линтер 2/3) — APCA семантических пар (text-on-bg) для каждой
- * темы (база + каждый `resolved.themes[*]`). Переиспользует `checkContrast`/`LC_THRESHOLDS` из
- * `@themeon/colors` (P-D18/P2.1) — формула APCA НЕ дублируется. Fail-closed: непарсибельная
- * пара бросает `ColorsError` внутри `checkContrast` — здесь она ловится и превращается в
+ * темы (база + каждый `resolved.themes[*]`). Пары/пороги — из SSOT `SEMANTIC_CONTRAST_PAIRS`/
+ * `checkThemeContrast` (`@themeon/colors`, P8.6/P8.13, `findings/P8-css-layers-cli-checks.md`
+ * §3.4): раньше здесь жила отдельная таблица из 3 пар, все с `usage:'body'` (порог 75), в то
+ * время как гейт генерации (`packages/css/scripts/gen-tokens.mjs`) уже гонял `text.muted` как
+ * `'text'` (60) — дефолтная тема пакета проваливала собственный линтер (Major #22). Локальная
+ * таблица удалена, единственный канал — импорт из `@themeon/colors`. Fail-closed: непарсибельная
+ * пара бросает `ColorsError` внутри `checkThemeContrast` — здесь она ловится и превращается в
  * `Finding` уровня `error` (не skip, R-14 §3.3).
  */
 import type { ResolvedTheme } from '@themeon/core'
-import { checkContrast } from '@themeon/colors'
-import type { ContrastPair } from '@themeon/colors'
+import { checkThemeContrast } from '@themeon/colors'
 import type { Finding } from './types'
-
-/** Роли дефолт-темы (`packages/css/src/theme/default.ts`) — фиксированный набор пар v1. */
-const CONTRAST_PAIRS = [
-  { fg: '--color-text', bg: '--color-bg-page', usage: 'body', label: 'text on bg.page' },
-  { fg: '--color-text-muted', bg: '--color-bg-subtle', usage: 'body', label: 'text.muted on bg.subtle' },
-  { fg: '--color-on-primary', bg: '--color-action-primary', usage: 'body', label: 'on-primary on action.primary' },
-] as const
 
 /** Плоский lookup varName→value для темы: база `resolved.vars` + перекрытие патчем темы. */
 function buildLookup(resolved: ResolvedTheme, themeName: string | undefined): Record<string, string> {
@@ -33,20 +29,10 @@ export function checkContrastPairs(resolved: ResolvedTheme): Finding[] {
 
   for (const themeName of themeNames) {
     const lookup = buildLookup(resolved, themeName)
-    const pairs: ContrastPair[] = []
-
-    for (const spec of CONTRAST_PAIRS) {
-      const fg = lookup[spec.fg]
-      const bg = lookup[spec.bg]
-      if (fg === undefined || bg === undefined) continue // роль отсутствует в теме — пропуск пары
-      pairs.push({ fg, bg, usage: spec.usage, label: spec.label })
-    }
-
-    if (pairs.length === 0) continue
-
     const themeLabel = themeName ?? 'base'
+
     try {
-      const { reports } = checkContrast(pairs)
+      const { reports } = checkThemeContrast(lookup)
       for (const report of reports) {
         if (!report.pass) {
           findings.push({

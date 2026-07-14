@@ -421,6 +421,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.2
+      themeon:
+        specifier: workspace:*
+        version: link:../../packages/cli
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
