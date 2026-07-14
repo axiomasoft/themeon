@@ -22,11 +22,14 @@ export type NaiveCommonKey =
   | 'infoColorHover'
   | 'infoColorPressed'
   | 'infoColorSuppl'
-  | 'baseColor'
   | 'bodyColor'
   | 'cardColor'
   | 'modalColor'
   | 'popoverColor'
+  | 'tableColor'
+  | 'actionColor'
+  | 'tableHeaderColor'
+  | 'tabColor'
   | 'textColorBase'
   | 'textColor1'
   | 'textColor2'
@@ -56,6 +59,12 @@ export interface CommonMapEntry {
  *
  * Статусные роли (`--color-status-*`) в дефолт-теме `@themeon/css` отсутствуют, но карта
  * их держит для пользовательских тем, которые их вводят (P4.2 Rule 5).
+ *
+ * `common.baseColor` НЕ мапится (P8.8, Blocker #3, findings/P8-naive-color-canon.md §2.4):
+ * он остаётся стоковым `neutralBase` (`#FFF`/`#000`) — корректная подложка `composite()` и
+ * поверхность в light, корректные чернила для акцентных ролей, которых тема не задаёт
+ * (D3-толерантность). Чернила ThemeOn (`--color-on-*`/`--color-link`) подаются точечно,
+ * per-component, через `ink-map.ts` — не через `common`.
  */
 export const NAIVE_COMMON_MAP: Readonly<Record<CssVarName, CommonMapEntry>> = {
   '--color-action-primary': { key: 'primaryColor', kind: 'color' },
@@ -65,8 +74,8 @@ export const NAIVE_COMMON_MAP: Readonly<Record<CssVarName, CommonMapEntry>> = {
   '--color-status-error': { key: 'errorColor', kind: 'color' },
   '--color-status-info': { key: 'infoColor', kind: 'color' },
   '--color-bg-page': { key: 'bodyColor', kind: 'color' },
-  '--color-bg-subtle': { key: 'baseColor', kind: 'color' },
-  '--color-bg-elevated': { key: ['cardColor', 'modalColor', 'popoverColor'], kind: 'color' },
+  '--color-bg-subtle': { key: ['actionColor', 'tableHeaderColor', 'tabColor'], kind: 'color' },
+  '--color-bg-elevated': { key: ['cardColor', 'modalColor', 'popoverColor', 'tableColor'], kind: 'color' },
   '--color-text': { key: ['textColorBase', 'textColor1'], kind: 'color' },
   '--color-text-muted': { key: ['textColor2', 'textColor3'], kind: 'color' },
   '--color-border': { key: ['borderColor', 'dividerColor'], kind: 'color' },

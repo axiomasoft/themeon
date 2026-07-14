@@ -31,6 +31,17 @@ export function toHex(value: string): string {
 }
 
 /**
+ * Строгий брат `toHex` (P8.8, findings/P8-naive-color-canon.md §1.3): бросает на
+ * непарсибельном значении (`var()`, `color-mix()`, `light-dark()`, relative-color,
+ * `currentColor`, `calc()`, …) вместо тихого passthrough. `toNative()` использует ТОЛЬКО
+ * этот вариант — passthrough из `toHex` и есть корень Blocker #2 (var()-строка доезжает
+ * до seemly и роняет рендер чужого компонента без адреса роли).
+ */
+export function toHexStrict(value: string): string {
+  return new Color(value).toString({ format: 'hex', collapse: false })
+}
+
+/**
  * Деривит hover/pressed/suppl из одной базовой hex-точки по OKLCH-lightness (colorjs.io),
  * gamut-safe (`toGamut({space:'srgb'})` перед сериализацией в hex). Непарсибельный `baseHex`
  * (например, уже прошедший через `toHex` fail-safe passthrough: currentColor, light-dark(),

@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@themeon/core": "workspace:*",
+    "@themeon/colors": "workspace:*",
     "@themeon/css": "workspace:*",
     "@themeon/vite": "workspace:*",
     "@themeon/tailwind": "workspace:*",
@@ -18,6 +19,7 @@
     "@tailwindcss/node": "catalog:",
     "tailwindcss": "catalog:",
     "naive-ui": "catalog:",
+    "seemly": "0.3.10",
     "vue": "catalog:",
     "nuxt": "catalog:",
     "playwright": "1.61.1",

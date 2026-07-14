@@ -56,23 +56,37 @@ describe('toNative', () => {
     const out = toNative(fixtureResolved()) as any
     expect(out.common.primaryColor).toMatch(HEX_RE)
     expect(out.common.bodyColor).toMatch(HEX_RE)
-    expect(out.common.baseColor).toMatch(HEX_RE)
+    expect(out.common.actionColor).toMatch(HEX_RE)
     expect(out.common.textColorBase).toMatch(HEX_RE)
     expect(out.common.borderColor).toMatch(HEX_RE)
     expect(out.common.borderRadius).toBe('0.5rem')
     expect(out.common.fontFamily).toBe('system-ui, sans-serif')
   })
 
-  test('мультиключ: --color-bg-elevated → card+modal+popover одним значением', () => {
+  test('common.baseColor не мапится (P8.8, Blocker #3) — адаптер не трогает канву Naive', () => {
+    const out = toNative(fixtureResolved()) as any
+    expect(out.common.baseColor).toBeUndefined()
+  })
+
+  test('--color-bg-subtle → actionColor/tableHeaderColor/tabColor (не baseColor); --color-bg-elevated → +tableColor', () => {
+    const out = toNative(fixtureResolved()) as any
+    expect(out.common.actionColor).toBe(out.common.tableHeaderColor)
+    expect(out.common.tableHeaderColor).toBe(out.common.tabColor)
+    expect(out.common.actionColor).toMatch(HEX_RE)
+    expect(out.common.tableColor).toBe(out.common.cardColor)
+  })
+
+  test('мультиключ: --color-bg-elevated → card+modal+popover+table одним значением', () => {
     const out = toNative(fixtureResolved()) as any
     expect(out.common.cardColor).toBe(out.common.modalColor)
     expect(out.common.modalColor).toBe(out.common.popoverColor)
+    expect(out.common.popoverColor).toBe(out.common.tableColor)
     expect(out.common.cardColor).toMatch(HEX_RE)
   })
 
   test('все color-выходы — валидный hex, не oklch', () => {
     const out = toNative(fixtureResolved()) as any
-    for (const key of ['primaryColor', 'bodyColor', 'baseColor', 'textColorBase', 'borderColor']) {
+    for (const key of ['primaryColor', 'bodyColor', 'actionColor', 'textColorBase', 'borderColor']) {
       expect(out.common[key]).toMatch(HEX_RE)
       expect(out.common[key]).not.toContain('oklch')
     }
@@ -107,5 +121,89 @@ describe('toNative', () => {
     }) as any
     expect(out.Button.peers.Icon.color).toBe('red')
     expect(out.common.primaryColor).toMatch(HEX_RE)
+  })
+})
+
+describe('toNative — fail-loud (P8.8, §1.3)', () => {
+  test('непарсибельная роль → ThemeonError(BAD_COLOR) со списком плохих ролей', () => {
+    const resolved = buildResolved([
+      tok('--color-action-primary', 'color-mix(in oklch, red, blue)'),
+      tok('--color-bg-page', 'var(--x)'),
+    ])
+    let thrown: unknown
+    try {
+      toNative(resolved)
+    } catch (e) {
+      thrown = e
+    }
+    expect(thrown).toBeInstanceOf(Error)
+    expect((thrown as { code?: string }).code).toBe('BAD_COLOR')
+    expect((thrown as Error).message).toContain('--color-action-primary')
+    expect((thrown as Error).message).toContain('--color-bg-page')
+  })
+
+  test('onInvalidColor:"skip" — не бросает, роль отсутствует в выходе', () => {
+    const resolved = buildResolved([
+      tok('--color-action-primary', 'color-mix(in oklch, red, blue)'),
+      tok('--color-bg-page', 'oklch(0.99 0 0)'),
+    ])
+    const out = toNative(resolved, { onInvalidColor: 'skip' }) as any
+    expect(out.common.primaryColor).toBeUndefined()
+    expect(out.common.bodyColor).toMatch(HEX_RE)
+  })
+})
+
+describe('toNative — INK-таблица (P8.8, §2.4/§2.5)', () => {
+  function withInk(...extra: ResolvedToken[]): ResolvedTheme {
+    return buildResolved([...fixtureResolved().tokens, ...extra])
+  }
+
+  test('--color-on-primary красит Button.textColor*Primary и не-Button компоненты (обе темы)', () => {
+    const out = toNative(withInk(tok('--color-on-primary', 'oklch(1 0 0)'))) as any
+    for (const state of ['', 'Hover', 'Pressed', 'Focus', 'Disabled']) {
+      expect(out.Button[`textColor${state}Primary`]).toMatch(HEX_RE)
+    }
+    expect(out.Checkbox.checkMarkColor).toMatch(HEX_RE)
+    expect(out.Tag.textColorChecked).toMatch(HEX_RE)
+    expect(out.IconWrapper.iconColor).toMatch(HEX_RE)
+  })
+
+  test('без --color-on-primary в теме — INK-оверрайды не эмитятся (полный сток, D3)', () => {
+    const out = toNative(fixtureResolved()) as any
+    expect(out.Button).toBeUndefined()
+    expect(out.Checkbox).toBeUndefined()
+  })
+
+  test('Radio/FloatButton/Switch INK — только в dark (appearance-гейт)', () => {
+    const resolved = withInk(tok('--color-on-primary', 'oklch(1 0 0)'))
+    const light = toNative(resolved, { appearance: 'light' }) as any
+    const dark = toNative(resolved, { appearance: 'dark' }) as any
+    expect(light.Radio?.buttonTextColorActive).toBeUndefined()
+    expect(dark.Radio.buttonTextColorActive).toMatch(HEX_RE)
+    expect(dark.FloatButton.textColorPrimary).toMatch(HEX_RE)
+    expect(dark.Switch.iconColor).toMatch(HEX_RE)
+  })
+
+  test('статусная ink-роль без своей on-роли фолбэчит на --color-on-primary', () => {
+    const resolved = buildResolved([
+      tok('--color-action-primary', 'oklch(0.55 0.15 155)'),
+      tok('--color-status-success', 'oklch(0.5 0.15 155)'),
+      tok('--color-on-primary', 'oklch(1 0 0)'),
+    ])
+    const out = toNative(resolved) as any
+    expect(out.Button.textColorSuccess).toMatch(HEX_RE)
+    expect(out.Button.textColorSuccess).toBe(out.Button.textColorPrimary)
+  })
+
+  test('ACCENT-INK: --color-link красит Anchor/Menu/Tabs/Pagination/Typography/Dropdown + Button text/ghost*Primary', () => {
+    const out = toNative(withInk(tok('--color-link', 'oklch(0.45 0.15 260)'))) as any
+    expect(out.Anchor.linkTextColorActive).toMatch(HEX_RE)
+    expect(out.Menu.itemTextColorActive).toMatch(HEX_RE)
+    expect(out.Tabs.tabTextColorActiveLine).toMatch(HEX_RE)
+    expect(out.Pagination.itemTextColorActive).toMatch(HEX_RE)
+    expect(out.Typography.aTextColor).toMatch(HEX_RE)
+    expect(out.Dropdown.optionTextColorActive).toMatch(HEX_RE)
+    expect(out.Button.textColorTextPrimary).toMatch(HEX_RE)
+    expect(out.Button.textColorGhostPrimary).toMatch(HEX_RE)
   })
 })

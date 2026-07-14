@@ -361,6 +361,9 @@ importers:
       '@tailwindcss/node':
         specifier: 'catalog:'
         version: 4.3.2
+      '@themeon/colors':
+        specifier: workspace:*
+        version: link:../../packages/colors
       '@themeon/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -394,6 +397,9 @@ importers:
       playwright:
         specifier: 1.61.1
         version: 1.61.1
+      seemly:
+        specifier: 0.3.10
+        version: 0.3.10
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.2

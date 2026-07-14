@@ -21,6 +21,31 @@ adapter converts every colour to hex (or hex8 when the source has alpha) via `co
 lightness shift — whenever the theme does not define them explicitly. An explicit role in the
 theme (e.g. `--color-action-primary-hover`) always wins over the derived value.
 
+## Literals, not `var()` — and fail-loud on the rest
+
+`toNative` reads colours from `resolved.tokens[].value` (the resolver's final, reference-
+collapsed literal), never from `resolved.vars` — the latter is CSS-emit transport and carries
+`var(--ref)` chains at the default `refLayer`. A colour role that still resolves to something
+`colorjs.io`/seemly cannot parse (`var()`, `color-mix()`, `light-dark()`, relative-color syntax,
+`currentColor`, `calc()`, …) makes `toNative()` throw `ThemeonError('BAD_COLOR')` listing every
+offending role, unless you pass `{ onInvalidColor: 'skip' }` — then the role is simply omitted
+and Naive keeps its own stock value (same tolerance as a partial theme).
+
+## Ink is per-component, not `common.baseColor`
+
+Naive's `common.baseColor` (`#FFF`/`#000`) is simultaneously the canvas extreme, the
+`composite()` fallback surface, and — in dark — the stock text colour on every solid-coloured
+component. ThemeOn's solid accent (Radix step 9) keeps roughly the same lightness in both
+themes, so there is no single `baseColor` substitute that works for both roles at once. This
+adapter therefore leaves `common.baseColor` untouched and instead paints ink onto each
+component that actually uses it: `Button.textColor{,Hover,Pressed,Focus,Disabled}{Primary,
+Success,Warning,Error,Info}`, `Checkbox.checkMarkColor`, `Tag.textColorChecked`, and others,
+from `--color-on-<role>` (falling back to `--color-on-primary` when a status-specific ink role
+is absent) — only for roles your theme actually defines. A second table paints "canvas" text
+(menu items, anchors, tabs, ghost/text buttons) from `--color-link`, because Naive's
+`primaryColor` doubles as both a fill and canvas-text ink, and the fill-tuned `--color-on-
+primary` reads poorly there in a dark theme.
+
 ## Quickstart
 
 ```vue
@@ -48,6 +73,16 @@ const overrides = computed(() => toNative(resolved, { theme: theme.value }))
 export interface ToNativeOptions {
   /** Theme key in resolved.themes to overlay onto the base; omitted → base (:root) values. */
   theme?: string
+  /**
+   * Light/dark branch for the accent/ink override tables. Defaults to
+   * `resolved.schemes[opts.theme]`, falling back to `'light'` when unresolved.
+   */
+  appearance?: 'light' | 'dark'
+  /**
+   * What to do when a colour role resolves to something colorjs.io/seemly cannot parse.
+   * `'throw'` (default) fails loud with every offending role; `'skip'` drops the role.
+   */
+  onInvalidColor?: 'throw' | 'skip'
   /** Extra per-component / peers overrides, deep-merged over the generated `common`. */
   overrides?: GlobalThemeOverrides
 }
@@ -70,8 +105,8 @@ intentionally **not** hardcoded here; it is your theme's concern, deep-merged on
 | `--color-action-primary-hover` | `primaryColorHover` |
 | `--color-status-success/warning/error/info` | `successColor`/`warningColor`/`errorColor`/`infoColor` |
 | `--color-bg-page` | `bodyColor` |
-| `--color-bg-subtle` | `baseColor` |
-| `--color-bg-elevated` | `cardColor`, `modalColor`, `popoverColor` |
+| `--color-bg-subtle` | `actionColor`, `tableHeaderColor`, `tabColor` |
+| `--color-bg-elevated` | `cardColor`, `modalColor`, `popoverColor`, `tableColor` |
 | `--color-text` | `textColorBase`, `textColor1` |
 | `--color-text-muted` | `textColor2`, `textColor3` |
 | `--color-border` | `borderColor`, `dividerColor` |
@@ -80,7 +115,9 @@ intentionally **not** hardcoded here; it is your theme's concern, deep-merged on
 | `--font-sans` | `fontFamily` |
 | `--text-xs/sm/base/lg` | `fontSizeMini`/`fontSizeSmall`/`fontSizeMedium`/`fontSizeLarge` |
 
-Roles absent from your theme are simply skipped — `toNative` does not error on a partial theme.
+`common.baseColor` is intentionally **not** mapped — see "Ink is per-component" above.
+Roles absent from your theme are simply skipped — `toNative` does not error on a partial theme
+(unless a role it *does* find is an unparsable colour, see "fail-loud" above).
 
 ## Merging overrides — `mergeOverrides`
 
