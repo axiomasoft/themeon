@@ -320,6 +320,15 @@ export function generateScale(seed: string, opts: ScaleOptions = {}): Scale {
     step11 = buildStep(11, { l: l11Floored, c: c11, h }, isAchromatic, destGamut)
     if (Math.abs(step11.l - l10Mapped) >= DL_MIN - 1e-9) break
   }
+  // Fail-loud (инвариант фазы №4, adversarial-review находка Minor #1): STEP11_SEPARATION_ATTEMPTS
+  // попыток исчерпаны, а разделимость от шага 10 не достигнута — не отгружать неразличимую
+  // пару молча. Для seed'ов внутри валидной полосы недостижимо конструктивно (проверено 0/34).
+  if (Math.abs(step11.l - l10Mapped) < DL_MIN - 1e-9) {
+    throw new ColorsError(
+      'CONTRAST_UNREACHABLE',
+      `Шаг 11 не отделился от шага 10 по lightness (ΔL < ${DL_MIN}) за ${STEP11_SEPARATION_ATTEMPTS} попыток: L10=${l10Mapped.toFixed(4)}, L11=${step11.l.toFixed(4)}`,
+    )
+  }
   built.push(step11)
 
   // Шаг 12: фиксированный L ramp'а + разделимость от 11 + floor 90.
