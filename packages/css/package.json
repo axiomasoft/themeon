@@ -26,6 +26,7 @@
     },
     "./index.css": "./dist/index.css",
     "./layers.css": "./dist/layers.css",
+    "./layers-tailwind.css": "./dist/layers-tailwind.css",
     "./reset.css": "./dist/reset.css",
     "./base.css": "./dist/base.css",
     "./composition.css": "./dist/composition.css",

@@ -1,0 +1,19 @@
+/*
+ * layers-tailwind.css — @layer-порядок для соседства с Tailwind v4 (аудит #16, P8.7,
+ * findings/P8-css-layers-cli-checks.md §1.2, эмпирически проверено реальным `@tailwindcss/
+ * node@4.3.2` + Chromium computed-стилями). Однострочник вместо ручного переписывания
+ * порядка семи `themeon.*`-имён + четырёх tailwind-имён потребителем.
+ *
+ * Легален как первый statement до всех `@import` (CSS Cascade 5, пустой `@layer a, b, c;`
+ * до `@import`) и фиксирует старшинство: Tailwind base (Preflight) < themeon.* <
+ * Tailwind components/utilities. Замена `./layers.css` ТОЛЬКО для потребителей, соседствующих
+ * с Tailwind — обычный (не-Tailwind) потребитель берёт `./layers.css`.
+ *
+ * Если Tailwind 5 сменит набор дефолтных слоёв (`theme, base, components, utilities`) — этот
+ * файл придётся обновить; сторожит интеграционный тест на реальной компиляции
+ * (`tests/integration/src/browser/css-tailwind-recipe.test.ts`).
+ */
+@layer theme, base,
+       themeon.tokens, themeon.reset, themeon.base, themeon.composition,
+       themeon.blueprints, themeon.components, themeon.utilities,
+       components, utilities;

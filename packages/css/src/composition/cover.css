@@ -4,6 +4,9 @@
  */
 @layer themeon.composition {
   .cover {
+    /* P8.7 (аудит #26): без явного border-box .cover молча зависел от reset.css — импорт
+       только composition.css давал постоянный вертикальный скролл (padding поверх 100svh). */
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     min-block-size: var(--cover-min-height, 100svh);

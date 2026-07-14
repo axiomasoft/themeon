@@ -6,6 +6,9 @@
  */
 @layer themeon.composition {
   .container {
+    /* P8.7 (аудит #26): без явного border-box .container молча зависел от reset.css —
+       импортированный в одиночку он давал 1184px вместо 1152px (72rem + паддинг сверху). */
+    box-sizing: border-box;
     max-inline-size: var(--container-max, 72rem);
     margin-inline: auto;
     padding-inline: var(--container-pad, var(--spacing-md, 1rem));

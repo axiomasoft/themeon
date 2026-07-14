@@ -4,11 +4,16 @@
  * см. пояснение в `container.css`.
  */
 @layer themeon.composition {
+  /* P8.7 (аудит #26): без явного border-box .with-sidebar молча зависел от reset.css —
+     импорт только composition.css давал 368px вместо 320px у первого ребёнка при
+     `padding` на самом ребёнке (--sidebar-width означает ВНЕШНИЙ размер). */
   .with-sidebar {
+    box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
     gap: var(--sidebar-gap, var(--spacing-md, 1rem));
   }
+  .with-sidebar > * { box-sizing: border-box; }
   .with-sidebar > :first-child { flex-grow: 1; flex-basis: var(--sidebar-width, 20rem); }
   .with-sidebar > :last-child {
     flex-grow: 999;

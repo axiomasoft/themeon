@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@themeon/core": "workspace:*",
+    "@themeon/css": "workspace:*",
     "@themeon/vite": "workspace:*",
     "@themeon/tailwind": "workspace:*",
     "@themeon/naive": "workspace:*",

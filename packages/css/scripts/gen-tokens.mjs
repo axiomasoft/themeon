@@ -11,47 +11,24 @@
 // больше взяться при запуске голым `node`, без TS-strip-types — выбор `[VERIFY-ON-IMPL]`
 // P2.7 ТЗ: tsdown-entry вместо `node --experimental-strip-types`).
 import { resolveTheme, serializeThemeCss } from '@themeon/core'
-import { checkContrast } from '@themeon/colors'
+import { checkThemeContrast } from '@themeon/colors'
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 
 /**
- * Литеральное значение переменной, патченной темой `themeName` (fail loudly, если не
- * патчена — гейт не должен молча сравнивать светлые значения под видом тёмных).
+ * Плоский словарь varName→литеральное значение ОДНОЙ темы: база (`themeName` undefined,
+ * `resolvedInline.vars`) или именованная тема (база + патч темы поверх, fail loudly, если
+ * `themeName` не патчит ни одной переменной — молчаливое сравнение светлых значений под видом
+ * тёмных было бы хуже, чем явная ошибка).
  */
-function themeVarValue(resolved, themeName, varName) {
-  const patched = resolved.themes[themeName]?.find((t) => t.varName === varName)
-  if (!patched) {
-    throw new Error(
-      `[themeon] APCA-гейт: переменная "${varName}" не патчится темой "${themeName}" — добавь её в src/theme/default.ts`,
-    )
+function themeLookup(resolvedInline, themeName) {
+  if (themeName === undefined) return resolvedInline.vars
+  const patch = resolvedInline.themes[themeName]
+  if (!patch || patch.length === 0) {
+    throw new Error(`[themeon] APCA-гейт: тема "${themeName}" не патчит ни одной переменной`)
   }
-  return patched.value
-}
-
-/**
- * APCA-пары гейта (P2.7 Code Guidance): body/text/text/text/text — для базы (themeName
- * undefined, читает `resolved.vars`) и для именованной темы (читает патч темы).
- */
-function gatePairs(resolvedInline, themeName) {
-  const v = (name) => (themeName ? themeVarValue(resolvedInline, themeName, name) : resolvedInline.vars[name])
-  const suffix = themeName ? ` (${themeName})` : ''
-  return [
-    { fg: v('--color-text'), bg: v('--color-bg-page'), usage: 'body', label: `text/bg.page${suffix}` },
-    {
-      fg: v('--color-text-muted'),
-      bg: v('--color-bg-page'),
-      usage: 'text',
-      label: `textMuted/bg.page${suffix}`,
-    },
-    { fg: v('--color-text'), bg: v('--color-bg-subtle'), usage: 'body', label: `text/bg.subtle${suffix}` },
-    {
-      fg: v('--color-on-primary'),
-      bg: v('--color-action-primary'),
-      usage: 'text',
-      label: `onPrimary/action.primary${suffix}`,
-    },
-    { fg: v('--color-link'), bg: v('--color-bg-page'), usage: 'text', label: `link/bg.page${suffix}` },
-  ]
+  const lookup = { ...resolvedInline.vars }
+  for (const { varName, value } of patch) lookup[varName] = value
+  return lookup
 }
 
 /**
@@ -70,8 +47,14 @@ export function genTokens(theme, root = new URL('..', import.meta.url).pathname)
   const resolvedForCss = resolveTheme(theme)
   const resolvedInline = resolveTheme(theme, { refLayer: 'inline' })
 
-  const pairs = [...gatePairs(resolvedInline, undefined), ...gatePairs(resolvedInline, 'dark')]
-  const { pass, reports } = checkContrast(pairs)
+  // SSOT (P8.6/P8.7, findings/P8-css-layers-cli-checks.md §3.4): `SEMANTIC_CONTRAST_PAIRS`/
+  // `checkThemeContrast` из `@themeon/colors` — единственная таблица пар/порогов, потребляемая
+  // и здесь, и `themeon` CLI (`checks/contrast.ts`, P8.13). Локальная таблица `gatePairs()`
+  // удалена (Major #22 — раньше CLI и gen-tokens.mjs гоняли РАЗНЫЕ таблицы на один вопрос).
+  const base = checkThemeContrast(themeLookup(resolvedInline, undefined))
+  const dark = checkThemeContrast(themeLookup(resolvedInline, 'dark'))
+  const pass = base.pass && dark.pass
+  const reports = [...base.reports, ...dark.reports]
 
   if (!pass) {
     return { ok: false, reports, css: undefined }

@@ -56,9 +56,26 @@ export const defaultTheme = defineTheme({
       // шкалы, не против action.primary) не гарантируют APCA-порог здесь надёжно
       // (эмпирически проверено при исполнении: |Lc| 58.7 < 60 на грани провала гейта).
       onPrimary: 'oklch(1 0 0)',
-      focusRing: palette.accent['8']!,
+      // Литерал, не ссылка на шкалу (P8.7, findings/P8-css-layers-cli-checks.md §3.3): шкала
+      // Radix-формы схлопывает средние шаги в обеих темах — ни один шаг accent не даёт
+      // non-text-порог 45 против bg.page/bg.subtle одновременно (эмпирически: шаг 8 давал
+      // light |Lc| 41.7/39.5, dark 27.7/27.2). Значения ниже подобраны прогоном против
+      // ФАКТИЧЕСКИХ bg.page/bg.subtle этой темы (запас над порогом сохранён).
+      focusRing: 'oklch(0.695 0.12 155)',
       link: palette.accent['11']!,
       linkHover: palette.accent['12']!,
+      // Роли `--color-on-{status}` (P8.7, аудит #22, findings/P8-naive-color-canon.md §4.2):
+      // ink для статусных заливок, которые сама дефолт-тема не задаёт (Naive-адаптер, P8.8,
+      // подставляет их только для ролей, реально данных темой — D3). success/error/info —
+      // типично насыщенные заливки в диапазоне светлоты accent-9 (L≈0.55), белые чернила
+      // читаются надёжно (тот же принцип, что onPrimary). warning — типично светлая амбер-
+      // заливка («жёлтая полоса» APCA, L≈0.70, где ни белые, ни чёрные чернила не дают 60) —
+      // тёмные чернила ближе к порогу в этом диапазоне (прецедент подбора — комментарий выше
+      // у onPrimary).
+      onSuccess: 'oklch(1 0 0)',
+      onWarning: 'oklch(0.2 0 0)',
+      onError: 'oklch(1 0 0)',
+      onInfo: 'oklch(1 0 0)',
     },
     font: {
       sans: 'system-ui, sans-serif',
@@ -133,9 +150,16 @@ export const defaultTheme = defineTheme({
         // Литерал — см. коммент у base.color.onPrimary выше (не переопределяется на
         // scale-ссылку: одно и то же значение работает в обеих темах).
         onPrimary: 'oklch(1 0 0)',
-        focusRing: palette.accentDark['8']!,
-        link: palette.accentDark['11']!,
+        // Литералы (P8.7, findings §3.3): dark-шкала схлопывает средние шаги, ни один accent-
+        // шаг не даёт non-text-порог 45 (focusRing) / body-порог 75 (link) против bg.page/
+        // bg.subtle этой темы. Значения подобраны прогоном (см. коммент у base.color.focusRing).
+        focusRing: 'oklch(0.670 0.12 155)',
+        link: 'oklch(0.838 0.127 155)',
         linkHover: palette.accentDark['12']!,
+        onSuccess: 'oklch(1 0 0)',
+        onWarning: 'oklch(0.2 0 0)',
+        onError: 'oklch(1 0 0)',
+        onInfo: 'oklch(1 0 0)',
       },
     },
   },

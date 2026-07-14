@@ -2,6 +2,9 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, test } from 'vitest'
 
+import { resolveTheme } from '@themeon/core'
+import { SEMANTIC_CONTRAST_PAIRS, checkThemeContrast } from '@themeon/colors'
+
 import { buildCss } from '../scripts/build.mjs'
 import { genTokens } from '../scripts/gen-tokens.mjs'
 import { CSS_CONTRACT } from '../src/contract'
@@ -158,9 +161,34 @@ describe('@themeon/css — дефолт-тема dist/tokens.css', () => {
   test('genTokens: APCA-гейт проходит на дефолт-теме, файл записывается', () => {
     const result = genTokens(defaultTheme, PKG_ROOT)
     expect(result.ok, JSON.stringify(result.reports?.filter((r) => !r.pass))).toBe(true)
-    // 5 пар × (база + dark) = 10 отчётов, все прошли.
-    expect(result.reports).toHaveLength(10)
+    // SSOT `SEMANTIC_CONTRAST_PAIRS` (P8.6/P8.7) — 14 пар × (база + dark) = 28 отчётов.
+    expect(result.reports).toHaveLength(SEMANTIC_CONTRAST_PAIRS.length * 2)
     expect(result.reports.every((r) => r.pass)).toBe(true)
+  })
+
+  // P8.7 — обязательный тест #6 (findings/P8-css-layers-cli-checks.md §5): дефолт-тема
+  // проходит `checkThemeContrast` (SSOT) fail-closed на light И dark, вызванный напрямую
+  // (не через `genTokens`) — сторожит именно контракт SSOT, а не побочный эффект записи файла.
+  test('дефолт-тема проходит checkThemeContrast (SSOT) fail-closed на light и dark', () => {
+    const resolved = resolveTheme(defaultTheme, { refLayer: 'inline' })
+    const lightResult = checkThemeContrast(resolved.vars)
+    expect(lightResult.pass, JSON.stringify(lightResult.reports.filter((r) => !r.pass))).toBe(true)
+
+    const darkLookup = { ...resolved.vars }
+    for (const { varName, value } of resolved.themes.dark ?? []) darkLookup[varName] = value
+    const darkResult = checkThemeContrast(darkLookup)
+    expect(darkResult.pass, JSON.stringify(darkResult.reports.filter((r) => !r.pass))).toBe(true)
+  })
+
+  // P8.7 — обязательный тест #8: каждое имя fg/bg из SSOT `SEMANTIC_CONTRAST_PAIRS`
+  // (`@themeon/colors`) обязано присутствовать в `CSS_CONTRACT` — иначе дрейф двух таблиц
+  // (Open risk P8.6) остаётся незамеченным до следующего ручного аудита.
+  test('SEMANTIC_CONTRAST_PAIRS.fg/bg ⊆ CSS_CONTRACT.varName', () => {
+    const contractNames = new Set(CSS_CONTRACT.map((e) => e.varName))
+    for (const { fg, bg, label } of SEMANTIC_CONTRAST_PAIRS) {
+      expect(contractNames.has(fg), `${label}: fg "${fg}" отсутствует в CSS_CONTRACT`).toBe(true)
+      expect(contractNames.has(bg), `${label}: bg "${bg}" отсутствует в CSS_CONTRACT`).toBe(true)
+    }
   })
 
   test('dist/tokens.css начинается с @layer themeon.tokens', () => {

@@ -17,6 +17,7 @@ const EXCLUDE = Features.VendorPrefixes
 const ENTRIES = [
   'index.css',
   'layers.css',
+  'layers-tailwind.css',
   'reset.css',
   'base.css',
   'composition.css',

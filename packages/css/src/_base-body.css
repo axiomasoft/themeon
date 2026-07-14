@@ -17,7 +17,14 @@
     background-color: var(--color-bg-page, oklch(0.99 0.002 260));
   }
 
-  h1, h2, h3, h4 { text-wrap: balance; }
+  /*
+   * font-weight объявлен явно (P8.7, findings §1.4 п.3): Tailwind Preflight несёт
+   * `h1..h6 { font-weight: inherit }` в author-origin, которое бьёт UA-дефолт (700)
+   * НЕЗАВИСИМО от порядка слоёв — слои переупорядочивают только правила одного origin,
+   * а не author-vs-UA. Без этой строки заголовки остаются 400 даже при рабочем рецепте
+   * соседства (`layers-tailwind.css`), потому что снаружи нечему их перебить.
+   */
+  h1, h2, h3, h4 { text-wrap: balance; font-weight: 700; }
   h1 { font-size: var(--text-4xl, 2.5rem); line-height: var(--text-4xl--line-height, 1.15); }
   h2 { font-size: var(--text-3xl, 1.875rem); line-height: var(--text-3xl--line-height, 1.2); }
   h3 { font-size: var(--text-2xl, 1.5rem); line-height: var(--text-2xl--line-height, 1.25); }

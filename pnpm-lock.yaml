@@ -364,6 +364,9 @@ importers:
       '@themeon/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@themeon/css':
+        specifier: workspace:*
+        version: link:../../packages/css
       '@themeon/naive':
         specifier: workspace:*
         version: link:../../packages/naive

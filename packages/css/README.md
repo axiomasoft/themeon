@@ -31,6 +31,7 @@ palette.
 |:--|:--|:--|
 | `./tokens.css` | `themeon.tokens` | Generated default theme (light base + `dark` theme) — `@themeon/core` + `@themeon/colors` dogfood, byte-for-byte `serializeThemeCss` output, **not** minified (P-D22) |
 | `./layers.css` | — | `@layer` order declaration only (first statement of every other entry) |
+| `./layers-tailwind.css` | — | `@layer` order declaration for co-existing with Tailwind v4 — use **instead of** `layers.css`, see [Co-existing with Tailwind v4](#co-existing-with-tailwind-v4) |
 | `./reset.css` | `themeon.reset` | Minimal intentional reset (box-sizing, margin, focus-visible outline, …) |
 | `./base.css` | `themeon.base` | Tag typography (`body`/`h1..h4`/`p`/`a`/`code,pre,kbd`/`small`/`hr`) on contract variables |
 | `./composition.css` | `themeon.composition` | 8 layout primitives: `.container`/`.stack`/`.cluster`/`.with-sidebar`/`.center`/`.cover`/`.switcher`/`.grid` |
@@ -55,8 +56,10 @@ specificity (native cascade-layer semantics) — overriding the package never re
 
 The variables `@themeon/css`'s own CSS consumes (`sys`-layer, all with literal fallbacks —
 P-D19). This is a subset of what the default theme actually ships in `tokens.css` (which also
-defines `--color-border-strong`, `--text-lg`, `--spacing-2xs`/`--spacing-3xl`,
-`--duration-base` and the `--breakpoint-*` scale for your own use).
+defines `--color-border-strong`, `--color-on-{success,warning,error,info}` (consumed by UI
+adapters such as `@themeon/naive`, not by this package's own CSS), `--text-lg`,
+`--spacing-2xs`/`--spacing-3xl`, `--duration-base` and the `--breakpoint-*` scale for your own
+use).
 
 | Group | Variables | Fallback policy |
 |:--|:--|:--|
@@ -99,15 +102,67 @@ Then import your generated stylesheet instead of `@themeon/css/tokens.css`, befo
 
 ## Co-existing with Tailwind v4
 
-Tailwind v4 also uses native `@layer` (`theme, base, components, utilities` by default). Both
-systems' layer orders can coexist in the same cascade as long as ThemeOn's layer-order
-statement is declared **before** Tailwind's `@import "tailwindcss"` — the browser keeps the
-order of the *first* mention of each layer name, and mixing unrelated layer names (`themeon.*`
-vs Tailwind's unprefixed names) does not create a specificity conflict either way:
+Tailwind v4 also uses native `@layer` (`theme, base, components, utilities` by default), and the
+two systems' layer orders **do** create a real conflict — the naive recipe of just importing
+`layers.css` before `tailwindcss` is broken: Tailwind's Preflight (`@layer base`) resets
+`h1..h6` to `font-size/font-weight: inherit` and buttons to `padding: 0; border-radius: 0;
+background-color: transparent`, and because `layers.css` alone never mentions Tailwind's own
+layer names, the browser inserts them *after* `themeon.*` on first encounter — Preflight ends up
+stronger than `themeon.base`/`themeon.components`, not weaker. Measured effect (Chromium): `h1`
+16px instead of 40px, `.btn` `background: rgba(0,0,0,0)`, `padding: 0`.
+
+The working recipe declares **one** order-statement, up front, that names Tailwind's four
+layers *and* all seven `themeon.*` layers in the same statement — legal per CSS Cascade 5 (an
+empty `@layer a, b, c;` statement before any `@import` fixes precedence for every later
+`@import`, regardless of import order):
 
 ```css
-@import "@themeon/css/layers.css"; /* declares the themeon.* order first */
+/* 1. Order statement — fixes precedence: Tailwind base (Preflight) < themeon.* <
+      Tailwind components/utilities. Use the ready-made layers-tailwind.css entry instead of
+      retyping the 11 names by hand — it is exactly this statement. */
+@import "@themeon/css/layers-tailwind.css";
+
+/* 2. Imports — any order; precedence is already fixed above. */
 @import "tailwindcss";
+@import "@themeon/css/tokens.css";
+@import "@themeon/css/index.css";
+```
+
+Equivalent, spelled out instead of using the packaged entry:
+
+```css
+@layer theme, base,
+       themeon.tokens, themeon.reset, themeon.base, themeon.composition,
+       themeon.blueprints, themeon.components, themeon.utilities,
+       components, utilities;
+@import "tailwindcss";
+@import "@themeon/css/tokens.css";
+@import "@themeon/css/index.css";
+```
+
+This gives you all three guarantees at once (measured in Chromium): (a) Preflight no longer
+overrides `themeon.base`/`themeon.components` (`h1` back to 40px, `.btn` keeps its
+background/padding/radius); (b) Tailwind utility classes still win over ThemeOn components
+(`class="btn p-0"` → `padding: 0`, because `components < utilities` for user-authored rules,
+and the packaged `.btn` lives in `themeon.components < components`); (c) any unlayered rule in
+your own stylesheet still outranks everything above regardless of source order (D8, no
+`!important` needed).
+
+`layers-tailwind.css` hard-codes Tailwind's default layer names (`theme`, `base`, `components`,
+`utilities`) — only use it when Tailwind v4's default layer set applies to your build; if
+Tailwind ships a different default set in a future major, update accordingly (a regression test
+on real compilation output guards this package's own claim, see `tests/integration`).
+
+**Alternative — drop Tailwind's Preflight.** `@themeon/css` ships its own reset
+(`themeon.reset`), so running both resets is redundant. Import Tailwind's `theme.css` and
+`utilities.css` directly instead of the aggregate `"tailwindcss"` entry point, and skip
+`preflight.css`:
+
+```css
+@layer theme, base, themeon.tokens, themeon.reset, themeon.base, themeon.composition,
+       themeon.blueprints, themeon.components, themeon.utilities, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
 @import "@themeon/css/tokens.css";
 @import "@themeon/css/index.css";
 ```
