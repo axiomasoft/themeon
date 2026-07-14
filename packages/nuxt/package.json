@@ -43,7 +43,8 @@
     "@nuxt/kit": "catalog:",
     "@themeon/core": "workspace:*",
     "@themeon/css": "workspace:*",
-    "@themeon/vue": "workspace:*"
+    "@themeon/vue": "workspace:*",
+    "jiti": "catalog:"
   },
   "peerDependencies": {
     "nuxt": ">=4.0.0"

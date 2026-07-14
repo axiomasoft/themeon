@@ -1,7 +1,7 @@
 /**
  * Публичные опции модуля `@themeon/nuxt` (`configKey: 'themeon'`). Поля `theme`/`tokensDir`
- * запускают codegen пользовательской темы + dev-watcher по хэшу директории (D13), `fouc` —
- * анти-FOUC head-скрипт (`@themeon/vue/anti-fouc`, P3.4).
+ * запускают codegen пользовательской темы + живой dev-watcher (P8.4, дедуп по сгенерированному
+ * CSS), `fouc` — анти-FOUC head-скрипт (`@themeon/vue/anti-fouc`, P3.4).
  */
 export interface ModuleOptions {
   /** Подключать статический CSS-фундамент пакета (`tokens.css`+`index.css`). Default `true`. */
@@ -22,7 +22,7 @@ export interface ModuleOptions {
    * сгенерированным (`addTemplate`, P3.4).
    */
   theme?: string
-  /** Директория для dev-watcher (хэш содержимого, D13). Default — `dirname(theme)`. */
+  /** Директория для dev-watcher (P8.4). Default — `dirname(theme)`; не может быть rootDir. */
   tokensDir?: string
 }
 

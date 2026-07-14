@@ -60,7 +60,7 @@ SSR-safe — no module-level singleton leaking between requests.
 | `attribute` | `string` | `'data-theme'` | DOM attribute driving the switch (D6). |
 | `fouc` | `boolean` | `true` | Insert the generated anti-FOUC head script. |
 | `theme` | `string` | — | Path to a user theme module (`defineTheme`, default export or named `theme`/`defaultTheme`). When set, replaces the static `tokens.css` with a generated one. |
-| `tokensDir` | `string` | `dirname(theme)` | Directory watched for regenerating the theme in dev (hashed, not a hardcoded file list). |
+| `tokensDir` | `string` | `dirname(theme)` | Directory watched for regenerating the theme in dev. Cannot be the project root. |
 
 ### Environment overrides
 
@@ -100,9 +100,13 @@ import { defineTheme } from '@themeon/core'
 export default defineTheme({ /* … */ })
 ```
 
-In dev, editing any file under `tokensDir` regenerates `tokens.css` automatically (hashed
-directory watch — no hardcoded file list, D13). In production the theme is generated once at
-build time.
+In dev, editing the theme file — or any file it imports, from anywhere in `tokensDir` — regenerates
+`tokens.css` automatically (the module re-reads the whole import graph on every save and skips the
+write when the generated CSS is unchanged). If the theme file lives at the project root, `tokensDir`
+falls back to the file itself: Nuxt can only watch it with a full dev-server restart on save (a
+watched directory would swallow Nuxt's own narrower subscriptions). Move the theme into its own
+directory (e.g. `theme/`) or set `tokensDir` to get CSS hot-reload without a restart. In production
+the theme is generated once at build time.
 
 ## Anti-FOUC
 

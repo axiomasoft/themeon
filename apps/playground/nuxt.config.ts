@@ -7,6 +7,9 @@ export default defineNuxtConfig({
   themeon: {
     // P3.7 — без `default`: догфуд системной ветки (matchMedia), ровно конфигурация,
     // в которой был воспроизведён дефект `default:''` на живых пилотах.
-    themes: ['light', 'dark'],
+    // P8.4 — codegen пользовательской темы (`themeon.theme`), впервые реально исполняемая
+    // ветка playground'а: тема лежит в своей директории (`theme/`) ради granular CSS-HMR
+    // без рестарта dev-сервера (findings/P8-nuxt-vue-runtime.md §2/§6).
+    theme: './theme/theme.config.ts',
   },
 })

@@ -9,5 +9,9 @@
   "dependencies": {
     "@themeon/nuxt": "workspace:*",
     "nuxt": "4.4.8"
+  },
+  "devDependencies": {
+    "@themeon/colors": "workspace:*",
+    "@themeon/core": "workspace:*"
   }
 }

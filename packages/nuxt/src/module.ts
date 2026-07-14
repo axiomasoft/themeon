@@ -4,14 +4,13 @@ import {
   addTemplate,
   createResolver,
   defineNuxtModule,
-  importModule,
   resolvePath,
   updateTemplates,
+  useLogger,
 } from '@nuxt/kit'
-import { resolveTheme, serializeThemeCss, type ThemeDefinition } from '@themeon/core'
+import { resolveTheme, serializeThemeCss } from '@themeon/core'
 import { themeInitScript } from '@themeon/vue/anti-fouc'
-import { dirname, resolve as resolveAbs } from 'node:path'
-import { hashDir } from './internal/hash-dir'
+import { resolve as resolveAbs, sep } from 'node:path'
 import {
   buildFoucScriptOptions,
   FOUNDATION_CSS,
@@ -19,16 +18,11 @@ import {
   shouldPushCss,
   toPublicRuntimeConfig,
 } from './internal/normalize'
+import { createThemeLoader } from './internal/theme-loader'
+import { resolveWatchTarget } from './internal/watch-target'
 import type { ModuleOptions } from './types'
 
 export type { ModuleOptions } from './types'
-
-/** Контракт файла пользовательской темы (`options.theme`, codegen P3.4). */
-interface ThemeModuleExports {
-  default?: ThemeDefinition
-  theme?: ThemeDefinition
-  defaultTheme?: ThemeDefinition
-}
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
@@ -89,46 +83,36 @@ export default defineNuxtModule<ModuleOptions>({
       }
     }
 
-    // ── Codegen пользовательской темы + dev-watcher по хэшу директории (D13) ──
+    // ── Codegen пользовательской темы + живой dev-watcher (P8.4) ──
     if (options.theme) {
       // `resolvePath` (не `resolver.resolvePath`!) резолвит от `nuxt.options.rootDir` —
       // `options.theme` это путь пользовательского проекта, не путь внутри этого пакета.
       const themePath = await resolvePath(options.theme)
-
-      // Перечитывает файл темы с диска при каждом вызове (fresh `importModule` → fresh jiti
-      // instance, без переиспользования закэшированного модуля) — иначе `getContents`
-      // сериализовал бы объект темы, захваченный один раз на `setup`, и dev-watcher (D13)
-      // перезаписывал бы tokens.css БАЙТ-В-БАЙТ тем же контентом при каждом сохранении
-      // файла темы (P3.4 code-review HIGH: token HMR мёртв).
-      const loadTheme = async (): Promise<ThemeDefinition> => {
-        const themeModule = await importModule<ThemeModuleExports>(themePath)
-        const loaded = themeModule.default ?? themeModule.theme ?? themeModule.defaultTheme
-        if (!loaded) {
-          throw new Error(
-            `[themeon] module: файл темы "${options.theme}" должен экспортировать тему ` +
-              `(default export либо именованный "theme"/"defaultTheme")`,
-          )
-        }
-        return loaded
-      }
+      const { loadTheme } = createThemeLoader(themePath, options.theme, nuxt.options.alias)
 
       // Ранняя валидация при setup — ошибка конфигурации всплывает сразу при старте `nuxt dev`,
       // а не отложенно на первой сборке шаблона.
       await loadTheme()
 
+      // Дедуп по СГЕНЕРИРОВАННОМУ CSS (P8.4 канон, findings/P8-nuxt-vue-runtime.md §2) — не по
+      // хэшу входной директории: единственный вопрос, на который обязан ответить watcher —
+      // «изменился ли CSS», а не «изменилось ли что-то во входе».
+      let cachedCss: string | undefined
+      const buildCss = async (): Promise<string> => {
+        try {
+          return serializeThemeCss(resolveTheme(await loadTheme()))
+        } catch (err) {
+          // Fail loud (Rule 5): циклы/коллизии в пользовательской теме не должны молча
+          // деградировать в пустой/старый CSS.
+          console.error('[themeon] module: не удалось сериализовать пользовательскую тему:', err)
+          throw err
+        }
+      }
+
       const template = addTemplate({
         filename: 'themeon-tokens.css',
         write: true,
-        getContents: async () => {
-          try {
-            return serializeThemeCss(resolveTheme(await loadTheme()))
-          } catch (err) {
-            // Fail loud (Rule 5): циклы/коллизии в пользовательской теме не должны молча
-            // деградировать в пустой/старый CSS.
-            console.error('[themeon] module: не удалось сериализовать пользовательскую тему:', err)
-            throw err
-          }
-        },
+        getContents: async () => (cachedCss ??= await buildCss()),
       })
 
       // Сгенерированный CSS занимает МЕСТО статического tokens.css (тот же порядок
@@ -138,26 +122,42 @@ export default defineNuxtModule<ModuleOptions>({
       else nuxt.options.css.unshift(template.dst)
 
       if (nuxt.options.dev) {
-        const tokensDir = options.tokensDir ? await resolvePath(options.tokensDir) : dirname(themePath)
-
-        // Регистрация watch вне srcDir — Nuxt 4 поддерживает абсолютные пути в `watch`.
-        nuxt.options.watch.push(tokensDir)
-
-        let lastHash = hashDir(tokensDir)
-        nuxt.hook('builder:watch', async (_event, path) => {
-          // Nuxt 4 отдаёт `path` уже абсолютным (R-13 §3.4) — `resolve` относительно
-          // `rootDir` идемпотентен для абс.путей, страхует от гипотетического относительного.
-          const abs = resolveAbs(nuxt.options.rootDir, path)
-          if (!abs.startsWith(tokensDir)) return
-
-          // Хэш ДИРЕКТОРИИ, не хардкод-список файлов (D13-фикс донор-бага vintera
-          // `SOURCE_REL` — список указывал на несуществующий путь, HMR был мёртв).
-          const nextHash = hashDir(tokensDir)
-          if (nextHash === lastHash) return
-          lastHash = nextHash
-
-          await updateTemplates({ filter: (t) => t.filename === 'themeon-tokens.css' })
+        const explicitTokensDir = options.tokensDir ? await resolvePath(options.tokensDir) : undefined
+        const target = resolveWatchTarget({
+          themePath,
+          tokensDir: explicitTokensDir,
+          rootDir: nuxt.options.rootDir,
+          srcDir: nuxt.options.srcDir,
+          buildDir: nuxt.options.buildDir,
         })
+
+        nuxt.options.watch.push(target.path)
+
+        if (target.kind === 'directory') {
+          // Директория => granular CSS-HMR без рестарта (nuxt.options.watch сравнивает пути
+          // строго по строке, поэтому только САМ путь директории даёт этот режим).
+          const withSep = target.path.endsWith(sep) ? target.path : `${target.path}${sep}`
+          nuxt.hook('builder:watch', async (_event, path) => {
+            // Nuxt 4 отдаёт `path` уже абсолютным (R-13 §3.4) — `resolve` относительно `srcDir`
+            // (не `rootDir`: канон Nuxt, `index.mjs:7401`) идемпотентен для абс.путей, страхует
+            // от гипотетического относительного.
+            const abs = resolveAbs(nuxt.options.srcDir, path)
+            if (abs !== target.path && !abs.startsWith(withSep)) return
+
+            const next = await buildCss()
+            if (next === cachedCss) return
+            cachedCss = next
+            await updateTemplates({ filter: (t) => t.filename === 'themeon-tokens.css' })
+          })
+        } else {
+          // Тема в корне => подписываемся на САМ ФАЙЛ; Nuxt делает полный рестарт dev-сервера
+          // (документированная семантика `watch`), setup() исполняется заново, загрузчик читает
+          // свежий файл. `builder:watch`-ветка здесь не нужна.
+          useLogger('themeon').info(
+            '[themeon] тема лежит в корне проекта — правка перезапускает dev-сервер. ' +
+              'Для CSS-HMR перенесите тему в свою директорию (например `theme/`) или задайте `themeon.tokensDir`.',
+          )
+        }
       }
     }
   },
