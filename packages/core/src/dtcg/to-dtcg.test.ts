@@ -268,6 +268,19 @@ describe('toDTCG — экранирование имён (findings #11, §5.1.1 
     expect(collectKeys(base).some((k) => k.includes('.'))).toBe(false)
   })
 
+  test('тема с именем "base" → ThemeonError DTCG_NAME_COLLISION (иначе тихо затирает base.tokens.json, review finding)', () => {
+    const def = defineTheme({
+      base: { color: { bg: 'oklch(0.99 0 0)' } },
+      themes: { base: { color: { bg: 'oklch(0.15 0 0)' } } },
+    })
+    expect(() => toDTCG(def)).toThrow(ThemeonError)
+    try {
+      toDTCG(def)
+    } catch (e) {
+      expect((e as ThemeonError).code).toBe('DTCG_NAME_COLLISION')
+    }
+  })
+
   test('коллизия эскейпа (space["1.5"] и space["1-5"] вместе) → ThemeonError DTCG_NAME_COLLISION', () => {
     const def = defineTheme({ base: { space: { '1.5': '0.375rem', '1-5': '0.4rem' } } })
     expect(() => toDTCG(def)).toThrow(ThemeonError)

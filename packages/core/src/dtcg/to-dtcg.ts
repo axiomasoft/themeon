@@ -355,6 +355,15 @@ export function toDTCG(def: ThemeDefinition, opts: ToDTCGOptions = {}): DTCGExpo
   const files: Record<string, DTCGDocument> = { 'base.tokens.json': baseDoc }
   const themeNames = Object.keys(def.themes)
 
+  // Тема с именем "base" эмитила бы в тот же файл, что base.tokens.json, молча затирая ВЕСЬ
+  // sys-слой патчем темы (P8.11 review finding, fail-loud правило 4 — раньше падало тихо).
+  if (themeNames.includes('base')) {
+    throw new ThemeonError(
+      'DTCG_NAME_COLLISION',
+      'Theme name "base" collides with the reserved "base.tokens.json" filename — rename the theme',
+    )
+  }
+
   if (splitThemes) {
     // ── <theme>.tokens.json: только патченные пути ──
     for (const [name, patch] of Object.entries(def.themes)) {
