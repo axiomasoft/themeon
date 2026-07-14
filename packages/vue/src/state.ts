@@ -57,6 +57,14 @@ function withoutTransition(enabled: boolean, write: () => void): void {
   }
 }
 
+/**
+ * Один гейт на весь модуль — канон VueUse (`isClient` = `typeof window !== 'undefined' &&
+ * typeof document !== 'undefined'`, `packages/shared/utils/is.ts`).
+ */
+function isClient(): boolean {
+  return typeof window !== 'undefined' && typeof document !== 'undefined'
+}
+
 /** Создаёт независимый экземпляр реактивного состояния темы (per-app в P3.2, singleton в P3.1). */
 export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn {
   const explicitThemes = options.themes
@@ -66,7 +74,7 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
   const systemMap = options.system ?? DEFAULT_SYSTEM
   const disableTransition = options.disableTransition ?? true
   const runtimeVars = options.runtimeVars ?? {}
-  const getTarget = options.target ?? (() => document.documentElement)
+  const getTarget = options.target ?? (() => (isClient() ? document.documentElement : null))
   const getStorage =
     options.storage ??
     (() => {
@@ -79,7 +87,14 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
         return null
       }
     })
-  const getMedia = options.media ?? ((query: string) => matchMedia(query))
+  // Симметрично `getStorage`: НЕТ окружения — НЕТ броска. jsdom имеет `document`, но НЕ имеет
+  // `matchMedia`, поэтому гейт обязан проверять наличие ФУНКЦИИ, а не только `window`.
+  const getMedia: NonNullable<UseThemeOptions['media']> =
+    options.media ??
+    ((query: string) =>
+      isClient() && typeof window.matchMedia === 'function'
+        ? window.matchMedia(query)
+        : { matches: false })
 
   // Предпочтение по умолчанию (P-D49): `'system'` — следовать за ОС. Пустая/пробельная строка
   // (Nuxt-коерс незаданной опции runtimeConfig в '') = «не задано» = та же системная ветка (P3.7).
@@ -113,6 +128,8 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
 
   function applyOne(name: string): void {
     const el = getTarget()
+    // Нет DOM (SSR/node-тест) — тихий no-op: состояние уже обновлено в `apply()`, писать некуда.
+    if (!el) return
     el.setAttribute(attribute, name)
     const patch = runtimeVars[name]
     if (lastRuntimeVarNames.length > 0) {
@@ -177,7 +194,6 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
 
   function init(): void {
     if (initialized) return
-    initialized = true
 
     let stored: string | null = null
     if (storageKey !== null) {
@@ -214,6 +230,10 @@ export function createThemeState(options: UseThemeOptions = {}): UseThemeReturn 
     // побочный эффект первого визита. Отравленный/протухший персист не «лечится» перезаписью —
     // оба канала игнорируют его одинаково.
     apply(storedIsUsable ? (stored as string) : defaultPreference)
+
+    // Флаг ТОЛЬКО после успешного прохода: брось что-нибудь выше (сломанный seam, экзотический
+    // SecurityError) — и повторный `init()` обязан отработать, а не молча выйти по `if (initialized)`.
+    initialized = true
   }
 
   return {

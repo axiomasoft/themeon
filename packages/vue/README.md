@@ -137,7 +137,10 @@ and applying it would wipe the attribute and poison the persisted value.
 ### `themeonPlugin`
 
 `app.use(themeonPlugin, options)` — `options` is the same `UseThemeOptions` shape as
-`useTheme()`. Also sets `app.config.globalProperties.$theme`.
+`useTheme()`. Also sets `app.config.globalProperties.$theme`, typed via a `ComponentCustomProperties`
+augmentation shipped in `dist/index.d.ts` — importing `@themeon/vue` anywhere in your program's type
+graph is enough for `$theme` to type-check in templates (`vue-tsc`/`nuxi typecheck`), same as Pinia's
+`$pinia` or Vue Router's `$router`.
 
 ### `themeInitScript(options?)` (`@themeon/vue/anti-fouc`)
 

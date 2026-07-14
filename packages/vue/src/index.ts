@@ -4,6 +4,7 @@
  * Заморожен `api.test.ts` (snapshot рантайм-экспортов) — образец `packages/core/src/index.ts`.
  */
 export { SYSTEM_PREFERENCE } from './defaults'
+export * from './global-extensions'
 export { THEME_INJECTION_KEY, themeonPlugin } from './plugin'
 export { useTheme } from './use-theme'
 export type { StorageLike, SystemPreference, UseThemeOptions, UseThemeReturn } from './types'

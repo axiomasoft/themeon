@@ -42,9 +42,9 @@ export interface UseThemeOptions {
   /** Runtime var-патчи для тем, которых НЕТ в статическом `tokens.css` (тенант/динамика, P6). */
   runtimeVars?: Readonly<Record<string, Record<string, string>>>
   /** Seam: целевой элемент. Default `() => document.documentElement`. */
-  target?: () => ElementLike & {
+  target?: () => (ElementLike & {
     setAttribute(n: string, v: string): void
-  }
+  }) | null
   /** Seam: хранилище. Default `() => localStorage`. */
   storage?: () => StorageLike | null
   /** Seam: медиа-квери. Default `(q) => matchMedia(q)`. */
