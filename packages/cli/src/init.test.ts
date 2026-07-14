@@ -54,7 +54,7 @@ describe('runInit', () => {
 
     expect(result.created).toEqual(expect.arrayContaining(['theme.config.ts', 'tailwind-bridge.css']))
     expect(statSync(join(cwd, 'tailwind-bridge.css')).isFile()).toBe(true)
-    expect(readFileSync(join(cwd, 'tailwind-bridge.css'), 'utf8')).toContain('@theme inline')
+    expect(readFileSync(join(cwd, 'tailwind-bridge.css'), 'utf8')).toContain('@theme reference')
   })
 
   it('содержимое theme.config.ts включает defineTheme', () => {

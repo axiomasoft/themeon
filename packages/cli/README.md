@@ -37,7 +37,7 @@ After `init`, add the printed `@import "@themeon/css"` line to your CSS entry po
 
 jiti-loads `theme.config.ts`, runs it through `@themeon/core`'s `resolveTheme`/`serializeThemeCss`,
 and writes `--out` (default `tokens.css`). Pass `--tailwind <path>` to also emit a Tailwind v4
-`@theme inline` bridge (`@themeon/tailwind`) at that path. `--ref-layer`/`--aliases` are passed
+`@theme reference` bridge (`@themeon/tailwind`) at that path. `--ref-layer`/`--aliases` are passed
 through to `resolveTheme`.
 
 ## `themeon check`

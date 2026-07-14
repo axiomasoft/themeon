@@ -90,7 +90,7 @@ describe('runBuild', () => {
     expect(css).toContain('--color-text')
   })
 
-  it('--tailwind пишет bridge-файл с @theme inline', async () => {
+  it('--tailwind пишет bridge-файл с @theme reference (P8.3)', async () => {
     const { bridgePath } = await runBuild({
       cwd,
       config: 'theme.config.ts',
@@ -100,7 +100,7 @@ describe('runBuild', () => {
 
     expect(bridgePath).toBeDefined()
     const bridge = readFileSync(bridgePath!, 'utf8')
-    expect(bridge).toContain('@theme inline')
+    expect(bridge).toContain('@theme reference')
   })
 
   it('--ref-layer inline инлайнит финальное значение, убирая var-chain на --color-neutral-900', async () => {

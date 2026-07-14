@@ -90,7 +90,7 @@ export const buildCommand = defineCommand({
     },
     tailwind: {
       type: 'string',
-      description: 'Also emit a Tailwind `@theme inline` bridge at this path',
+      description: 'Also emit a Tailwind `@theme reference` bridge at this path',
     },
     'ref-layer': {
       type: 'string',

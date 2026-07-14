@@ -57,13 +57,13 @@ export default defineTheme({
 export const APP_CSS_IMPORT = '@import "@themeon/css";'
 
 /**
- * Заготовка для Tailwind-моста (P4.1): напоминание про порядок `@import` и обязательность
- * `@theme inline` (P-D31) — реальный bridge-файл генерирует `themeon build --tailwind` (P4.4),
- * `init --tailwind` только печатает инструкцию/добавляет комментарий в шаблон.
+ * Заготовка для Tailwind-моста (P4.1, форма — P8.3): напоминание про `@theme reference` —
+ * реальный bridge-файл генерирует `themeon build --tailwind` (P4.4), `init --tailwind` только
+ * печатает инструкцию/добавляет комментарий в шаблон.
  */
 export const TAILWIND_BRIDGE_HINT = `/* ThemeOn + Tailwind v4:
- * 1. \`themeon build --tailwind\` сгенерирует self-referential \`@theme inline\` блок (P4.4).
- * 2. Подключите его ПОСЛЕ \`@import "tailwindcss"\`, чтобы Tailwind увидел ThemeOn-переменные
- *    как namespace'ы и сгенерировал утилиты (напр. bg-action-primary).
+ * 1. \`themeon build --tailwind\` сгенерирует \`@theme reference\` блок (P-D54).
+ * 2. Порядок \`@import\` не важен: \`reference\` не эмитит переменные ThemeOn в :root/:host,
+ *    утилиты получают их через var()-fallback (напр. bg-action-primary).
  */
 `
