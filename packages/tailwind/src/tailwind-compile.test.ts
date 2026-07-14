@@ -1,13 +1,11 @@
 /**
- * Real-Tailwind compile-VERIFY (P4.1, R-14 §2.2): гоняет НАСТОЯЩИЙ Tailwind 4.3.2 на
- * фикстуре, использующей self-referential `@theme inline`-мост. Закрывает P-D31/VERIFY-
- * метку `handoff.md`: self-reference не даёт дубль-объявления и доносит `[data-theme]`-
- * своп до сгенерированной утилиты.
- *
- * Компилятор — `@tailwindcss/node` (тот же движок, что `@tailwindcss/vite`/`@tailwindcss/
- * postcss`): экспортирует `compile()`, который сам резолвит `@import "tailwindcss"` через
- * node-резолюцию пакета (в отличие от голого `tailwindcss.compile()`, который требует
- * ручной `loadStylesheet`). См. Known Deviations `phases/P4.md` P4.1.
+ * Real-Tailwind compile-smoke (P4.1 → форма P8.3, `findings/P8-tailwind-bridge-form.md`):
+ * гоняет НАСТОЯЩИЙ Tailwind 4.3.2 на фикстуре, использующей `@theme reference`-мост.
+ * Полная матрица обязательных тестов (md-variant/zero-emission/anti-cycle/order-invariance/
+ * companion/browser-effect/shadow-swap) — `tests/integration/src/fast/tailwind-bridge.test.ts`
+ * и `tests/integration/src/browser/tailwind-bridge.test.ts` (реальный `@tailwindcss/node` +
+ * Chromium). Здесь — быстрый пакетный смок без интеграционного гарнесса: форма моста и
+ * базовая компиляция.
  */
 
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
@@ -43,21 +41,26 @@ function prepareFixtureDir(): string {
   return dir
 }
 
-describe('tailwindBridge — real Tailwind 4.3.2 compile-смок', () => {
-  test('утилита инлайнит var(), нет дубль-объявления, [data-theme=dark] проходит насквозь', async () => {
+describe('tailwindBridge — real Tailwind 4.3.2 compile-смок (@theme reference)', () => {
+  test('утилита получает `var(--x, <литерал>)`, ThemeOn-переменная НЕ эмитится Tailwind-ом', async () => {
     const dir = prepareFixtureDir()
     const inputCss = readFileSync(join(dir, 'input.css'), 'utf8')
 
     const result = await compile(inputCss, { base: dir, onDependency: () => {} })
     const out = result.build(['bg-action-primary'])
 
-    // (a) утилита эмитит var(--color-action-primary), не литерал.
-    expect(out).toMatch(/\.bg-action-primary\s*{\s*background-color:\s*var\(--color-action-primary\);?\s*}/)
+    // (a) утилита ссылается на var() с литеральным fallback'ом — не запечённый литерал (C6 provал).
+    expect(out).toMatch(
+      /\.bg-action-primary\s*{\s*background-color:\s*var\(--color-action-primary,\s*oklch\(0\.55 0\.15 155\)\);?\s*}/,
+    )
 
-    // (b) единственное self-referential объявление в @theme inline-слое — не второй
-    // (не-var) источник значения вне tokens.css-скоупа (:root/[data-theme]).
-    const selfRefCount = (out.match(/--color-action-primary:\s*var\(--color-action-primary\);/g) ?? []).length
-    expect(selfRefCount).toBe(1)
+    // (b) Tailwind сам НЕ объявляет `--color-action-primary` в @layer theme — `reference`
+    // никогда не эмитит (Blocker #5, supersedes старый selfRefCount===1, который закреплял цикл).
+    const themeLayerStart = out.indexOf('@layer theme {')
+    const nextLayerStart = out.indexOf('@layer base {', themeLayerStart)
+    expect(themeLayerStart).toBeGreaterThanOrEqual(0)
+    expect(nextLayerStart).toBeGreaterThan(themeLayerStart)
+    expect(out.slice(themeLayerStart, nextLayerStart)).not.toContain('--color-action-primary')
 
     // (c) [data-theme="dark"]-своп из tokens.css присутствует нетронутым.
     expect(out).toContain('[data-theme="dark"]')
