@@ -1,68 +1,66 @@
-# HANDOFF — 2026-07-14 — after P8.9
+# HANDOFF — 2026-07-14 — after P8.10
 
-**Next:** Исполнить **P8.10 — `@themeon/vue`: client-гейтинг и типизация `$theme`**
-(десятый item фазы). ТЗ детерминировано `findings/P8-nuxt-vue-runtime.md` §3 (канон гейтинга,
-VueUse-эталон, воспроизведение), §4 (канон аугментации типов) + `phases/P8.md` P8.10 целиком.
-После коммита — ОБЯЗАТЕЛЬНЫЙ adversarial-review (opus/xhigh, P-D51).
+**Next:** Исполнить **P8.11 — `@themeon/core`: DTCG-эмит по спеке 2025.10**
+(одиннадцатый item фазы). ТЗ детерминировано `findings/P8-dtcg-2025-10-canon.md` §1–§6, §9
+(нормативные цитаты, эмпирика, канон, zero-dep конвертер, проверка сторонним валидатором, контракт,
+обязательные тесты) + `phases/P8.md` P8.11 целиком. После коммита — ОБЯЗАТЕЛЬНЫЙ adversarial-review
+(opus, P-D51).
 
 | Параметр | Значение |
 |:--|:--|
 | Model | **sonnet** |
 | Thinking | **medium** (пинится самим `/task:plan-exec`) |
 | Context | **continue (/clear) — manual item** |
-| Суть | `packages/vue/src/state.ts`: единый `isClient` (`window` И `document`) + отдельная проверка наличия функции `matchMedia` (в jsdom `window` есть, `matchMedia` нет); стаб `{matches:false}`; `applyOne` терпит `null`-таргет; `initialized=true` — ТОЛЬКО после успешного прохода (сейчас выставляется ДО броска — бросающий seam травит флаг навсегда). Новый `packages/vue/src/global-extensions.ts` (`.ts`, не `.d.ts`, обязателен `export {}`) — аугментация `ComponentCustomProperties.$theme`, эталон — Pinia; реэкспорт из `index.ts`. Тесты: jsdom БЕЗ шима `matchMedia` (init должен работать без него); SSR-окружение (no-op, не throw); идемпотентность после broken seam; `vue-tsc --noEmit` на минимальном потребителе, собранном из `dist`. Rule 1 (`plan.md` P-D49) неприкосновенна: `preference`/`theme`/`system`-контракт не трогать. |
+| Суть | `packages/core/src/dtcg/color.ts`: парсер `hsl()`/`lab()`/`lch()`/`oklab()`/именованных цветов + zero-dep OKLCH→sRGB→hex конвертер с gamut-mapping (CSS Color 4), БЕЗ `colorjs.io` (D2/D12 core zero-dep). `packages/core/src/dtcg/to-dtcg.ts`: `dimension` только `px`/`rem` (прочее — warning + `$extensions`-мост); `cubicBezier` — массив из 4 чисел (таблица именованных кривых), не строка; `typography` эмитится ТОЛЬКО при всех 5 полях темы, иначе примитивы + мост; `shadow`/`gradient` — `$extensions`-мост (структурный эмит вне скоупа, P7); имена с точкой экранируются (`space["1-5"]`) + мост на оригинальный путь; resolver — убрать жёсткий ключ `light`. Публичный контракт `toDTCG(theme) → { files, warnings }` можно ломать свободно (P-D53), но `api.test.ts` обновить в ЭТОМ ЖЕ item'е. Обязательный тест: round-trip дефолт-темы через `@terrazzo/parser@2.4.0` (devDep) → 0 ошибок валидатора — вердикт «валидно» даёт СТОРОННИЙ инструмент, не наш ассерт. Naming-движок (`space['1.5']` → `--spacing-1-5`) не трогать. |
 
 ```
-/task:plan-exec 2026.07.12-BASE P8.10
+/task:plan-exec 2026.07.12-BASE P8.11
 ```
 
 **Cold-start reads (по порядку):**
-1. `plans/2026.07.12-BASE/phases/P8.md` — Phase Context (инварианты фазы) + item **P8.10** целиком.
-2. `plans/2026.07.12-BASE/findings/P8-nuxt-vue-runtime.md` §3 (канон гейтинга, воспроизведение бага
-   на jsdom без шима), §4 (канон аугментации, проверка на СОБРАННОМ `dist/index.d.ts`), §5 (тесты
-   T4–T6).
-3. `packages/vue/src/state.ts` (текущий код — три незащищённых глобала).
-4. `90_audit/AUDIT_2026-07-14_research-conformance.md` §«### 17», §«### 27».
-5. `packages/vue/src/parity.test.ts` (P3.8 инвариант — обязан остаться зелёным после правки).
-6. `plans/2026.07.12-BASE/plan.md` — §3 Routing, §5 Decision Log (P-D49 — что именно нельзя трогать).
+1. `plans/2026.07.12-BASE/phases/P8.md` — Phase Context (инварианты фазы) + item **P8.11** целиком.
+2. `plans/2026.07.12-BASE/findings/P8-dtcg-2025-10-canon.md` §1–§6, §9 (цитаты спеки, эмпирика через
+   `@terrazzo/parser`, канон эмита, zero-dep конвертер, тесты).
+3. `packages/core/src/dtcg/to-dtcg.ts` + `packages/core/src/dtcg/color.ts` (текущий код).
+4. `90_audit/AUDIT_2026-07-14_research-conformance.md` §«### 6»–«### 11», §«### 24», §«### 25».
+5. `packages/core/src/api.test.ts` (freeze — обновляется в этом же item'е).
+6. `plans/2026.07.12-BASE/plan.md` — §3 Routing, §5 Decision Log (P-D53 — свободная ломка контракта;
+   D2/D12 — core zero-dep).
 
 **Done:** (эта сессия)
 
-- **P8.9 закрыт 🟢 Done.** `@themeon/naive`: `deriveInteractionStates` переписан под канон §3.3
-  (findings/P8-naive-color-canon.md) — приоритет явной роли темы (`<base>-hover/-pressed/-suppl`)
-  над деривацией; без неё `hover = base + Δ(appearance)`, `pressed` = экстраполяция вектора
-  `base→hover` (OKLCH L/C линейно, H кратчайшей дугой, k=2) при явном hover, иначе `base + 2·Δ`;
-  `suppl = base` (identity). `STEP10_DELTA` — новый публичный экспорт `@themeon/colors`
-  (`{light:-0.03, dark:+0.041}`, читается из `RAMP` шкалы, не дублируется вторым числом);
-  `@themeon/naive` получил `@themeon/colors` в deps. `common-map.ts`: `DERIVABLE_BASES` теперь
-  несёт явные `hoverVar`/`pressedVar`/`supplVar` на роль (раньше только `-hover` читался явно из
-  темы, `-pressed`/`-suppl` теряли Rule 4 полностью). Суперседит P-D29 (фиксированные ±0.06/+0.10
-  дельты).
-  Тесты T8/T9/T10 (findings §6) через настоящий naive-ui/seemly + unit-тесты в `color.test.ts`.
-  Коммит `746eed3` (реализация).
-- Валидация (все зелёные, до ревью): `pnpm build && pnpm test && pnpm test:int` — 1163 unit,
-  38 int-fast; `pnpm typecheck && pnpm lint` — чисто.
-- **Adversarial-review (opus/xhigh) по коммиту `746eed3`**: 2 находки, обе устранены коммитом
-  `3ec1a26`.
-  1. `extrapolateHue` проверял ахроматику через `Number.isNaN(h)`, но colorjs.io 0.7.0 в
-     рантайме отдаёт для chroma≈0 `oklch.h === null` (НЕ `NaN`) — guard не срабатывал, `null`
-     коэрсился в `0`, экстраполяция ахроматичный-base→хроматичный-explicit-hover уезжала в
-     случайный hue вместо направления hover. Устранено (`isAchromatic` проверяет
-     `null`/`undefined`/`NaN`); red-before-fix подтверждён `git stash` (~107° ошибка на старом
-     guard'е вместо <10° после фикса).
-  2. Плановые числа ΔL≥0.03/0.04 (`findings/P8-naive-color-canon.md` §3.4) цитируют
-     `STEP10_DELTA` ДО коррекции P8.5 (было ±0.045, стало `-0.03`/`+0.041`) — для пути «чистая
-     деривация» (без явного theme-hover, напр. статусные роли) на реальном дефолт-seed'е
-     gamut-mapping даёт light ΔL≈0.0274, ниже буквального 0.03. Добавлен интеграционный T8b
-     (статусные роли, честный порог 0.02 light / 0.03 dark) — задокументировано как Known
-     Deviation в `phases/P8.md` P8.9, не замаскировано клэмпом/второй hardcode-дельтой.
-  Финальная валидация (все зелёные): `pnpm build && pnpm test && pnpm test:int && pnpm typecheck
-  && pnpm lint` — 1164 unit-теста (46 файлов), 39 int-fast тестов (12 файлов).
+- **P8.10 закрыт 🟢 Done.** `@themeon/vue`: `state.ts` — единый `isClient()` (`window` И `document`)
+  + отдельная проверка наличия ФУНКЦИИ `matchMedia` (Major #17, jsdom её не реализует вовсе);
+  `getTarget` возвращает `null` вне клиента, `applyOne` терпит `null`-таргет тихим no-op;
+  `initialized = true` перенесён в конец `init()` — ТОЛЬКО после успешного `apply()` (было: до
+  первого обращения к `matchMedia`, поэтому бросающий seam травил флаг навсегда). Новый
+  `packages/vue/src/global-extensions.ts` (`.ts`, `export {}`) аугментирует
+  `ComponentCustomProperties.$theme` (Minor #27, канон Pinia), реэкспорт из `index.ts` — runtime-
+  экспортов не добавляет, `api.test.ts` не менялся.
+  Тесты (findings §5, T4–T6): `packages/vue/src/state.test.ts` (jsdom БЕЗ matchMedia-шима),
+  `packages/vue/src/state.ssr.test.ts` (SSR/node-env), `tests/integration/src/fast/
+  vue-typecheck.test.ts` + фикстура `tests/integration/fixtures/vue-consumer/` (реальный
+  `vue-tsc@3.1.4` на собранном `dist/index.d.ts` — exit 0; red-before-fix подтверждён откатом
+  `index.ts`-реэкспорта, воспроизвёл ровно `TS2339 ×2` из аудита #27). Новые devDeps:
+  `jsdom@29.1.1` (`packages/vue`), `vue-tsc@3.1.4` (`tests/integration`). Коммит `b009289`.
+- Валидация (все зелёные, до ревью): `pnpm build && pnpm test` — 1172 unit (47 файлов); `pnpm
+  test:int` (int-fast+int-browser) — 42 теста (13 файлов); `pnpm typecheck && pnpm lint` — чисто;
+  `parity.test.ts` — 361 кейс.
+- **Adversarial-review (opus) по коммиту `b009289`**: 1 Minor + 2 Nit. Minor устранён коммитом
+  `24cdd40`: перенос флага `initialized` в конец `init()` открыл окно, где повторный `init()` после
+  throw В `apply()` (кастомный `target`-seam, `applyTheme`/`clearTheme` ядра на `runtimeVars`) заново
+  вызывал `getMedia()` — дефолтный seam отдаёт свежий `MediaQueryList` на каждый вызов, ранняя
+  подписка на `change` оставляла бы осиротевший MQL живым слушателем (дублирующие записи
+  `system.value` + утечка); подписка на `change` перенесена ПОСЛЕ успешного `apply()`. 2 Nit без
+  правок кода (асимметрия гейтов `withoutTransition`/`applyOne`; формулировка Deliverables про
+  `api.test.ts`, который на деле не нуждался в правке).
+  Финальная валидация (все зелёные): `pnpm build && pnpm test -- vue` (422), `pnpm typecheck` (vue),
+  `pnpm test:int` int-fast+int-browser (42), `pnpm lint`.
 
 **Remaining:**
 
-1. **P8.10–P8.14** — 5 items, порядок: P8.10 (vue) → P8.11/P8.12 (DTCG) → P8.13 (CLI: SSOT-
-   потребление + исключения скана) → P8.14 (research + финальная сверка).
+1. **P8.11–P8.14** — 4 items, порядок: P8.11/P8.12 (DTCG эмит/импорт) → P8.13 (CLI: SSOT-потребление
+   + исключения скана) → P8.14 (research + финальная сверка фазы).
    Каждый — `/task:plan-exec` (sonnet/medium) + ОБЯЗАТЕЛЬНЫЙ adversarial-review (opus/xhigh).
 2. **P5.9 / P5.11 / P5.10** (пилоты) — ЗАБЛОКИРОВАНЫ до закрытия ВСЕЙ P8 (решение владельца
    2026-07-14).
@@ -72,24 +70,22 @@ VueUse-эталон, воспроизведение), §4 (канон аугме
 
 - План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT; Vault — зеркало).
 - Входы фазы P8 — `findings/P8-*.md`, НЕ `20_research/R-xx` (R-11 §1, R-13 §4.3/§4.4, R-14 §2.1 —
-  ложные утверждения, P8.14 их размечает). `findings/P8-naive-color-canon.md` §3.4 несёт стале
-  ΔL-числа (до коррекции P8.5) — известная неточность документа, правка НЕ входит в P8.9 (Scope
-  Excluded), войдёт в P8.14 (правка research-артефактов).
+  ложные утверждения, P8.14 их размечает).
 - Тест-стенд P8.1 — `tests/integration/` (4 яруса: `src/fast`, `src/browser`, `src/e2e`); `pnpm
-  test:int`/`test:int:slow` не идут в `pnpm test` (отдельные команды). `tests/integration/
-  package.json` теперь несёт `@themeon/colors`, `seemly`, `colorjs.io` (P8.8/P8.9) как devDeps.
-- Пакеты: `~/projects/packages/themeon/packages/*` — HEAD (после коммита `3ec1a26`), дерево чистое.
+  test:int`/`test:int:slow` не идут в `pnpm test` (отдельные команды). Новый devDep
+  `tests/integration/package.json`: `vue-tsc@3.1.4` (P8.10, для T6 CI-гейта typecheck-на-dist).
+- Пакеты: `~/projects/packages/themeon/packages/*` — HEAD (после коммита `24cdd40`), дерево чистое.
   `dist` БРАТЬ В ПИЛОТЫ НЕЛЬЗЯ до закрытия P8.
-- `@themeon/colors` экспортирует `STEP10_DELTA` (P8.9, публичный, `scale.ts`) — единственная
-  внешняя константа шкалы, которую потребляют адаптеры для деривации; второй хардкод той же
-  дельты где-либо в репо = регрессия P-D14 (naming/математика применяется один раз).
-- `@themeon/naive/src/color.ts` — `deriveInteractionStates(DeriveInput)` (P8.9, новая сигнатура,
-  суперседит P-D29); `ink-map.ts` (P8.8) её не касается.
+- `@themeon/vue` — новый публичный подпуть-независимый файл `global-extensions.ts` реэкспортируется
+  из `index.ts`; аугментация `ComponentCustomProperties.$theme` присутствует в `dist/index.d.ts`,
+  отсутствует в `dist/anti-fouc.d.ts` (pure-подпуть чист) — регрессия сюда = повтор Minor #27.
+  `packages/vue/src/state.ts`: подписка на `matchMedia`-`change` ОБЯЗАНА идти ПОСЛЕ успешного
+  `apply()` в `init()` (P8.10 review-фикс `24cdd40`) — перенос её раньше воскрешает leak-находку.
+- `@themeon/colors` экспортирует `STEP10_DELTA` (P8.9, публичный, `scale.ts`).
 - `packages/core/src/errors.ts` несёт `ThemeonErrorCode` с `'BAD_COLOR'` (P8.8) — публичный
   тип-only экспорт.
-- Changeset `naive-literal-lookup-fail-loud-ink.md` (`@themeon/naive`+`@themeon/core`, minor,
-  P8.8) ещё не зарелижен (репо не в npm, P-D53) — P8.9 не заводила отдельный changeset (репо не
-  в npm, тот же режим свободной ломки контракта).
+- Changesets (`@themeon/naive`+`@themeon/core` P8.8; naive-деривация P8.9) ещё не зарелижены (репо
+  не в npm, P-D53) — P8.10 не заводила отдельный changeset (та же логика: репо не в npm).
 
 **Open risks:**
 
@@ -101,24 +97,27 @@ VueUse-эталон, воспроизведение), §4 (канон аугме
 - P8.9 остаточный риск §3.5 (findings): в dark лестница `base→hover→pressed` идёт вверх по L ⇒
   контраст белых чернил падает 75.6→69.0→62.0 — порог `text` (60) держится, `body` (75) нет.
   Неизбежно при Radix-направлении и белых чернилах, не баг реализации.
-- P8.9 Known Deviation (новое): для пути «чистая деривация» (без явного theme-hover, статусные
-  роли на дефолт-seed'е) реальная ΔL(hover,pressed) в light ≈0.0274 — ниже буквального 0.03 из
-  findings §3.4/старого текста плана (числа предшествуют коррекции P8.5 `STEP10_DELTA`). Путь
-  «явный hover → экстраполяция» (покрывает дефолт-тему `@themeon/css`, т.к. там `action.
-  primaryHover` задан явно) держит ≥0.03 в обеих темах. Не редеривация константы (P8.5 закрыта,
-  Scope Excluded) — честно задокументированный остаточный разрыв.
+- P8.9 Known Deviation: для пути «чистая деривация» (без явного theme-hover, статусные роли на
+  дефолт-seed'е) реальная ΔL(hover,pressed) в light ≈0.0274 — ниже буквального 0.03 из findings
+  §3.4/старого текста плана (числа предшествуют коррекции P8.5 `STEP10_DELTA`). Не редеривация
+  константы (P8.5 закрыта, Scope Excluded) — честно задокументированный остаточный разрыв.
+- P8.10: `$theme` в `ComponentCustomProperties` — глобальная аугментация; потребитель, импортирующий
+  `@themeon/vue`, но НЕ ставящий плагин, получит `$theme` типизированным (компилируется), но
+  `undefined` в рантайме (findings §4, «Протечка» — неустранимо структурно, тот же паттерн у
+  `$pinia`/`$router`, принято как остаточный риск).
 
 **Workarounds / Deferred / Open questions:**
 
 - **workarounds:** `spawnNuxtDev` выбирает порт сам и ждёт HTTP-поллингом вместо парсинга stdout
   (P8.1 Known Deviation) — специфика этой среды исполнения, пересмотреть при переносе в CI.
 - **deferred:** дубль таблицы пар в CLI `checks/contrast.ts` (→ P8.13); `dispose()` у
-  `UseThemeReturn` (P3.8); перевод русских JSDoc публичных типов на английский (репо-широкий долг);
-  структурный DTCG-эмит `shadow`/`gradient` (в P8 — `$extensions`-мост); `@themeon/vite`: двойной
+  `UseThemeReturn` (P3.8, повторно deferred в P8.10 Scope Excluded); перевод русских JSDoc
+  публичных типов на английский (репо-широкий долг); структурный DTCG-эмит `shadow`/`gradient`
+  (в P8 — `$extensions`-мост, P8.11 Scope Excluded, структура — P7); `@themeon/vite`: двойной
   инстанс core; `experimental.bundledDev` (Vite 8.1.x, открытый апстрим-баг); CJS-тем поддержка/
   документация (P8.4 review finding); e2e granular-vs-restart различение (P8.4 review finding);
   тонкий APCA-запас против `bg-subtle` (P8.7 review finding, см. Open risks); «жёлтая полоса»
-  APCA для warning-заливок (P8.8, findings §4.2 — не решается тихой подгонкой, Q владельцу);
-  стале ΔL-числа в `findings/P8-naive-color-canon.md` §3.4 (P8.9 — правка входит в P8.14).
+  APCA для warning-заливок (P8.8, findings §4.2 — Q владельцу); стале ΔL-числа в
+  `findings/P8-naive-color-canon.md` §3.4 (P8.9 — правка входит в P8.14).
 - **open_questions:** `open-questions.md` — Q3 (`@bg-dev/nuxt-naiveui`, нужен владелец до merge
   веток пилотов), Q4 (генерализация — частично поглощена P8). Q1/Q2/Q5 закрыты.
