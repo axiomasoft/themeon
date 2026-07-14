@@ -1,4 +1,4 @@
-# HANDOFF — 2026-07-14 — after P5.9 (доисполнение, ESCALATED)
+# HANDOFF — 2026-07-14 — after P5.9
 
 **Next:** **ESCALATION-REQUIRED: P5.9 — конфликт правил (живая матрица тем строка 5 vs P-D49)**.
 Требуется **plan-design** сессия, НЕ `plan-exec` — item P5.9 остаётся `🔴 Blocked` до ре-дизайна.
@@ -21,7 +21,7 @@
 2. `plans/2026.07.12-BASE/plan.md` §5 Decision Log — **P-D49** (полный текст решения + RAG-источник).
 3. `plans/2026.07.12-BASE/phases/P3.md` — item **P3.8** (где P-D49 принято) — контекст решения.
 
-**Done (эта сессия — доисполнение P5.9 поверх закрытой фазы P8):**
+**Done:** (эта сессия — доисполнение P5.9 поверх закрытой фазы P8)
 
 - ThemeOn-монорепо: `pnpm build` (11 пакетов, свежий `dist` с фиксами P3.7/P3.8) на `9fe80c0`.
   `npx yalc publish` `@themeon/vue` + `@themeon/nuxt`.
