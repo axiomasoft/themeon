@@ -5,10 +5,13 @@
  * (тестируемость, тот же паттерн, что `runBuild` P4.4); `checkCommand` — тонкая citty-обёртка,
  * печатающая сгруппированный отчёт и выставляющая exit-код.
  */
+import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { defineCommand } from 'citty'
 import { consola } from 'consola'
-import { resolveTheme } from '@themeon/core'
+import { applyThemePatch, resolveTheme } from '@themeon/core'
+import type { TokenTreeInput } from '@themeon/core'
+import { checkThemeContrast } from '@themeon/colors'
 import { DEFAULT_THEME_CONFIG_PATH } from '../constants'
 import { loadThemeConfig } from '../load-theme'
 import { scanSources } from '../checks/scan'
@@ -33,6 +36,14 @@ export interface CheckOptions {
   allowPx?: readonly number[]
   /** `--`-префиксы project-owned/third-party переменных, исключённые из coverage dead-ref (P4.5 code-review MED). */
   coverageIgnorePrefixes?: readonly string[]
+  /**
+   * Путь к JSON-файлу tenant-патча (P6.3, H3 И2) — переключает `runCheck` на fail-closed
+   * APCA-гейт публикации ВМЕСТО сканирования coverage/hardcode: base-тема + провалидированный
+   * патч (`applyThemePatch`, P6.1) резолвятся в эффективный `lookup`, гоняется
+   * `checkThemeContrast` (`@themeon/colors`). Любая ошибка на пути (нечитаемый/невалидный JSON,
+   * throw валидации значения, throw парсинга цвета, `pass===false`) — `error`-finding, `ok:false`.
+   */
+  tenant?: string
 }
 
 const DEFAULT_SRC_PATTERNS: readonly string[] = ['**/*.css', '**/*.vue']
@@ -63,11 +74,90 @@ function scanIgnorePatterns(opts: CheckOptions): string[] {
 }
 
 /**
+ * Fail-closed APCA-гейт публикации tenant-темы (P6.3, H3 И2): резолвит base c
+ * `refLayer:'inline'` (те же литеральные значения, что и обычный contrast-линтер, Rule про
+ * `resolvedInline` в `runCheck`), валидирует `opts.tenant`-патч через `applyThemePatch` (P6.1,
+ * ЕДИНСТВЕННЫЙ проход валидации — гейт берёт `.vars`, не ревалидирует), строит эффективный
+ * `lookup = {...base.vars, ...patch.vars}` и гоняет `checkThemeContrast` (`@themeon/colors`).
+ * ЛЮБОЙ throw на любом из трёх шагов (нечитаемый/невалидный JSON, невалидное значение патча,
+ * непарсибельный цвет в APCA) превращается в `error`-finding, НЕ в skip/warning (Implementation
+ * Rules item'а — запрещён try/catch, глотающий throw в «пропустить»); `pass===false` — тоже
+ * `error`-finding. Три случая суммарно дают fail-closed на ВСЕХ путях H3 И2.
+ */
+async function runTenantCheck(opts: CheckOptions): Promise<{ findings: Finding[]; ok: boolean }> {
+  const theme = await loadThemeConfig(resolve(opts.cwd, opts.config))
+  const base = resolveTheme(theme, { refLayer: 'inline' })
+
+  let patch: TokenTreeInput
+  try {
+    const raw = await readFile(resolve(opts.cwd, opts.tenant!), 'utf8')
+    patch = JSON.parse(raw) as TokenTreeInput
+  } catch (error) {
+    return {
+      findings: [
+        {
+          level: 'error',
+          rule: 'contrast',
+          message: `tenant patch unreadable or not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
+      ok: false,
+    }
+  }
+
+  let vars: Readonly<Record<string, string>>
+  try {
+    ;({ vars } = applyThemePatch(base, patch))
+  } catch (error) {
+    return {
+      findings: [
+        {
+          level: 'error',
+          rule: 'contrast',
+          message: `tenant patch validation failed: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
+      ok: false,
+    }
+  }
+
+  const lookup: Record<string, string> = { ...base.vars, ...vars }
+  try {
+    const { pass, reports } = checkThemeContrast(lookup)
+    const findings: Finding[] = reports
+      .filter((report) => !report.pass)
+      .map((report) => ({
+        level: 'error' as const,
+        rule: 'contrast' as const,
+        message: `APCA ${Math.abs(report.lc).toFixed(1)} < ${report.required} for ${report.pair.label}`,
+      }))
+    return { findings, ok: pass }
+  } catch (error) {
+    return {
+      findings: [
+        {
+          level: 'error',
+          rule: 'contrast',
+          message: `unparseable color pair in effective tenant theme: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
+      ok: false,
+    }
+  }
+}
+
+/**
  * Loads `opts.config`, resolves it through the core resolver, scans `opts.src` (default
  * `**\/*.{css,vue}`) and runs the three enabled linters. `ok` is `false` only when a linter
  * reported a `'error'`-level finding — warnings never flip exit status (Rule 5).
+ *
+ * `opts.tenant` set → delegates entirely to {@link runTenantCheck} (fail-closed APCA
+ * publication gate, P6.3): source scanning/coverage/hardcode linters do not apply to a tenant
+ * patch publication decision.
  */
 export async function runCheck(opts: CheckOptions): Promise<{ findings: Finding[]; ok: boolean }> {
+  if (opts.tenant !== undefined) return runTenantCheck(opts)
+
   const theme = await loadThemeConfig(resolve(opts.cwd, opts.config))
   // Дефолтный `refLayer:'referenced'` эмитит var-chain (`--color-text: var(--color-neutral-900)`)
   // — годится для coverage (имена переменных те же при любом refLayer), но НЕ для APCA: colorjs.io
@@ -167,6 +257,10 @@ export const checkCommand = defineCommand({
       type: 'string',
       description: 'Comma-separated --var prefixes to exclude from dead-ref coverage errors (project-owned/third-party custom properties)',
     },
+    tenant: {
+      type: 'string',
+      description: 'Path to a tenant patch JSON file — runs the fail-closed APCA publication gate instead of scanning sources',
+    },
   },
   async run({ args }) {
     try {
@@ -184,6 +278,7 @@ export const checkCommand = defineCommand({
         coverageIgnorePrefixes: args['coverage-ignore']
           ? args['coverage-ignore'].split(',').map((s) => s.trim())
           : undefined,
+        tenant: args.tenant,
       })
 
       reportFindings(findings)

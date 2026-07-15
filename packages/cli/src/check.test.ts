@@ -86,3 +86,111 @@ describe('runCheck', () => {
     expect(findings.filter((f) => f.level === 'error')).toHaveLength(0)
   })
 })
+
+/**
+ * `themeon check --tenant` (P6.3, H3 И2) — fail-closed APCA-гейт публикации tenant-темы e2e.
+ * Тёмная база (текст/фон из `packages/colors/src/contrast.test.ts` P8.6 Major #15 —
+ * `--color-bg-elevated` полупрозрачен, `--color-bg-page` — фактическая непрозрачная подложка)
+ * даёт возможность проверить и композицию `applyThemePatch`+`checkThemeContrast`, и
+ * fail-closed на всех трёх путях (валидация патча / парсинг цвета / `pass===false`) одним
+ * фикстурным набором.
+ */
+const TENANT_FIXTURE_CONFIG = `import { defineTheme } from '@themeon/core'
+
+export default defineTheme({
+  base: {
+    color: {
+      text: '#e3e5e9',
+      bg: {
+        page: '#131313',
+        elevated: 'rgba(37, 37, 37, 0.6)',
+      },
+    },
+    space: { gap: '8px' },
+  },
+})
+`
+
+describe('runCheck --tenant (fail-closed APCA-гейт публикации, P6.3, H3 И2)', () => {
+  let cwd: string
+
+  beforeAll(async () => {
+    ;({ runCheck } = await jiti.import<CheckModule>(join(import.meta.dirname, 'commands', 'check.ts'), {}))
+  })
+
+  beforeEach(() => {
+    cwd = mkdtempSync(join(import.meta.dirname, '.tmp-check-tenant-'))
+    writeFileSync(join(cwd, 'theme.config.ts'), TENANT_FIXTURE_CONFIG, 'utf8')
+  })
+
+  afterEach(() => {
+    rmSync(cwd, { recursive: true, force: true })
+  })
+
+  function writePatch(patch: unknown): void {
+    writeFileSync(join(cwd, 'patch.json'), JSON.stringify(patch), 'utf8')
+  }
+
+  it('(1) валидный высококонтрастный патч → ok:true, exit 0 (нет error-findings)', async () => {
+    writePatch({ color: { text: '#ffffff' } })
+
+    const { findings, ok } = await runCheck({ cwd, config: 'theme.config.ts', tenant: 'patch.json' })
+
+    expect(ok).toBe(true)
+    expect(findings.filter((f) => f.level === 'error')).toHaveLength(0)
+  })
+
+  it('(2) валидный низкоконтрастный патч (текст почти сливается с фоном) → ok:false, отчёт пары', async () => {
+    writePatch({ color: { text: '#151515' } })
+
+    const { findings, ok } = await runCheck({ cwd, config: 'theme.config.ts', tenant: 'patch.json' })
+
+    expect(ok).toBe(false)
+    expect(findings).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'contrast', message: expect.stringContaining('text/bg.page') }),
+    )
+  })
+
+  it('(3) невалидный патч (UNKNOWN_PATH) → ok:false, fail-closed на валидации, не на контрасте', async () => {
+    writePatch({ nope: 'x' })
+
+    const { findings, ok } = await runCheck({ cwd, config: 'theme.config.ts', tenant: 'patch.json' })
+
+    expect(ok).toBe(false)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({ level: 'error', rule: 'contrast' })
+    expect(findings[0]!.message).toContain('validation failed')
+    expect(findings[0]!.message).toContain('unknown path')
+  })
+
+  it('(4) тёмная тема + полупрозрачный `--color-bg-elevated` → корректный |Lc|, не false-pass/throw (сторож Major #15)', async () => {
+    // Патч не трогает цвета (тот же полупрозрачный `bg.elevated`, что и база) — сторожит, что
+    // `lookup` гейта сохраняет `--color-bg-page` как подложку для `flattenAlpha` (иначе throw
+    // `ALPHA_NEEDS_BASE`) и корректно композитит на фактическую тёмную подложку, а не на
+    // безусловный белый (Major #15) — оба привели бы к `ok:false`/throw вместо ожидаемого pass.
+    writePatch({ space: { gap: '12px' } })
+
+    const { findings, ok } = await runCheck({ cwd, config: 'theme.config.ts', tenant: 'patch.json' })
+
+    expect(ok).toBe(true)
+    expect(findings).toHaveLength(0)
+  })
+
+  it('(5) патч без цветов → ok:true (легальный pass — нечего проверять сверх базы)', async () => {
+    writePatch({ space: { gap: '16px' } })
+
+    const { findings, ok } = await runCheck({ cwd, config: 'theme.config.ts', tenant: 'patch.json' })
+
+    expect(ok).toBe(true)
+    expect(findings).toHaveLength(0)
+  })
+
+  it('нечитаемый/невалидный JSON патч-файла → ok:false, fail-closed, не throw наружу', async () => {
+    writeFileSync(join(cwd, 'patch.json'), '{ not valid json', 'utf8')
+
+    const { findings, ok } = await runCheck({ cwd, config: 'theme.config.ts', tenant: 'patch.json' })
+
+    expect(ok).toBe(false)
+    expect(findings[0]).toMatchObject({ level: 'error', rule: 'contrast' })
+  })
+})
