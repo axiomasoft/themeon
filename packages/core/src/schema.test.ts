@@ -114,6 +114,8 @@ describe('tenantThemeSchema — anti-drift: pattern↔validateTenantValue сог
     ['fontWeight', fontWeightPattern, '600'],
     ['duration', durationPattern, '200ms'],
     ['fontFamily', fontFamilyPattern, 'system-ui, sans-serif'],
+    // string-форма `number` (внешний JSON-текст, не JS number) — `anyOf[0]` string-ветка схемы.
+    ['number', numberPattern, '40.5'],
   ] as const)('%s легальное значение %s → accept и схемой, и validateTenantValue', (type, pattern, value) => {
     expect(pattern.test(value)).toBe(true)
     expect(ok(() => validateTenantValue(type, value))).toBe(true)
