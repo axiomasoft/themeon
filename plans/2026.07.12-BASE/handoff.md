@@ -1,108 +1,107 @@
-# HANDOFF — 2026-07-15 — after P5.11
+# HANDOFF — 2026-07-15 — after P5.10
 
-**Next:** **P5.10 (оба пилота)** — ПОСЛЕДНИЙ item фазы P5: снять `aliases: legacy-v0` в обоих
-пилотах (`themeon build` без `--aliases`), `themeon check --coverage` (ноль dead-ref), визуал
-light+dark, canon-parity (канон-значения не поехали), обязательный adversarial-review (opus/xhigh)
-на КАЖДОГО пилота, закрыть item и фазу P5.
+**Next:** Фаза P5 терминальна (11/11 items 🟠 Done with deviations) — формальное закрытие фазы
+(`Phase Handoff`, снятие устаревших маркеров, финальная сверка Status Board) ждёт
+`/task:plan-close 2026.07.12-BASE P5`. После этого — следующая фаза по остатку плана: **P6**
+(Laravel-канал, скелет, требует `/task:plan-design` — Definition of Detailed ещё не написан).
 
 | Параметр | Значение |
 |:--|:--|
 | Model | **sonnet** |
-| Thinking | **medium** (Routing `plan.md` §3: P5 (пилоты) — sonnet/medium, + ОБЯЗАТЕЛЬНЫЙ adversarial-review opus/xhigh + parity-гейт по CSS-переменным; ВРУЧНУЮ) |
-| Context | **continue (/clear) — ручной item** |
-| Суть | Оба пилота: снять `--aliases legacy-v0` из `gen:styles`, заменить оставшиеся `var(--<легаси>)`-ссылки на канон (карта — `legacy-v0.ts`), `themeon check --coverage` до нуля, canon-parity (флаттен-значения канон-имён без изменений vs Baseline-с-алиасами), визуал, adversarial-review на каждый пилот. ТЗ — `phases/P5.md` P5.10 целиком (включая `expectedVarDiff`). Гейт входа: P5.9 И P5.11 закрыты (оба закрыты). |
+| Thinking | **low** (Routing `plan.md` §3: дефолт `plan-close` — sonnet/low) |
+| Context | **NEW SESSION — шаг-не-item** (`plan-close` читает план с диска заново) |
+| Суть | Формально закрыть фазу P5: сверить Phase Status таблицу `phases/P5.md`, обновить/убрать устаревшую вводную часть `## Phase Handoff` (сейчас несёт исторический снимок состояния после P5.2 — заменить на актуальную сводку по всем 11 items), убедиться `plan.md` §4 Status Board и Update Log консистентны, прогнать `plan-lint.py`. |
 
 ```
-/task:plan-exec 2026.07.12-BASE P5.10
+/task:plan-close 2026.07.12-BASE P5
 ```
 
 **Cold-start reads (по порядку):**
 
-1. `plans/2026.07.12-BASE/phases/P5.md` — item **P5.10** целиком (Scope/Files/Inputs/Implementation
-   Rules/Code Guidance/Validation/`expectedVarDiff`).
-2. `plans/2026.07.12-BASE/phases/P5.md` — P5.9 Completion Notes (эталон прогона на vintera: yalc/
-   parity/матрица/review).
-3. `plans/2026.07.12-BASE/phases/P5.md` — P5.11 Completion Notes (эталон на dterema, эта сессия).
-4. `packages/core/src/aliases/legacy-v0.ts` — полная карта легаси→канон.
-5. Код: живые dterema (`~/projects/dterema/app`, ветка `themeon-migration/P5`, HEAD `c0bb850`) и
-   vintera (`~/projects/vintera/vintera`, ветка `themeon-migration/P5`, HEAD `64c629d`).
+1. `plans/2026.07.12-BASE/plan.md` — Meta, §4 Status Board (P5 строка).
+2. `plans/2026.07.12-BASE/phases/P5.md` — Phase Status таблица целиком + `## Phase Handoff` (устарел,
+   несёт снимок после P5.2 — требует переписи под факт «фаза терминальна, 11/11»).
+3. Completion Notes items **P5.9**, **P5.11**, **P5.10** (эта сессия) — для сводки в новый
+   `## Phase Handoff`.
 
-**Суть закрытого item'а (одним абзацем):** P5.11 (dterema) закрыта 🟠 Done with deviations —
-подтянул в ветку `themeon-migration/P5` yalc-копии `@themeon/{vue,nuxt}`, несущие фикс P3.7
-(`asThemeName`-классификатор: пустая/пробельная строка не считается именем темы, чинит
-Nuxt-runtimeConfig-коерс `default: ''` → правильно резолвится в `'system'`, а не в невалидное имя,
-убивавшее `prefers-color-scheme`-фолбэк). Item-коммит **`c0bb850`** — дифф строго dep-only
-(`.yalc/@themeon/{vue,nuxt}/**` + `yalc.lock`, 17 файлов), `app/**` и `nuxt.config.ts` не тронуты.
-Живая матрица тем (Playwright/Chromium, 6 строк, редакция P-D64/P-D65) — все зелёные по обеим
-колонкам, включая новую строку 6 (живое следование за ОС без reload). Parity/typecheck/test —
-зелёные; `yarn lint` красный (4 pre-existing `@typescript-eslint/no-explicit-any` в
-`app/types/api.d.ts`, внесены посторонним коммитом `6d7d274` ДО начала item'а, вне `Files`
-item'а — не чинится в рамках Scope) — единственная причина статуса 🟠 вместо 🟢. Обязательный
-adversarial-review (opus, read-only, по `c0bb850`) — независимо воспроизвёл все 8 пунктов предмета
-ревью, **0 Blocker / 0 Major / 0 Minor / 2 Informational**.
+**Суть закрытого item'а (одним абзацем):** P5.10 (оба пилота, последний item фазы P5) закрыт
+🟠 Done with deviations. Оба пилота (`themeon-migration/P5`) сняли `--aliases legacy-v0` из
+`gen:styles`, заменили ВСЕ оставшиеся `var(--<легаси>)`-ссылки на канон-имена (dterema — 4 Vue-файла
++ 6 sass-файлов; vintera — 25 `.vue`/`.sass`-файлов, включая vintera-специфичный `--text-muted`, не
+входивший в статичный `expectedVarDiff` плана, обнаруженный по факту снятого alias-блока). Оба
+пилота: `themeon check --coverage` (полный `--src` включая `.sass`) → 0 error(s) (с
+`--coverage-ignore` для локальных project-owned CSS-переменных — `--height`, `--header-offset`,
+`--badge-*`/`--btn-*` и т.п., не относящихся к ThemeOn); canon-parity — diff после снятия алиасов
+несёт ТОЛЬКО удаление alias-блоков, ни одной строки изменения канон-значений; typecheck/test зелёные
+на обоих; визуал (Playwright, light+dark) подтверждает отсутствие легаси-переменных в computed-стиле
+и совпадение канон-значений с Baseline. **dterema:** item-коммит `fe85b2c`; обязательный
+adversarial-review (opus) нашёл Blocker (первый прогон Validation не сканировал `app/styles/**/*.sass`
+— дефолтный `--src` инструмента), исправлен коммитом СВЕРХ топологии `f69e205` (не amend), повторный
+review — 0/0 Blocker/Major/Minor/Informational. **vintera:** item-коммит `fadd3c4` — несёт также
+легитимный dep-only yalc-refresh `@themeon/{core,css,colors,naive}` (стале-копия `@themeon/colors`
+не несла `checkThemeContrast`, добавленный в P8.6/P8.13, CLI падал `SyntaxError`; тот же класс, что
+чинил P5.11 для dterema); adversarial-review сразу 0 Blocker/0 Major/0 Minor, 1 Informational
+(pre-existing bug `Partners.vue:113 var(--size4xl)`, вне Scope, записан в Pending Work). **Фаза P5
+терминальна** — формальное закрытие (`/task:plan-close`) не выполнено этой сессией (не входит в
+Scope `plan-exec`).
 
-**Done:** (эта сессия — `/task:plan-exec 2026.07.12-BASE P5.11`)
+**Done:** (эта сессия — `/task:plan-exec 2026.07.12-BASE P5.10`)
 
-- **P5.11 закрыт 🟠 Done with deviations.** dterema (`themeon-migration/P5`, вход `HEAD` `821b561`):
-  ThemeOn-монорепо `packages/vue`/`packages/nuxt` dist уже нёс свежую сборку P3.7 — `npx yalc publish`
-  в обоих → dterema `npx yalc update @themeon/vue @themeon/nuxt` → фикс подтверждён в установленной
-  копии (`grep asThemeName`) ДО живых прогонов → `yarn install` (без resolutions-конфликтов,
-  `package.json`/`yarn.lock` без диффа) → `git add -f package.json yarn.lock .yalc yalc.lock` →
-  коммит **`c0bb850`**. Между вход-HEAD и item-коммитом на ветке легли 4 посторонних коммита
-  владельца (`1ab6aeb`, `ec7bb31`, `6d7d274`, `81f8573`) — не трогали ThemeOn-related пути, не
-  тронуты этой сессией.
-- Parity-baseline `baseline-dterema.json` был утерян между сессиями (scratchpad не пережил сессию) —
-  пересоздан методом P5.1 (снимок текущего `base-vars.css`, который этой сессией не менялся). Гейт
-  → **exit 0**.
-- Гейты: `yarn typecheck` → exit 0; `yarn test` → exit 0 (0 test files, штатно для dterema);
-  `yarn lint` → **exit 1**, 4 pre-existing ошибки вне Scope (Known Deviations).
-- Живая матрица тем (Playwright 1.58.2/Chromium, `nuxt dev` порт 3000, `rm -rf node_modules/.cache
-  .nuxt` до старта, `networkidle`+settle-методология) — **6/6 зелёные** по обеим колонкам. SSR-head:
-  анти-FOUC → `<link base-vars.css>` → app-CSS, один анти-FOUC-инициализатор (P-D40 подтверждён).
-- Обязательный adversarial-review (opus, read-only, `c0bb850`) — **0 Blocker/Major/Minor**, 2
-  Informational (0 test files в dterema; `.yalc`-пакеты `version:"0.0.0"`, штатно).
-- Bookkeeping: `phases/P5.md` (Status P5.11 🟠, Phase Status таблица, Completion Notes, Pending
-  Work, Known Deviations); `plan.md` (§4 Status Board P5 9/11→10/11, Meta Status/Last Updated,
+- **P5.10 закрыт 🟠 Done with deviations.** Детали — `phases/P5.md` P5.10 Completion Notes
+  (dterema/vintera — по отдельности, включая обе adversarial-review находки и их разрешение).
+- Bookkeeping: `phases/P5.md` (Status P5.10 🟠, Phase Status таблица 🟠, Completion Notes/Pending
+  Work/Known Deviations, `## Phase Handoff` — добавлена актуальная сводка терминальности фазы поверх
+  устаревшего снимка); `plan.md` (§0 Meta Status/Last Updated, §4 Status Board P5 → 11/11 🟠,
   §6 Update Log).
 
 **Remaining:**
 
-1. **P5.10** (СЛЕДУЮЩИЙ, ПОСЛЕДНИЙ item фазы P5) — оба пилота: снятие легаси-алиасов, coverage,
-   визуал, canon-parity, adversarial-review ×2. Гейт входа выполнен (P5.9 И P5.11 закрыты).
-2. **`/task:plan-close 2026.07.12-BASE P8`** — формальное перезакрытие фазы P8 (снятие маркера
-   УСТАРЕЛ в Phase Handoff), не блокирует P5.10 — можно сделать в любой момент до архивации плана.
-3. **P6 / P7** — без изменений, скелет/backlog.
+1. **`/task:plan-close 2026.07.12-BASE P5`** — формальное закрытие фазы (все 11 items терминальны).
+2. **`/task:plan-close 2026.07.12-BASE P8`** — то же для P8 (P8.15 закрыт 2026-07-15, снятие маркера
+   УСТАРЕЛ ещё не выполнено), можно в любом порядке относительно #1.
+3. **P6** — Laravel-канал, скелет, требует `/task:plan-design 2026.07.12-BASE P6` (Definition of
+   Detailed не написан).
+4. **P7** — backlog, лёгкий design уже есть (P-D47), items триггер-gated.
+5. Пост-P5 пакетная задача (вне плана-исполнения prod-репо): физическое удаление
+   `packages/core/src/aliases/legacy-v0.ts` из пакета ThemeOn — теперь безопасно, оба пилота больше
+   не запрашивают алиасы.
 
 **Sources of truth:**
 
 - План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT; Vault — зеркало).
-- Пакеты ThemeOn: `~/projects/packages/themeon/packages/*`, `HEAD` `f9d5279` (дерево не менялось
-  этой сессией — только `npx yalc publish` тех же исходников `packages/vue`/`packages/nuxt`).
-- dterema: `~/projects/dterema/app`, ветка `themeon-migration/P5`, **`HEAD` = `c0bb850`**. Working
-  tree чист. 4 посторонних коммита владельца между `821b561` и `c0bb850` — не трогать, не относятся
-  к ThemeOn.
-- vintera: `~/projects/vintera/vintera`, ветка `themeon-migration/P5`, `HEAD` `64c629d` (не тронут
-  этой сессией). Working tree несёт посторонний дифф (`.agents/skills/**` и т.п.) — не трогать.
+- Пакеты ThemeOn: `~/projects/packages/themeon/packages/*`, `HEAD` `a0bedef` на начало сессии
+  (дерево пакетов не менялось этой сессией — только `npx yalc publish` тех же исходников в store,
+  для обновления vintera's yalc-копий).
+- dterema: `~/projects/dterema/app`, ветка `themeon-migration/P5`, **`HEAD` = `f69e205`** (родитель
+  `fe85b2c`, родитель `c0bb850` — P5.11). Working tree чист. НЕ смержена, НЕ запушена.
+- vintera: `~/projects/vintera/vintera`, ветка `themeon-migration/P5`, **`HEAD` = `fadd3c4`**
+  (родитель `64c629d` — P5.9). Working tree несёт посторонний дифф вне ThemeOn (`.agents/skills/**`,
+  `.swissknifeman/config.json`, `skills-lock.json` — не трогать, не относится к плану). НЕ смержена,
+  НЕ запушена.
 
 **Open risks:**
 
-- **`app/types/api.d.ts` (dterema) несёт 4 `@typescript-eslint/no-explicit-any` ошибки** (коммит
-  `6d7d274`, вне ThemeOn-плана) — `yarn lint` красный на этой ветке до отдельного фикса владельцем;
-  P5.10 столкнётся с тем же красным `yarn lint`, если его Validation тоже требует exit 0 — учитывать
-  при закрытии.
-- **`baseline-dterema.json`/`baseline-vintera-*.json` живут в scratchpad, не в git** — каждая новая
-  сессия на пилотах теряет их и обязана пересоздавать методом P5.1 (снимок текущего файла без
-  `--against`, если файл не менялся сессией; иначе — снимок ДО правок).
+- **Ветки `themeon-migration/P5` обоих пилотов НЕ смержены в основную ветку прод-проектов** — merge
+  делает владелец вручную (вне Scope плана, P-D33). Перед мёржем — Q6 (чистка legacy `localStorage`),
+  Q3 (`@bg-dev/nuxt-naiveui`), P5.7/P5.8 визуал-сайнофф (см. предыдущие handoff'ы) — всё это
+  owner-decision, не блокирует закрытие P5.10/фазы P5.
+- **vintera `Partners.vue:113` `var(--size4xl)`** — pre-existing dead-ref (typo, без дефисов),
+  подтверждён adversarial-review, не легаси-алиас и не канон-имя, никогда не резолвился ни до, ни
+  после этого item'а. Мелкий фикс владельцу (вероятно `--text-4xl`), вне Scope P5.10.
+- **dterema `app/types/api.d.ts`** несёт 4 pre-existing `@typescript-eslint/no-explicit-any` ошибки
+  (коммит `6d7d274`, вне ThemeOn-плана, тот же дефект что в P5.11) — `yarn lint` красный на этой
+  ветке до отдельного фикса владельцем.
+- **vintera `nuxt dev` в headless-окружении требует `NUXT_TYPECHECK=0`** (уже задокументировано
+  комментарием в `nuxt.config.ts`: `vite-plugin-checker`/vue-tsc падает и роняет dev-сервер, если
+  `NODE_ENV !== "development"`, что имеет место в headless CLI-сессиях) — не баг ThemeOn, флаг
+  запуска сессии, полезно для будущих визуал-прогонов на vintera.
 - P8.15 pre-mortem (P-D67, наследуется): Tailwind 5 сменит набор дефолт-слоёв → statement устареет.
-- Стале Vite dep-cache — чистить `node_modules/.cache .nuxt` ДО `nuxt dev` на обоих пилотах (тот же
-  класс ложного негатива, что был в P5.9/P5.11); при живой матрице использовать `networkidle`+settle
-  (500–700мс), не `waitUntil:'load'` без задержки — иначе ложный негатив по строке 6 (гидратация не
-  успевает).
 
 **Workarounds / Deferred / Open questions:**
 
 - **Q6** — легаси-персист донора: чистить `localStorage['theme']` на мёрже? Владельцу, до merge
-  веток (P-D66). P5.10 не блокирует.
+  веток (P-D66). Не блокирует.
 - **Q3** — судьба `@bg-dev/nuxt-naiveui` (владельцу, до merge).
 - P5.7/P5.8 — собственные merge-time эскалации (визуал-сайнофф сдвига порогов + мёртвая полоса
-  `Catalog.vue` 993–1023px). Перед мёржем веток, не перед закрытием P5.10.
+  `Catalog.vue` 993–1023px). Перед мёржем веток, не блокирует закрытие фазы.
+- **vintera `Partners.vue:113` `var(--size4xl)`** — pre-existing typo, владельцу (см. Open risks).
