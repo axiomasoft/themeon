@@ -9,9 +9,11 @@ test('публичная поверхность заморожена (ранта
   const mod = await import('./index')
   expect(Object.keys(mod).sort()).toMatchInlineSnapshot(`
     [
+      "ALLOWED_TENANT_TYPES",
       "NAMESPACE_TABLE",
       "ThemeonError",
       "applyTheme",
+      "applyThemePatch",
       "clearTheme",
       "cssVar",
       "defineTheme",
@@ -25,6 +27,7 @@ test('публичная поверхность заморожена (ранта
       "parseColor",
       "resolveTheme",
       "serializeThemeCss",
+      "serializeThemePatch",
       "themeVars",
       "toDTCG",
     ]

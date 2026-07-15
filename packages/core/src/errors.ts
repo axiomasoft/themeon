@@ -9,6 +9,7 @@ export type ThemeonErrorCode =
   | 'UNSAFE_CSS_TOKEN' // значение, интерполируемое в CSS-селектор/at-rule/комментарий, содержит `{`, `}` или `*/` (CSS-инъекция)
   | 'BAD_COLOR' // адаптер (@themeon/naive) получил цвет, непарсибельный consumer'ом (var()/color-mix()/…)
   | 'DTCG_NAME_COLLISION' // два разных пути токенов экранируются в одно DTCG-имя (P8.11)
+  | 'UNSUPPORTED_TENANT_TYPE' // tenant-патч трогает тип вне ALLOWED_TENANT_TYPES (shadow/gradient/cubicBezier — запрещены v1, P6.1/P-D70)
 
 /** Единая ошибка пакета: код + сообщение (публичная поверхность — сообщение на английском). */
 export class ThemeonError extends Error {

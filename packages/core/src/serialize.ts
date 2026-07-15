@@ -57,7 +57,7 @@ function selectorBlock(indent: string, selector: string, lines: readonly string[
  * `{`/`}` a prematurely closed comment cannot form a new rule, and the default banner
  * legitimately ends with one.
  */
-function assertSafeCssToken(value: string, label: string): void {
+export function assertSafeCssToken(value: string, label: string): void {
   if (/[{}]/.test(value)) {
     throw new ThemeonError(
       'UNSAFE_CSS_TOKEN',

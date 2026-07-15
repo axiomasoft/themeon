@@ -119,8 +119,9 @@ function makeToken(group: string, path: string[], value: TokenLeafInput): Token 
 /** Кладёт лист в результирующее дерево по относительному пути, создавая подгруппы. */
 /** Ключи, чья bracket-запись (`node[key] = ...`) идёт через unset/наследуемый аксессор
  *  вместо создания own-property — `__proto__` подменяет прототип узла целиком (verified
- *  final-audit H2, 2026-07-12), `constructor`/`prototype` — тот же класс риска. */
-const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+ *  final-audit H2, 2026-07-12), `constructor`/`prototype` — тот же класс риска. Экспортируется
+ *  для reuse в `patch.ts` (P6.1, tenant-путь — тот же класс атаки на входе с внешним JSON). */
+export const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
 
 function assignByPath(root: Record<string, unknown>, path: string[], leaf: unknown): void {
   let node = root

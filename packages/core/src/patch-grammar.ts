@@ -1,0 +1,201 @@
+/**
+ * Единственный источник value-грамматики tenant-патча (P6.1, H3 И1). Потребляют и `patch.ts`
+ * (валидация + сериализация tenant CSS), и P6.2 (JSON Schema, anti-drift) — регэксп-паттерны
+ * экспортируются как СТРОКИ, чтобы схема P6.2 строила `pattern` из ТЕХ ЖЕ источников, а не
+ * дублировала грамматику отдельным списком (drift = дыра, не опечатка).
+ *
+ * Позитивная allowlist-грамматика (OWASP WSTG 4.11.5 / A05:2025 Injection, `R-16 §2`):
+ * значение ПРОХОДИТ, только если полностью матчит анкоренный (`^...$`) паттерн своего типа.
+ * Метасимволы, которыми CSS-инъекция выходит из значения свойства (терминация правила,
+ * комментарии, at-rules, HTML-контекст), отклоняются ОТДЕЛЬНО и РАНЬШЕ per-type-парсинга —
+ * defense-in-depth: даже если один анкоренный паттерн окажется неполон, метасимвол-рубеж
+ * ловит вектор первым. Скобки `(`/`)` НЕ входят в универсальный reject-набор: легитимны для
+ * color-функций (`rgb()`/`oklch()`/…) — для остальных 6 типов анкоренный паттерн их и так не
+ * матчит (все 7 типов проверены тест-векторами атак `patch.test.ts`, ни один вектор не
+ * зависит от скобок для пробива).
+ */
+
+import { ThemeonError } from './errors'
+import { formatColor, parseColor } from './dtcg/color'
+import type { TokenType } from './types'
+
+/** Composite text-значение патча (уже нормализовано — `lineHeight` всегда строка на выходе,
+ *  даже если тенант прислал число, RAW-число коэрсится в `validateTenantTextValue`). */
+export interface TextStyleTenantValue {
+  size: string
+  lineHeight?: string
+}
+
+/**
+ * Типы, допустимые в tenant-патче v1 (P-D70, дизайн-решение фазы). `shadow`/`gradient`/
+ * `cubicBezier` — свободно-форменные CSS-строки, высший риск инъекции — остаются
+ * operator-controlled; `applyThemePatch` бросает `UNSUPPORTED_TENANT_TYPE`, не молча
+ * пропускает (tenant не должен думать, что кастомизация применилась).
+ */
+export const ALLOWED_TENANT_TYPES: ReadonlySet<TokenType> = new Set([
+  'color',
+  'dimension',
+  'number',
+  'duration',
+  'fontFamily',
+  'fontWeight',
+  'text',
+])
+
+// ── Паттерны как строки (SSOT для P6.2 JSON Schema) ──
+export const DIMENSION_PATTERN = '^-?\\d{1,4}(\\.\\d{1,4})?(px|rem|em|%|vh|vw|vmin|vmax|ch|ex)$'
+export const NUMBER_PATTERN = '^-?\\d{1,4}(\\.\\d{1,4})?$'
+export const DURATION_PATTERN = '^\\d{1,5}(\\.\\d{1,4})?(ms|s)$'
+export const FONT_WEIGHT_PATTERN = '^([1-9]00|normal|bold|bolder|lighter)$'
+export const FONT_FAMILY_PATTERN = '^[A-Za-z][A-Za-z0-9 _-]{0,63}(, ?[A-Za-z][A-Za-z0-9 _-]{0,63}){0,7}$'
+export const TEXT_LINE_HEIGHT_PATTERN = '^\\d{1,2}(\\.\\d{1,3})?$'
+
+const DIMENSION_RE = new RegExp(DIMENSION_PATTERN)
+const NUMBER_RE = new RegExp(NUMBER_PATTERN)
+const DURATION_RE = new RegExp(DURATION_PATTERN)
+const FONT_WEIGHT_RE = new RegExp(FONT_WEIGHT_PATTERN)
+const FONT_FAMILY_RE = new RegExp(FONT_FAMILY_PATTERN)
+const TEXT_LINE_HEIGHT_RE = new RegExp(TEXT_LINE_HEIGHT_PATTERN)
+
+/**
+ * Метасимволы, ни одному легальному значению ни одного из `ALLOWED_TENANT_TYPES` не нужные:
+ * `{`/`}` — терминатор правила/блока; `;` — терминатор декларации; `:` — старт нового
+ * свойства/селекторный контекст; `@` — at-rules; `<`/`>` — выход в HTML-контекст (stored XSS,
+ * H3 И1); кавычки `"`/`'`/`` ` `` и `\` (включая CSS unicode-escape `\NN` — обратный слэш сам
+ * по себе уже reject); перевод строки/таб. `/*` (комментарий) и подстрока `url` (CSS Exfil,
+ * `@import`, R-16 §2) проверяются отдельными паттернами.
+ */
+const METACHAR_RE = /[{};:@<>"'`\\\n\r\t]/
+const COMMENT_RE = /\/\*/
+const URL_RE = /url/i
+
+/** Reject-рубеж ДО per-type-парсинга (defense-in-depth) — throw `UNSAFE_CSS_TOKEN`, fail-loud. */
+function rejectMetachars(value: string): void {
+  if (METACHAR_RE.test(value) || COMMENT_RE.test(value) || URL_RE.test(value)) {
+    throw new ThemeonError(
+      'UNSAFE_CSS_TOKEN',
+      `Tenant value contains a rejected CSS metacharacter, comment marker or "url" substring: ${JSON.stringify(value)}`,
+    )
+  }
+}
+
+function matchOrThrow(re: RegExp, value: string, type: TokenType): string {
+  if (!re.test(value)) {
+    throw new ThemeonError(
+      'BAD_VALUE',
+      `Tenant value for type "${type}" does not match the allowed grammar: ${JSON.stringify(value)}`,
+    )
+  }
+  return value
+}
+
+/**
+ * Цвет — positive-валидатор `parseColor` (zero-dep, 14 CSS-нотаций) ПОСЛЕ reject метасимволов
+ * (defense-in-depth — «parseColor вернул не-null» само по себе не значит «значение
+ * безопасно»: непризнанные функциональные нотации типа `expression(...)` уже не матчат ни
+ * один известный `parseColor`-паттерн и получают `null`, но полагаться на это как на
+ * единственный рубеж запрещено Code Guidance item'а). Значение нормализуется через
+ * `formatColor` — канонический вывод, не эхо авторской строки.
+ */
+function validateColorValue(value: string): string {
+  const parsed = parseColor(value)
+  if (parsed === null) {
+    throw new ThemeonError(
+      'BAD_VALUE',
+      `Tenant color value is not a recognized CSS color notation: ${JSON.stringify(value)}`,
+    )
+  }
+  return formatColor(parsed)
+}
+
+/**
+ * `text` — композит `{ size, lineHeight? }` (тот же формат, что `TextStyleValue`, types.ts).
+ * Голая строка НЕ принимается: `walkTree`/`isLeaf` (P1.2) уже требуют объект с обязательным
+ * строковым `size` для этого класса листа, тот же контракт соблюдается здесь.
+ */
+function validateTextStyleValue(rawValue: unknown): TextStyleTenantValue {
+  if (typeof rawValue !== 'object' || rawValue === null || Array.isArray(rawValue)) {
+    throw new ThemeonError(
+      'BAD_VALUE',
+      `Tenant value for type "text" must be an object { size, lineHeight? }, got ${JSON.stringify(rawValue)}`,
+    )
+  }
+  const obj = rawValue as Record<string, unknown>
+  const allowedKeys = new Set(['size', 'lineHeight'])
+  for (const key of Object.keys(obj)) {
+    if (!allowedKeys.has(key)) {
+      throw new ThemeonError(
+        'BAD_VALUE',
+        `Tenant value for type "text" has an unexpected key "${key}" (allowed: size, lineHeight)`,
+      )
+    }
+  }
+  if (typeof obj.size !== 'string') {
+    throw new ThemeonError('BAD_VALUE', 'Tenant value for type "text" must have a string "size"')
+  }
+  rejectMetachars(obj.size)
+  const size = matchOrThrow(DIMENSION_RE, obj.size, 'dimension')
+
+  if (obj.lineHeight === undefined) return { size }
+
+  const lineHeightRaw = typeof obj.lineHeight === 'number' ? String(obj.lineHeight) : obj.lineHeight
+  if (typeof lineHeightRaw !== 'string') {
+    throw new ThemeonError(
+      'BAD_VALUE',
+      `Tenant "text.lineHeight" must be a string or number, got ${typeof obj.lineHeight}`,
+    )
+  }
+  rejectMetachars(lineHeightRaw)
+  if (!TEXT_LINE_HEIGHT_RE.test(lineHeightRaw)) {
+    throw new ThemeonError(
+      'BAD_VALUE',
+      `Tenant "text.lineHeight" does not match the allowed grammar: ${JSON.stringify(lineHeightRaw)}`,
+    )
+  }
+  return { size, lineHeight: lineHeightRaw }
+}
+
+/**
+ * Валидирует один tenant-значение по грамматике `type` и возвращает нормализованную строку.
+ * `type === 'text'` сюда НЕ приходит — композит идёт через {@link validateTenantTextValue}
+ * (сигнатура возвращает объект, не строку — размер + опциональная line-height, две
+ * CSS-переменные на выходе, `patch.ts` их эмитит порознь).
+ *
+ * @throws {ThemeonError} `UNSAFE_CSS_TOKEN` на метасимвол/`url`/комментарий;
+ *   `BAD_VALUE` на значение вне грамматики типа;
+ *   `UNSUPPORTED_TENANT_TYPE` на тип вне {@link ALLOWED_TENANT_TYPES} (shadow/gradient/…).
+ */
+export function validateTenantValue(type: TokenType, rawValue: unknown): string {
+  const value = typeof rawValue === 'number' ? String(rawValue) : rawValue
+  if (typeof value !== 'string') {
+    throw new ThemeonError(
+      'BAD_VALUE',
+      `Tenant value for type "${type}" must be a string or number, got ${typeof rawValue}`,
+    )
+  }
+  rejectMetachars(value)
+  switch (type) {
+    case 'color':
+      return validateColorValue(value)
+    case 'dimension':
+      return matchOrThrow(DIMENSION_RE, value, type)
+    case 'number':
+      return matchOrThrow(NUMBER_RE, value, type)
+    case 'duration':
+      return matchOrThrow(DURATION_RE, value, type)
+    case 'fontWeight':
+      return matchOrThrow(FONT_WEIGHT_RE, value, type)
+    case 'fontFamily':
+      return matchOrThrow(FONT_FAMILY_RE, value, type)
+    default:
+      throw new ThemeonError(
+        'UNSUPPORTED_TENANT_TYPE',
+        `Tenant type "${type}" is not allowed in v1 patches (allowed: ${[...ALLOWED_TENANT_TYPES].join(', ')})`,
+      )
+  }
+}
+
+/** Композит-вариант {@link validateTenantValue} для `type === 'text'` (см. там же). */
+export function validateTenantTextValue(rawValue: unknown): TextStyleTenantValue {
+  return validateTextStyleValue(rawValue)
+}
