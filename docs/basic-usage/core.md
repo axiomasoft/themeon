@@ -13,7 +13,7 @@ runtime applier. Zero runtime deps.
 | `serializeThemeCss` | Build channel — static CSS (`@layer`, `:root`, `[data-theme]`) for `<head>`. |
 | `applyTheme` / `clearTheme` / `themeVars` | Runtime channel — inline variables for theme/tenant switching without a rebuild. |
 | `toDTCG` / `fromDTCG` | Bridge to/from the [DTCG](https://www.designtokens.org/) interchange format. |
-| `applyThemePatch` / `serializeThemePatch` | Multi-tenant runtime patch (see [Laravel recipe](https://github.com/axioma-studio/themeon/blob/main/docs/laravel.md)). |
+| `applyThemePatch` / `serializeThemePatch` | Multi-tenant runtime patch (see [Laravel recipe](https://github.com/axioma-studio/themeon/blob/main/docs/recipes/laravel-vite.md)). |
 
 ## Example
 
