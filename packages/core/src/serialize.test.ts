@@ -211,6 +211,20 @@ describe('serializeThemeCss — CSS-injection guard (code-review P1.5, MED)', ()
     expect(() => serializeThemeCss(r, { customMediaPrefix: 'bp}' })).toThrow(ThemeonError)
   })
 
+  test('легитимный child-combinator ">" в selector НЕ бросает (adversarial-verify P6.1 round 2, MED — regression к frozen build-каналу)', () => {
+    const r = resolveTheme(fullTheme())
+    expect(() => serializeThemeCss(r, { selector: '#app > .themed' })).not.toThrow()
+    expect(() => serializeThemeCss(r, { selector: ':root:has(> .dark)' })).not.toThrow()
+  })
+
+  test('selector/layer с ";"/"@" (statement-инъекция @import, adversarial-verify P6.1 round 2, HIGH) бросают UNSAFE_CSS_TOKEN', () => {
+    const r = resolveTheme(fullTheme())
+    expect(() => serializeThemeCss(r, { layer: 'tenant-x; @import "https://evil.example/x.css"; y' })).toThrow(
+      ThemeonError,
+    )
+    expect(() => serializeThemeCss(r, { selector: '@import "https://evil.example/x.css";*' })).toThrow(ThemeonError)
+  })
+
   test('дефолтный баннер (легитимно оканчивается на "*/") не ломается новой проверкой', () => {
     const r = resolveTheme(fullTheme())
     expect(() => serializeThemeCss(r)).not.toThrow()
