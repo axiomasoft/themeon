@@ -1,81 +1,67 @@
-# HANDOFF — 2026-07-15 — after P9
+# HANDOFF — 2026-07-15 — after P7
 
-**Next:** нет активного шага в протоколе — P9 закрыт и реконсилирован, P7 спит до триггера
-(план в целом остаётся 🟡 In progress, не весь терминален — см. P-D73)
-
-`/task:plan-audit 2026.07.12-BASE P9` уже выполнен (вердикт `ATTENTION`, реопен не потребовался,
-5 находок Minor/Nit — все исправлены реконсиляцией, см. `phases/P9.md` `## Audit P9` +
-`### Reconciled`). P9 — последняя контентная фаза плана; P7 остаётся живым **open-ended
-trigger-gated backlog** (0/6 ⬜, P-D73, намеренно НЕ закрывается ради архивации плана целиком —
-план формально НЕ терминален, но активного фронта работы сейчас нет). Следующее действие — вне
-протокола: владелец решает, когда триггерить конкретный `P7.m` через `/task:plan-design`.
+**Next:** /task:plan-close archive 2026.07.12-BASE (все фазы терминальны, план архивируется)
 
 | Параметр | Значение |
 |:--|:--|
-| Model | — |
-| Thinking | — — нет активного шага, спящий backlog (P-D73) |
+| Model | sonnet |
+| Thinking | low — механический перенос план→архив, docs-миграция root/ (пусто здесь) |
 | Context | NEW SESSION — шаг-не-item |
-| Суть | Триггер владельца по конкретному P7.m активирует детализацию; шаблон ниже — иллюстративный, не команда к немедленному запуску |
+| Суть | Все фазы плана терминальны (P7 закрыта релокацией в `ROADMAP.md`, `P-D79`) — перенести `plans/2026.07.12-BASE` → `plans/archive/`, обновить `plans/ACTIVE.md` и ссылки |
 
 ```
-/task:plan-design 2026.07.12-BASE P7.<m>
+/task:plan-close archive 2026.07.12-BASE
 ```
 
 **Done:**
 
-- `/task:plan-audit 2026.07.12-BASE P9` (opus/xhigh) — вердикт `ATTENTION`; 5 находок (числа IA
-  14→17, сбитая арифметика Known Deviations P9.4, неполное поле `Files` P9.4, неточная
-  формулировка «переписан», устаревший design-эры хвост Phase Handoff) — все Minor/Nit, продукт
-  фазы (18 HTML-страниц, `pnpm docs:build` зелёный, route-completeness 17/17, тег `docs-v0.1.0`)
-  подтверждён без находок.
-- `/task:plan-close 2026.07.12-BASE reconcile` (эта запись, sonnet/low) — все 5 находок исправлены
-  механически в `phases/P9.md` (см. `### Reconciled`), Update Log/`plan.md` Meta синхронизированы,
-  коммит `d2aa80e`. `plan-lint --baseline HEAD`: 16 ERROR / 80 WARN, новых от диффа: 0.
-
-Фаза P9 (Документация v0.1: VitePress-сайт) остаётся закрытой — 5/5 items терминальны:
-
-- P9.1 🟢 Done — VitePress-скелет (17-путевая IA, GH Pages CI, `docs/laravel.md` 3 ссылки →
-  GitHub-URL). Item-коммит `aef56ce`.
-- P9.2 🟢 Done — Introduction (4 страницы, quick-start code-block'ы дословно из README'ов).
-  Item-коммит `4df479c`.
-- P9.3 🟠 Done with deviations — Basic Usage (9 страниц). Item-коммит `35d1067`. Deviation:
-  `tailwind.md` тэглайн/пример используют актуальный `@theme reference` вместо устаревшей
-  корневой таблицы `README.md`.
-- P9.4 🟠 Done with deviations — 2 Best Practices + 2 Recipes, миграция `docs/laravel.md` →
-  `docs/recipes/laravel-vite.md`. Item-коммит `02984dc`. Deviation: ТЗ смешало
-  `ThemeonErrorCode`/`ColorsErrorCode`, страница процитировала фактический union.
-- P9.5 🟢 Done — лендинг (`docs/index.md` hero/feature grid/сравнение), route-completeness
-  17/17, `README.md` `Docs:`-ссылка, тег `docs-v0.1.0`. Item-коммит `6bfb837`.
+- `/task:plan-design 2026.07.12-BASE P7.m` (эта запись, opus/high) — по owner-решению (не
+  design конкретного триггернутого item'а: ни один из 6 не триггернут) фаза P7 **закрыта
+  релокацией**, а не спроектирована дальше:
+  - создан корневой `ROADMAP.md` (EN, OSS-конвенция) — все 6 идей P7 (registry пресетов,
+    Bootstrap/Vuetify/PrimeVue адаптеры, Vue-обёртки примитивов, composer-пакет Blade)
+    перенесены дословно вместе с триггерами; ссылка добавлена в `README.md` рядом с `Docs:`;
+  - `phases/P7.md`: все 6 items → `⛔ Skipped by decision` (Completion Notes каждого —
+    ссылка на релокацию, явно «НЕ абандон»), Phase Status/Phase Context/Phase Handoff
+    переписаны;
+  - `plan.md`: Decision Log `P-D79` (обоснование релокации), Status Board P7 → `⛔ Skipped by
+    decision`, Meta `Version`/`Status`/`Last Updated` — план целиком терминален, Update Log
+    строка.
+- `brain sync plans ThemeOn` — Brain-зеркало (`Vaults/Brain/05-Projects/03-Packages/ThemeOn/`)
+  синхронизировано перед архивацией (канон архивного режима: финальная версия должна
+  попасть в зеркало до переноса).
 
 **Remaining:**
 
-1. Нет активного фронта в протоколе — P7 спит до триггера (0/6 ⬜, P-D73).
-2. Известные open items вне scope P9 (не блокеры): корневой `README.md` таблица пакетов для
-   `tailwind` устарела (`@theme inline` vs `@theme reference`); GH Pages деплой (P9.1) —
-   асинхронный, вне scope любого item'а.
-3. §4 Status Board рассинхрон P1–P5 (16 pre-existing ERROR линтера) — кандидат на отдельную
-   плановую реконсиляцию, к P9 отношения не имеет.
-4. `PROMOTE-CANDIDATE` (Audit P9 finding 5, открыт владельцу протокола): `plan-close` при закрытии
-   фазы должен САМ затирать design-эры хвост Phase Handoff, не полагаться на следующую
-   реконсиляцию.
+1. `/task:plan-close archive 2026.07.12-BASE` — перенос `plans/2026.07.12-BASE` →
+   `plans/archive/2026.07.12-BASE`, миграция `root/` в docs проекта (если есть содержимое —
+   на момент этой записи не проверялось отдельно, `plan-close archive` режим 3 обязан
+   проверить), обновление `plans/ACTIVE.md` (сброс на `—`) и ссылки `README.md` `**Plan:**`
+   на архивный путь.
+2. `ROADMAP.md` — живой документ вне протокола плана; следующие правки по мере срабатывания
+   триггеров (каждый — отдельная фокусная design-сессия, не item текущего плана).
 
 **Sources of truth:**
 
-- План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT).
-- P9 закрытие + аудит + реконсиляция: `phases/P9.md` `## Phase Status` + `## Phase Handoff` +
-  `## Audit P9` + `### Reconciled`; item-коммиты
-  `aef56ce`/`4df479c`/`35d1067`/`02984dc`/`6bfb837`; тег `docs-v0.1.0` на `6bfb837`; реконсиляция —
-  коммит `d2aa80e`.
+- План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT), архивируется
+  следующим шагом.
+- Роадмап: `~/projects/packages/themeon/ROADMAP.md` (корень репозитория, живой, вне архива).
+- P7 релокация: `phases/P7.md` `## Phase Status` + `## Phase Handoff`; `plan.md` `P-D79`.
 
-**Git-факты:** items фазы P9 закоммичены пятью отдельными item-коммитами; закрытие фазы и
-реконсиляция — отдельные bookkeeping-коммиты, `plans/2026.07.12-BASE/**` только.
+**Git-факты:** релокация P7 — bookkeeping-коммит(ы) `plans/2026.07.12-BASE/**` +
+`ROADMAP.md` + `README.md` (роадмап — новый файл вне `plans/`, добавляется тем же
+коммитом, т.к. это и есть суть релокации, не побочный дифф).
 
 **Open risks:**
 
-- Корневой `README.md` таблица пакетов рассинхронизирована с `packages/tailwind/README.md` по
-  форме Tailwind-моста — см. P9.3 Known Deviations, не блокер.
-- Остаточные `plan-lint` ERROR/WARN вне P9 (P3.8-скелет, P4 Escalation-формат, P1–P5 Status Board
-  числа, Update Log >300 симв., 3 workflow-скрипта неканоничного имени) — pre-existing, без
-  изменений от P9/реконсиляции, отслеживаются планом в целом.
+- Остаточные `plan-lint` ERROR/WARN вне P7 (P3.8-скелет, P4 Escalation-формат, P1–P5 Status
+  Board числа, Update Log >300 симв., 3 workflow-скрипта неканоничного имени) —
+  pre-existing, переживут архивацию как атрибутированный остаток; `plan-close archive`
+  прогоняет `plan-lint` по новому пути `plans/archive/2026.07.12-BASE` с `--baseline HEAD`.
+- Корневой `README.md` таблица пакетов для `tailwind` устарела (`@theme inline` vs
+  `@theme reference`, P9.3 Known Deviations) — не блокер архивации, доживёт как открытый
+  пункт вне плана.
 
-**Workarounds / Deferred / Open questions:** без изменений, см. `open-questions.md` (Q3/Q6/Q4/P7).
+**Workarounds / Deferred / Open questions:** без изменений, см. `open-questions.md`
+(Q3/Q6/Q4) — Q4 (генерализация Q4/roles/aliases) остаётся отдельным Exploration-вопросом
+вне P7/ROADMAP.md, как и было решено ранее.

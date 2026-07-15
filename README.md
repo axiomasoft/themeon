@@ -13,6 +13,8 @@ Pilot migrations of real apps are in progress.
 
 **Docs:** https://axioma-studio.github.io/themeon/
 
+**Roadmap:** [`ROADMAP.md`](ROADMAP.md) — trigger-gated future ideas, not yet designed or built.
+
 ## Packages
 
 | Package | What it does |
