@@ -1,71 +1,96 @@
-# HANDOFF — 2026-07-15 — after P7
+# HANDOFF — 2026-07-15 — after P9
 
-**Next:** `/task:plan-design 2026.07.12-BASE P7.<m>` — ТОЛЬКО при срабатывании триггера
-конкретного item'а (см. Phase Handoff `phases/P7.md`: `<m>` = 1..6, чей триггер сработал).
-Немедленного действия НЕ требуется: P7 подтверждена как **живой спящий open-ended backlog**
-(P-D73), все 6 items ⬜ ждут реального потребителя; план на паузе, но НЕ архивируется. Прямой
-`/task:plan-exec` по P7.* запрещён (Routing-гейт §9: `Exec = plan-design`) — сначала ре-дизайн
-до полного DoD + свежий RAG на актуальные версии библиотек.
+**Next:** `/task:plan-exec 2026.07.12-BASE P9.1` — фаза P9 (документация v0.1) задизайнена
+полностью (5 items, полный DoD), первый item готов к исполнению без доп. контекста.
 
 | Параметр | Значение |
 |:--|:--|
-| Model | opus (design) / sonnet высокого effort допустим (§3 Routing P7 = sonnet/high) |
-| Thinking | high — trigger-gated ре-дизайн backlog-item'а до полного DoD |
-| Context | NEW SESSION — шаг-не-item |
-| Суть | Оживить item P7.`<m>`, чей триггер сработал: полный DoD (файловое дерево, TS-сигнатуры, эталонный код) + свежий RAG на актуальный формат/версию библиотеки (shadcn registry / Bootstrap / Vuetify / PrimeVue / Composer). |
+| Model | sonnet |
+| Thinking | medium — механическое исполнение по детерминированному ТЗ, дизайн-решений не требует |
+| Context | continue (/clear) — ручной item |
+| Суть | Поднять VitePress-скелет (`docs/.vitepress/config.ts` с полной IA на всю фазу, `docs/index.md`-заглушка, GH Pages CI) — фундамент, на котором P9.2–P9.5 только добавляют `.md`-файлы |
 
 ```
-/task:plan-design 2026.07.12-BASE P7.<m>
+/task:plan-exec 2026.07.12-BASE P9.1
 ```
 
 **Done:**
 
-- **P7 подтверждена как живой open-ended backlog** (`/task:plan-design 2026.07.12-BASE P7`,
-  P-D73, owner-решение). Repo-grounded сверка каждого из 6 items на HEAD показала: ни один не
-  «уже сделан» (адаптеры — только `naive`; CLI — `schema/init/build/check`, нет `add`; SFC-обёрток
-  примитивов нет; Composer/Blade-пакета нет) и ни один не «больше не вписывается» → по принципу
-  владельца ни один НЕ закрывается ⛔/🟢 ради архивации. Все 6 остаются ⬜.
-- §3 Routing exec-таблица: `P7.1–P7.6 → Exec = plan-design` (trigger-gated, прямой `plan-exec`
-  останавливается гейтом §9). Добавлены явные phase-level Scope Included/Excluded в `phases/P7.md`.
-- `plan.md` v0.6.0 → **v0.7.0**; Meta Status/Last Updated, §4 Status Board (P7 аннотирован),
-  §5 P-D73, §6 Update Log — синхронизированы. `phases/P7.md` Phase Handoff заполнен (интерим,
-  честно: «фаза НЕ закрыта»).
+- **Фаза P9 задизайнена** (`/task:plan-design 2026.07.12-BASE P9`, opus/high, 2026-07-15):
+  документационный VitePress-сайт v0.1 — index-лендинг, Introduction (why/install/quick-start/
+  changelog), Basic Usage (9 страниц по пакету), Best Practices (2 гайдлайна из реального канона
+  P8), Recipes (миграция `docs/laravel.md` + anti-FOUC), GH Pages CI. Референс-паттерн —
+  `~/projects/packages/azguard/docs/` (тот же движок/владелец), точечно улучшен (актуальные
+  версии GH Actions — RAG:✅ Perplexity 2026-07-15, `sitemap`/`lastUpdated`, явный
+  `ignoreDeadLinks: false`), не скопирован слепо.
+- 5 items (P9.1–P9.5), все 16 полей, строго последовательная зависимость (IA фиксируется в
+  P9.1, контент добавляется P9.2–P9.4, P9.5 — сквозная сборка+аудит+тег). **Инвариант фазы**:
+  ни один code-example не изобретён — источник (файл:строки существующего README/src) называется
+  в Completion Notes каждого item'а (доковый аналог P8-класса дефекта «зелёный тест на моке»).
+- 4 owner-решения зафиксированы: **P-D74** (полная фаза в мастер-плане, не лёгкий backlog как
+  P7), **P-D75** (EN-only на v0.1, i18n отложен), **P-D76** (GH Pages CI сразу, не отложен до
+  полировки контента), **P-D77** (версионирование сайта — независимые git-теги `docs-vX.Y.Z`,
+  НЕ связаны с версиями пакетов Changesets).
+- `plan.md` v0.7.0 → **v0.8.0**; Meta Status/Last Updated, §3 Routing (design-строка P9 +
+  execution-строка P9.1–P9.5, БЕЗ обязательного adversarial-review — не security/прод-класс),
+  §4 Status Board (P9 добавлена, 0/5 ⬜ Not started), §5 P-D74..P-D77, §6 Update Log —
+  синхронизированы. `phases/P9.md` создан целиком (Phase Context + 5 items + Phase Handoff).
+- **Отдельно в этой же сессии**: `## Audit P8` (`phases/P8.md`) дописан ранее (opus/xhigh,
+  вердикт `ATTENTION`, реопен не потребовался) + реконсиляция F1/F2 в поля items P8.3/P8.8/
+  P8.11/P8.15 (коммит `aae04ad`, `plan.md` Status/Update Log уже отражают это).
+- plan-lint: `16 ERROR / 79 WARN (на рабочем дереве, HEAD `f4ed29a`→готовится коммит) —
+  новых от `phases/P9.md`: 0 ERROR, 0 WARN` (все 16 ERROR — pre-existing вне P9, см. Open risks;
+  +1 WARN общий — длина одной из новых строк Update Log плана, тот же habitual-паттерн, что и
+  остальные ~78 записей >300 символов, не блокер).
 
 **Remaining:**
 
-1. **P7 — спящий backlog** (0/6 ⬜). Действий нет до срабатывания триггера item'а. Триггеры и
-   предусловия — `phases/P7.md` Phase Handoff. Пока хоть один item ⬜ — план 🟡, не архивируется.
-2. Pending Work из P8 (перенос, не блокеры): остаточные APCA-запасы части пар дефолт-темы;
+1. **P9 — 0/5 ⬜.** Исполнять строго последовательно P9.1 → P9.2 → P9.3 → P9.4 → P9.5 (каждый
+   зависит от структуры/файлов предыдущего). Routing: sonnet/medium, `Exec = plan-exec`, БЕЗ
+   обязательного adversarial-review (см. §3 Routing execution-таблицу — страховка встроена в
+   Validation каждого item'а, не в отдельный review-item).
+2. **P7 — спящий backlog** (0/6 ⬜, не изменилось). Действий нет до срабатывания триггера
+   конкретного item'а — см. `phases/P7.md` Phase Handoff. P9 и P7 не конфликтуют (независимые
+   ветки работы), P9 просто ближе к реальному триггеру прямо сейчас.
+3. Pending Work из P8 (перенос, не блокеры): остаточные APCA-запасы части пар дефолт-темы;
    двойной инстанс `@themeon/core` в графе `@themeon/vite`; `$theme`-типизация без рантайм-
    гарантии без плагина; DTCG-имена тем с `.`/`{`/`}` не экранируются; `dtcgValueToRaw` не
    warn'ит на нестандартном `$type`; `GENERATED_BANNER_RE` — локальная копия в CLI.
-3. Pending Work из P5/P6 аудитов (F1–F3 P5, F1/F2 P6) — точечный follow-up, не блокирует.
+4. Pending Work из P5/P6/P8 аудитов (F1–F3 P5, F1/F2 P6, F1–F3 P8) — точечный follow-up, не
+   блокирует.
 
 **Заблокировано:** нет.
 
 **Sources of truth:**
 
 - План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT).
-- P7: `phases/P7.md` (`## Phase Context` — подтверждение P-D73 + Scope; `## Phase Handoff` —
-  триггеры/предусловия; 6 items P7.1–P7.6 trigger-gated).
-- Решение: `plan.md` §5 **P-D73** (+ P-D47, который оно supplement'ит).
+- P9: `phases/P9.md` (`## Phase Context` — scope/инвариант; 5 items P9.1–P9.5 с полным DoD;
+  `## Phase Handoff` — порядок исполнения, известное про инкрементальный публичный деплой).
+- Референс вне плана (не редактируется): `~/projects/packages/azguard/docs/.vitepress/
+  config.ts` + `~/projects/packages/azguard/.github/workflows/docs.yml`.
+- Решения: `plan.md` §5 **P-D74..P-D77**.
 
 **Git-факты (коммиты этой сессии):**
 
 | Коммит | Суть |
 |:--|:--|
-| `ba3bce5` | docs(plan): P7 подтверждена как живой open-ended backlog (P-D73) |
+| `aae04ad` | docs(plan): реконсиляция P8 по Audit P8 (F1/F2 в поля items) |
+| — (не закоммичено) | Этот handoff + `phases/P9.md` + правки `plan.md` — коммитит следующий шаг (`plan-exec P9.1`, per-item bookkeeping-коммит унесёт и bootstrap фазы P9, как исторически делали P0.1/P1.1 первые item'ы своих фаз) |
 
-**Расхождения план↔факты:** нет — сведены этой сессией (repo-grounded сверка 6 items на HEAD).
+**Расхождения план↔факты:** нет — `phases/P9.md` создан этой сессией, ничего не исполнено
+(0/5 ⬜, статусы согласованы с Phase Status/Status Board).
 
 **Open risks:**
 
-- P7 — единственная нетерминальная фаза; план сознательно НЕ архивируется, пока backlog жив
-  (P-D73). Это не риск, а зафиксированное решение владельца — но означает, что `plan-close archive`
-  недоступен без явного пересмотра.
-- plan-lint остаточные ошибки вне этой фазы (pre-existing дрейф P1–P5 Status Board / P3.8/P4.*/
-  P5.7-8 полевых дефектов) — не блокируют, чинятся своими фазами; 0 новых от этой design-сессии.
+- plan-lint остаточные `16 ERROR` — ВСЕ pre-existing вне P9 (P3.8 пустые поля, P4/P5
+  Escalation-формат, Status Board P1–P5 инфляция счётчиков) — не блокируют, чинятся своими
+  фазами; 0 новых от P9-дизайна.
+- GH Pages CI (P9.1) деплоит на каждый push в `main`, трогающий `docs/**` — с P9.1 до P9.5 сайт
+  будет виден публично с неполной навигацией (sidebar 404 до появления контента). Осознанно
+  принято владельцем (P-D76) — не заводить как находку при аудите фазы.
 
 **Workarounds / Deferred / Open questions:** без изменений от предыдущего handoff (Q3/Q6 —
 Decision pending на мёрже веток `themeon-migration/P5`; Q4 — Exploration генерализации, частично
-поглощён P8; P7 items — trigger-gated, ждут реального потребителя, P-D73).
+поглощён P8; P7 items — trigger-gated, ждут реального потребителя, P-D73). P9 новых открытых
+вопросов не породила — все спорные места (i18n-тайминг, деплой-тайминг, версионирование)
+разрешены владельцем сразу и осели в P-D74..P-D77, `open-questions.md` не тронут.
