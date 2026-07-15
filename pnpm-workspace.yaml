@@ -34,6 +34,7 @@ catalog:
   publint: 0.3.21
   "@arethetypeswrong/cli": 0.18.4
   "@changesets/cli": 2.31.0
+  vitepress: 1.6.4
 minimumReleaseAgeExclude:
   - '@oxlint/binding-android-arm-eabi@1.73.0'
   - '@oxlint/binding-android-arm64@1.73.0'

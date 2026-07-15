@@ -13,7 +13,10 @@
     "test:int:slow": "pnpm build && pnpm --filter tests-integration exec vitest run --project int-e2e",
     "typecheck": "pnpm -r typecheck",
     "lint": "oxlint",
-    "check:pack": "pnpm -r --filter \"./packages/*\" exec publint && pnpm -r --filter \"./packages/*\" exec attw --pack --profile esm-only --entrypoints ."
+    "check:pack": "pnpm -r --filter \"./packages/*\" exec publint && pnpm -r --filter \"./packages/*\" exec attw --pack --profile esm-only --entrypoints .",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "typescript": "catalog:",
@@ -22,6 +25,7 @@
     "oxlint": "catalog:",
     "publint": "catalog:",
     "@arethetypeswrong/cli": "catalog:",
-    "@changesets/cli": "catalog:"
+    "@changesets/cli": "catalog:",
+    "vitepress": "catalog:"
   }
 }

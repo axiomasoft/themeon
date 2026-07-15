@@ -53,7 +53,7 @@ mocked resolver, `findings/P8-*.md` Blocker #1) — the test guards against exac
 
 Use this to compile **your own** `theme.config.ts` tokens instead of the shipped default. This
 is the `@themeon/vite` plugin's canonical channel — full setup, HMR, and the anti-FOUC script
-are documented in [`packages/vite/README.md`](../packages/vite/README.md#laravel--vite).
+are documented in [`packages/vite/README.md`](https://github.com/axioma-studio/themeon/blob/main/packages/vite/README.md#laravel--vite).
 
 ```js
 // vite.config.js
@@ -94,7 +94,7 @@ If your Laravel view has no JS/TS entry point at all (a CSS-only Blade layout), 
 plugin's `cssImport` option — it writes the compiled theme CSS to a real file on disk and
 aliases the virtual id to it, so the `@import 'virtual:themeon.css'` syntax works after all
 (because it now points at an ordinary file, not a virtual module). Full recipe:
-[`packages/vite/README.md` — "CSS-only projects"](../packages/vite/README.md#css-only-projects-no-js-entry).
+[`packages/vite/README.md` — "CSS-only projects"](https://github.com/axioma-studio/themeon/blob/main/packages/vite/README.md#css-only-projects-no-js-entry).
 
 ## Anti-FOUC in a Blade layout
 
@@ -129,5 +129,5 @@ runtime composable are two channels of one piece of state, not two independent c
 No Composer package, no Blade component, no PHP helper — `ThemeOn ships no framework glue for
 Laravel` (deferred to FlexCMS, see the plan's Not-a-goal list for this phase). The three
 channels above are the complete Laravel-facing surface: two Vite-plugin channels already
-documented in [`packages/vite/README.md`](../packages/vite/README.md), plus this page's channel
+documented in [`packages/vite/README.md`](https://github.com/axioma-studio/themeon/blob/main/packages/vite/README.md), plus this page's channel
 A for the common case of "just use the shipped default theme".
