@@ -64,6 +64,22 @@ describe('tenantThemeSchema — anti-drift: pattern↔validateTenantValue сог
     .properties
   const durationPattern = new RegExp(durationSchema.fast!.pattern)
 
+  const numberSchema = (
+    schema.properties.z as {
+      properties: Record<string, { anyOf: [{ pattern: string }, { minimum: number; maximum: number; multipleOf: number }] }>
+    }
+  ).properties
+  const numberPattern = new RegExp(numberSchema.modal!.anyOf[0].pattern)
+  const numberNumeric = numberSchema.modal!.anyOf[1]
+
+  /** Толерантная (эпсилон) проверка `multipleOf` — та же семантика, что у обычных JSON Schema
+   *  валидаторов (плавающая точка, `remainder` с допуском), не голый `%`. */
+  function numericBranchAccepts(branch: { minimum: number; maximum: number; multipleOf: number }, value: number): boolean {
+    if (value < branch.minimum || value > branch.maximum) return false
+    const quotient = value / branch.multipleOf
+    return Math.abs(quotient - Math.round(quotient)) < 1e-9
+  }
+
   test.each([
     ['color', colorPattern, 'red}</style><script>alert(1)</script>'],
     ['color', colorPattern, '#fff;}'],
@@ -136,6 +152,21 @@ describe('tenantThemeSchema — anti-drift: pattern↔validateTenantValue сог
     expect(ok(() => validateTenantValue('fontWeight', value))).toBe(expected)
   })
 
+  // fix(P6.2 verify-fix): precision-дыра, найденная adversarial-verify — number-ветка проверяла
+  // только min/max, не decimal-precision NUMBER_PATTERN'а (до 4 дробных знаков). High-precision
+  // числа (0.00001, 1.23456, 1e-7) проходили structural-check, но core (String-коэрсия →
+  // NUMBER_PATTERN) их бросал — server-accept/core-throw drift. multipleOf 0.0001 закрывает.
+  test.each([
+    ['number — целое 40 в диапазоне → accept обеими сторонами', 40, true],
+    ['number — 4 дробных знака 1.2345 (на границе паттерна) → accept обеими сторонами', 1.2345, true],
+    ['number — high-precision 0.00001 (5 дробных) → reject обеими сторонами', 0.00001, false],
+    ['number — high-precision 1.23456 (5 дробных) → reject обеими сторонами', 1.23456, false],
+    ['number — экспоненциальный вид 1e-7 → reject обеими сторонами', 1e-7, false],
+  ] as const)('%s', (_label, value, expected) => {
+    expect(numericBranchAccepts(numberNumeric, value)).toBe(expected)
+    expect(ok(() => validateTenantValue('number', value))).toBe(expected)
+  })
+
   test('pattern строится ИЗ patch-grammar.ts констант, не дублируется вторым литералом', () => {
     expect(dimensionSchema[4]!.pattern).toBe(
       '^-?\\d{1,4}(\\.\\d{1,4})?(px|rem|em|%|vh|vw|vmin|vmax|ch|ex)(?![\\s\\S])',
@@ -182,6 +213,23 @@ describe('tenantThemeSchema — text-композит (nested object, не type:
       .anyOf[1]
     expect(1.4 >= numericBranch.minimum && 1.4 <= numericBranch.maximum).toBe(true)
     expect(ok(() => validateTenantTextValue({ size: '1.75rem', lineHeight: 1.4 }))).toBe(true)
+  })
+
+  // fix(P6.2 verify-fix): та же precision-дыра, что у `number` (см. schema.test.ts выше) —
+  // TEXT_LINE_HEIGHT_PATTERN допускает ≤3 дробных знака, structural min/max этого не проверял.
+  test.each([
+    ['lineHeight — 3 дробных 1.333 (на границе паттерна) → accept обеими сторонами', 1.333, true],
+    ['lineHeight — high-precision 1.4567 (4 дробных) → reject обеими сторонами', 1.4567, false],
+  ] as const)('%s', (_label, value, expected) => {
+    const numericBranch = (
+      textNode.properties.lineHeight as unknown as {
+        anyOf: [unknown, { minimum: number; maximum: number; multipleOf: number }]
+      }
+    ).anyOf[1]
+    const quotient = value / numericBranch.multipleOf
+    const inRange = value >= numericBranch.minimum && value <= numericBranch.maximum && Math.abs(quotient - Math.round(quotient)) < 1e-9
+    expect(inRange).toBe(expected)
+    expect(ok(() => validateTenantTextValue({ size: '1.75rem', lineHeight: value }))).toBe(expected)
   })
 })
 

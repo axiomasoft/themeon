@@ -51,7 +51,10 @@ function numericLeafFor(type: 'number' | 'fontWeight'): JsonSchemaNode {
   switch (type) {
     case 'number':
       // NUMBER_PATTERN: `-?\d{1,4}(\.\d{1,4})?` — до 4 целых + 4 дробных знака.
-      return { type: 'number', minimum: -9999.9999, maximum: 9999.9999 }
+      // fix(P6.2 adversarial-verify MED): multipleOf 0.0001 закрывает precision-дыру —
+      // без него high-precision числа (0.00001, 1.23456, 1e-7) проходят min/max, но core
+      // бросает BAD_VALUE (String(n) не матчит 4-decimal-cap паттерна) — server-accept/core-throw drift.
+      return { type: 'number', minimum: -9999.9999, maximum: 9999.9999, multipleOf: 0.0001 }
     case 'fontWeight':
       // Числовая ветка FONT_WEIGHT_PATTERN — только `[1-9]00` (сотни 100..900); именованные
       // ключевые слова (normal/bold/bolder/lighter) числом не выразимы, остаются string-only.
@@ -102,7 +105,14 @@ function textLeafSchema(): JsonSchemaNode {
       // знаков (0..99.xxx). `validateTenantTextValue` (patch-grammar.ts:207) коэрсит JSON-число в
       // строку ДО этого паттерна — схема обязана принимать ту же numeric-форму (см. докблок
       // {@link numericLeafFor} — тот же класс drift, что fontWeight/number).
-      lineHeight: { anyOf: [{ type: 'string', pattern: TEXT_LINE_HEIGHT_PATTERN }, { type: 'number', minimum: 0, maximum: 99.999 }] },
+      // multipleOf 0.001 — precision-cap симметричный NUMBER-ветке fix (см. numericLeafFor):
+      // без него 1.4567 проходит min/max, но core бросает (>3 дробных знаков).
+      lineHeight: {
+        anyOf: [
+          { type: 'string', pattern: TEXT_LINE_HEIGHT_PATTERN },
+          { type: 'number', minimum: 0, maximum: 99.999, multipleOf: 0.001 },
+        ],
+      },
     },
   }
 }
