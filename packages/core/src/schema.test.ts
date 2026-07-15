@@ -49,9 +49,13 @@ describe('tenantThemeSchema — anti-drift: pattern↔validateTenantValue сог
   const dimensionSchema = (schema.properties.space as { properties: Record<string, { pattern: string }> }).properties
   const dimensionPattern = new RegExp(dimensionSchema[4]!.pattern)
 
-  const fontWeightSchema = (schema.properties.fontWeight as { properties: Record<string, { pattern: string }> })
-    .properties
-  const fontWeightPattern = new RegExp(fontWeightSchema.bold!.pattern)
+  const fontWeightSchema = (
+    schema.properties.fontWeight as {
+      properties: Record<string, { anyOf: [{ pattern: string }, { minimum: number; maximum: number; multipleOf: number }] }>
+    }
+  ).properties
+  const fontWeightPattern = new RegExp(fontWeightSchema.bold!.anyOf[0].pattern)
+  const fontWeightNumeric = fontWeightSchema.bold!.anyOf[1]
 
   const fontFamilySchema = (schema.properties.font as { properties: Record<string, { pattern: string }> }).properties
   const fontFamilyPattern = new RegExp(fontFamilySchema.sans!.pattern)
@@ -114,6 +118,24 @@ describe('tenantThemeSchema — anti-drift: pattern↔validateTenantValue сог
     expect(ok(() => validateTenantValue(type, value))).toBe(false)
   })
 
+  // fix(P6.2 adversarial-verify MED): предыдущая anti-drift-матрица кормила ЧИСЛО ядру, но
+  // СТРОКУ — схема-регэкспу (маскировка расхождения). Здесь один и тот же JSON number идёт в оба
+  // потребителя: числовая ветка `anyOf` схемы (structural min/max/multipleOf) И
+  // `validateTenantValue` (patch-grammar.ts:235, коэрсия `String(n)`).
+  test.each([
+    ['fontWeight — легальное число 600 → accept обеими сторонами', 600, true],
+    ['fontWeight — число 650 (не кратно 100) → reject обеими сторонами', 650, false],
+    ['fontWeight — число 50 (вне диапазона 100..900) → reject обеими сторонами', 50, false],
+  ] as const)('%s', (_label, value, expected) => {
+    const inRange =
+      typeof value === 'number' &&
+      value >= fontWeightNumeric.minimum &&
+      value <= fontWeightNumeric.maximum &&
+      value % fontWeightNumeric.multipleOf === 0
+    expect(inRange).toBe(expected)
+    expect(ok(() => validateTenantValue('fontWeight', value))).toBe(expected)
+  })
+
   test('pattern строится ИЗ patch-grammar.ts констант, не дублируется вторым литералом', () => {
     expect(dimensionSchema[4]!.pattern).toBe(
       '^-?\\d{1,4}(\\.\\d{1,4})?(px|rem|em|%|vh|vw|vmin|vmax|ch|ex)(?![\\s\\S])',
@@ -139,13 +161,27 @@ describe('tenantThemeSchema — text-композит (nested object, не type:
 
   test('size/lineHeight pattern согласованы с validateTenantTextValue', () => {
     const sizeRe = new RegExp(textNode.properties.size!.pattern)
-    const lineHeightRe = new RegExp(textNode.properties.lineHeight!.pattern)
+    const lineHeightRe = new RegExp(
+      (textNode.properties.lineHeight as unknown as { anyOf: [{ pattern: string }, unknown] }).anyOf[0].pattern,
+    )
     expect(sizeRe.test('1.75rem')).toBe(true)
     expect(lineHeightRe.test('1.4')).toBe(true)
     expect(sizeRe.test('1rem}</style>')).toBe(false)
 
-    expect(ok(() => validateTenantTextValue({ size: '1.75rem', lineHeight: 1.4 }))).toBe(true)
+    expect(ok(() => validateTenantTextValue({ size: '1.75rem', lineHeight: '1.4' }))).toBe(true)
     expect(ok(() => validateTenantTextValue({ size: '1rem}</style>' }))).toBe(false)
+  })
+
+  // fix(P6.2 adversarial-verify MED): раньше эта проверка кормила ядру ЧИСЛО (`lineHeight: 1.4`),
+  // а regex-проверке схемы — СТРОКУ ('1.4') — два разных инпута, drift не мог всплыть. Теперь
+  // одно и то же JSON-число идёт в структурную number-ветку схемы (min/max) И в
+  // `validateTenantTextValue` (которая коэрсит его в строку тем же путём, что делал бы внешний
+  // PHP-валидатор, применяя pattern только к string-инстансу).
+  test('lineHeight — натуральное JSON-число 1.4 принимается ОБЕИМИ сторонами (numeric tenant value, не маскировано типом инпута)', () => {
+    const numericBranch = (textNode.properties.lineHeight as unknown as { anyOf: [unknown, { minimum: number; maximum: number }] })
+      .anyOf[1]
+    expect(1.4 >= numericBranch.minimum && 1.4 <= numericBranch.maximum).toBe(true)
+    expect(ok(() => validateTenantTextValue({ size: '1.75rem', lineHeight: 1.4 }))).toBe(true)
   })
 })
 

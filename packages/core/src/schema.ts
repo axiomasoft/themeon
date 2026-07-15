@@ -36,6 +36,29 @@ export interface JsonSchema {
 /** Опции {@link tenantThemeSchema}. Пусто в v1 — зарезервировано для будущего `$id`/версионирования (Scope Excluded P6.2). */
 export interface TenantSchemaOptions {}
 
+/**
+ * fix(P6.2 adversarial-verify MED): `validateTenantValue`/`validateTenantTextValue`
+ * (patch-grammar.ts:235,207) coerce a raw JSON *number* to its `String(...)` form BEFORE running
+ * the type pattern — so `600` (fontWeight), `50` (number) и `1.4` (text.lineHeight) — все
+ * натуральные numeric-формы токена — ядро ПРИНИМАЕТ. Схема, объявляя лист `type:'string'`,
+ * структурно отклоняет JSON-число ДО того, как `pattern` вообще проверяется (JSON Schema:
+ * `type` — первый гейт) → server rejects / core accepts drift на легальном вводе. Только эти три
+ * листа затронуты: `color`/`dimension`/`duration`/`fontFamily` даже после `String(n)`-коэрсии не
+ * матчат свой паттерн (dimension/duration требуют unit-суффикс, color/fontFamily требуют буквы) —
+ * там числовой JS-инпут и ядро бросает, дрейфа нет, doubling не нужен.
+ */
+function numericLeafFor(type: 'number' | 'fontWeight'): JsonSchemaNode {
+  switch (type) {
+    case 'number':
+      // NUMBER_PATTERN: `-?\d{1,4}(\.\d{1,4})?` — до 4 целых + 4 дробных знака.
+      return { type: 'number', minimum: -9999.9999, maximum: 9999.9999 }
+    case 'fontWeight':
+      // Числовая ветка FONT_WEIGHT_PATTERN — только `[1-9]00` (сотни 100..900); именованные
+      // ключевые слова (normal/bold/bolder/lighter) числом не выразимы, остаются string-only.
+      return { type: 'number', minimum: 100, maximum: 900, multipleOf: 100 }
+  }
+}
+
 function leafPatternFor(type: Exclude<TokenType, 'text'>): string {
   switch (type) {
     case 'color':
@@ -57,6 +80,16 @@ function leafPatternFor(type: Exclude<TokenType, 'text'>): string {
   }
 }
 
+/** Строковый лист `{type:'string', pattern}` либо, для `number`/`fontWeight`, `anyOf` со
+ *  string-веткой (та же `pattern`) и number-веткой ({@link numericLeafFor}) — см. докблок там же. */
+function scalarLeafSchema(type: Exclude<TokenType, 'text'>): JsonSchemaNode {
+  const stringLeaf = { type: 'string', pattern: leafPatternFor(type) }
+  if (type === 'number' || type === 'fontWeight') {
+    return { anyOf: [stringLeaf, numericLeafFor(type)] }
+  }
+  return stringLeaf
+}
+
 /** `text` — композит `{ size, lineHeight? }`, тот же контракт, что `validateTenantTextValue` (P6.1). */
 function textLeafSchema(): JsonSchemaNode {
   return {
@@ -65,7 +98,11 @@ function textLeafSchema(): JsonSchemaNode {
     required: ['size'],
     properties: {
       size: { type: 'string', pattern: DIMENSION_PATTERN },
-      lineHeight: { type: 'string', pattern: TEXT_LINE_HEIGHT_PATTERN },
+      // TEXT_LINE_HEIGHT_PATTERN: `\d{1,2}(\.\d{1,3})?` — неотрицательное, 1-2 целых+до 3 дробных
+      // знаков (0..99.xxx). `validateTenantTextValue` (patch-grammar.ts:207) коэрсит JSON-число в
+      // строку ДО этого паттерна — схема обязана принимать ту же numeric-форму (см. докблок
+      // {@link numericLeafFor} — тот же класс drift, что fontWeight/number).
+      lineHeight: { anyOf: [{ type: 'string', pattern: TEXT_LINE_HEIGHT_PATTERN }, { type: 'number', minimum: 0, maximum: 99.999 }] },
     },
   }
 }
@@ -122,7 +159,7 @@ export function tenantThemeSchema(base: ResolvedTheme, _opts: TenantSchemaOption
     if (seenPaths.has(pathKey)) continue // 'text' резолвится в ДВЕ ResolvedToken (size+line-height) — одна схема-запись
     seenPaths.add(pathKey)
 
-    const leaf = token.type === 'text' ? textLeafSchema() : { type: 'string', pattern: leafPatternFor(token.type) }
+    const leaf = token.type === 'text' ? textLeafSchema() : scalarLeafSchema(token.type)
     insertLeaf(properties, token.path, leaf)
   }
 
