@@ -7,9 +7,10 @@ adapters (Naive UI first) + CSS foundation (`@layer`, reset, layout primitives).
 CLI are implemented and tested; the public API is pinned by snapshot tests but not yet stable.
 Pilot migrations of real apps are in progress.
 
-**Plan:** [`plans/2026.07.12-BASE/plan.md`](plans/2026.07.12-BASE/plan.md) (design rationale:
-`00_MASTER_PLAN.md`, research: `20_research/`) — synced with the Brain vault
-(`ThemeOn.md` control tower) via `brain sync plans ThemeOn`; edit on either side, sync propagates.
+**Plan:** [`plans/archive/2026.07.12-BASE/plan.md`](plans/archive/2026.07.12-BASE/plan.md) —
+archived 2026-07-15, all phases terminal (design rationale: `00_MASTER_PLAN.md`, research:
+`20_research/`, both in the same archived folder). No plan is currently active
+(`plans/ACTIVE.md`); ongoing trigger-gated ideas live in [`ROADMAP.md`](ROADMAP.md).
 
 **Docs:** https://axioma-studio.github.io/themeon/
 

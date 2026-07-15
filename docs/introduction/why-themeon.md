@@ -24,7 +24,7 @@ framework wiring for Vue/Nuxt/Vite, and UI-library adapters (Naive UI first).
 ## Where it fits
 
 Researched against the landscape of token/theming tools (RAG pass 2026-07-07,
-[`20_research/R-01..R-07`](https://github.com/axioma-studio/themeon/tree/main/plans/2026.07.12-BASE/20_research)):
+[`20_research/R-01..R-07`](https://github.com/axioma-studio/themeon/tree/main/plans/archive/2026.07.12-BASE/20_research)):
 no direct competitor covers the same ground — the closest, TokiForge, stops at token compilation
 and ships no adapters to component libraries. ThemeOn's niche is the full chain: tokens → CSS
 variables → the adapters that make a component library actually respect them.

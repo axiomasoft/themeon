@@ -1,67 +1,65 @@
 # HANDOFF — 2026-07-15 — after P7
 
-**Next:** /task:plan-close archive 2026.07.12-BASE (все фазы терминальны, план архивируется)
+**Next:** план закрыт
 
-| Параметр | Значение |
-|:--|:--|
-| Model | sonnet |
-| Thinking | low — механический перенос план→архив, docs-миграция root/ (пусто здесь) |
-| Context | NEW SESSION — шаг-не-item |
-| Суть | Все фазы плана терминальны (P7 закрыта релокацией в `ROADMAP.md`, `P-D79`) — перенести `plans/2026.07.12-BASE` → `plans/archive/`, обновить `plans/ACTIVE.md` и ссылки |
-
-```
-/task:plan-close archive 2026.07.12-BASE
-```
+Архивирован целиком. Следующий план выбирает владелец, вне протокола.
 
 **Done:**
 
-- `/task:plan-design 2026.07.12-BASE P7.m` (эта запись, opus/high) — по owner-решению (не
-  design конкретного триггернутого item'а: ни один из 6 не триггернут) фаза P7 **закрыта
-  релокацией**, а не спроектирована дальше:
-  - создан корневой `ROADMAP.md` (EN, OSS-конвенция) — все 6 идей P7 (registry пресетов,
-    Bootstrap/Vuetify/PrimeVue адаптеры, Vue-обёртки примитивов, composer-пакет Blade)
-    перенесены дословно вместе с триггерами; ссылка добавлена в `README.md` рядом с `Docs:`;
-  - `phases/P7.md`: все 6 items → `⛔ Skipped by decision` (Completion Notes каждого —
-    ссылка на релокацию, явно «НЕ абандон»), Phase Status/Phase Context/Phase Handoff
-    переписаны;
-  - `plan.md`: Decision Log `P-D79` (обоснование релокации), Status Board P7 → `⛔ Skipped by
-    decision`, Meta `Version`/`Status`/`Last Updated` — план целиком терминален, Update Log
-    строка.
-- `brain sync plans ThemeOn` — Brain-зеркало (`Vaults/Brain/05-Projects/03-Packages/ThemeOn/`)
-  синхронизировано перед архивацией (канон архивного режима: финальная версия должна
-  попасть в зеркало до переноса).
+- Precondition подтверждён: все фазы плана терминальны (P0 🟠, P1 🟠, P2 🟠, P3 🟠, P4 🟢,
+  P5 🟠, P6 🟠, P7 ⛔ — закрыта релокацией в `ROADMAP.md`, `P-D79`, P8 🟠, P9 🟠). `Home` в
+  Meta не задан → репо-дом по умолчанию, работа велась в `~/projects/packages/themeon`.
+- `brain sync plans ThemeOn` (дважды: после релокации P7 и повторно перед переносом) —
+  Brain-зеркало `Vaults/Brain/05-Projects/03-Packages/ThemeOn/` синхронизировано, финальная
+  версия плана попала в зеркало до переноса.
+- Перенос: `git mv plans/2026.07.12-BASE plans/archive/2026.07.12-BASE` — коммит `23fd67d`
+  (`chore(plan): archive 2026.07.12-BASE`), только plan-пути, без другого диффа.
+- Миграция `root/` → docs проекта: **пропущена** — каталога `root/` в плане не было
+  (структура использовала `00_MASTER_PLAN.md`/`10_decisions/`/`20_research/`/`90_audit/`/
+  `findings/`/`open-questions.md`/`workflows/` напрямую в корне плана, не через `root/`);
+  по канону архивного режима `root/` — единственный каталог с обязательной Diátaxis-
+  миграцией, ничего переносить не требовалось.
+- Реестры и ссылки:
+  - `plans/ACTIVE.md` → сброшен на канонические 4 строки, `**Active:** —`.
+  - `README.md` `**Plan:**` → указывает на `plans/archive/2026.07.12-BASE/plan.md`.
+  - `docs/introduction/why-themeon.md` и `docs/index.md` — GitHub-ссылки на
+    `20_research/` поправлены на `.../tree/main/plans/archive/2026.07.12-BASE/20_research`
+    (были единственными живыми доками вне архива, ссылавшимися на старый путь плана).
 
-**Remaining:**
+**Remaining:** ничего в протоколе — план терминален и архивирован. Вне протокола:
 
-1. `/task:plan-close archive 2026.07.12-BASE` — перенос `plans/2026.07.12-BASE` →
-   `plans/archive/2026.07.12-BASE`, миграция `root/` в docs проекта (если есть содержимое —
-   на момент этой записи не проверялось отдельно, `plan-close archive` режим 3 обязан
-   проверить), обновление `plans/ACTIVE.md` (сброс на `—`) и ссылки `README.md` `**Plan:**`
-   на архивный путь.
-2. `ROADMAP.md` — живой документ вне протокола плана; следующие правки по мере срабатывания
-   триггеров (каждый — отдельная фокусная design-сессия, не item текущего плана).
+1. `ROADMAP.md` (корень репозитория, живой, вне архива) — 6 идей бывшей фазы P7, каждая
+   ждёт своего триггера; следующая правка — отдельная фокусная design-сессия по конкретному
+   пункту, не item этого плана.
+2. Корневой `README.md` таблица пакетов для `tailwind` устарела (`@theme inline` vs
+   `@theme reference`, P9.3 Known Deviations) — открытый пункт вне плана, не блокер.
+
+**Чек-лист миграции:**
+
+| Материал | Судьба |
+|:--|:--|
+| `root/` (architecture/philosophy/data-model/гайды) | Н/П — каталога не было в плане |
+| `00_MASTER_PLAN.md`, `10_decisions/`, `20_research/`, `90_audit/`, `findings/`, `open-questions.md`, `workflows/` | остаются в архиве (`plans/archive/2026.07.12-BASE/`) — исследовательский/бухгалтерский материал плана, не Diátaxis-доки продукта |
+| P7 backlog (6 идей) | уже релоцирован ДО архивации — корневой `ROADMAP.md` (коммит `2599cfa`) |
+| Ссылки `plans/2026.07.12-BASE/*` в живых доках | поправлены на `plans/archive/2026.07.12-BASE/*` (README.md, docs/introduction/why-themeon.md, docs/index.md) |
+| `plans/ACTIVE.md` | сброшен на `—` |
 
 **Sources of truth:**
 
-- План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT), архивируется
-  следующим шагом.
-- Роадмап: `~/projects/packages/themeon/ROADMAP.md` (корень репозитория, живой, вне архива).
-- P7 релокация: `phases/P7.md` `## Phase Status` + `## Phase Handoff`; `plan.md` `P-D79`.
+- Архив плана: `~/projects/packages/themeon/plans/archive/2026.07.12-BASE/` (repo = SSOT).
+- Роадмап (живой, вне архива): `~/projects/packages/themeon/ROADMAP.md`.
+- Git-факты: коммит релокации P7 `2599cfa`, коммит переноса в архив `23fd67d`, коммит
+  миграции реестров/ссылок — следующий в истории после этого handoff'а.
 
-**Git-факты:** релокация P7 — bookkeeping-коммит(ы) `plans/2026.07.12-BASE/**` +
-`ROADMAP.md` + `README.md` (роадмап — новый файл вне `plans/`, добавляется тем же
-коммитом, т.к. это и есть суть релокации, не побочный дифф).
-
-**Open risks:**
+**Open risks (переживают архивацию, атрибутированы, не блокеры):**
 
 - Остаточные `plan-lint` ERROR/WARN вне P7 (P3.8-скелет, P4 Escalation-формат, P1–P5 Status
   Board числа, Update Log >300 симв., 3 workflow-скрипта неканоничного имени) —
-  pre-existing, переживут архивацию как атрибутированный остаток; `plan-close archive`
-  прогоняет `plan-lint` по новому пути `plans/archive/2026.07.12-BASE` с `--baseline HEAD`.
-- Корневой `README.md` таблица пакетов для `tailwind` устарела (`@theme inline` vs
-  `@theme reference`, P9.3 Known Deviations) — не блокер архивации, доживёт как открытый
-  пункт вне плана.
+  pre-existing на момент архивации, зафиксированы числом в отчёте `plan-close archive`.
+- Корневой `README.md` (в его прежнем виде) таблица пакетов для `tailwind` устарела
+  (`@theme inline` vs `@theme reference`, P9.3 Known Deviations) — не блокер, открытый пункт
+  вне плана.
 
-**Workarounds / Deferred / Open questions:** без изменений, см. `open-questions.md`
-(Q3/Q6/Q4) — Q4 (генерализация Q4/roles/aliases) остаётся отдельным Exploration-вопросом
-вне P7/ROADMAP.md, как и было решено ранее.
+**Workarounds / Deferred / Open questions:** без изменений, см. `open-questions.md` в этом
+архиве (Q3/Q6/Q4) — Q4 (генерализация по находкам пилотов, varMap/roles/aliases) остаётся
+отдельным Exploration-вопросом вне ROADMAP.md/этого плана, как и было решено ранее.

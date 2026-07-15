@@ -98,6 +98,6 @@ onMounted(() => init())
 | APCA contrast-gated color scale generator | ✅ | ❌ | ❌ |
 | CSS foundation (`@layer`, reset, layout primitives) | ✅ | ❌ | ⚠️ utilities only |
 
-No direct competitor covers the same ground (RAG pass 2026-07-07, [`R-01..R-07`](https://github.com/axioma-studio/themeon/tree/main/plans/2026.07.12-BASE/20_research)) — the closest, TokiForge, stops at token compilation and ships no adapters to component libraries.
+No direct competitor covers the same ground (RAG pass 2026-07-07, [`R-01..R-07`](https://github.com/axioma-studio/themeon/tree/main/plans/archive/2026.07.12-BASE/20_research)) — the closest, TokiForge, stops at token compilation and ships no adapters to component libraries.
 
 → [Why ThemeOn →](/introduction/why-themeon)
