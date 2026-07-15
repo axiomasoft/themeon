@@ -28,6 +28,7 @@ test('публичная поверхность заморожена (ранта
       "resolveTheme",
       "serializeThemeCss",
       "serializeThemePatch",
+      "tenantThemeSchema",
       "themeVars",
       "toDTCG",
     ]

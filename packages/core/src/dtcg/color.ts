@@ -272,6 +272,13 @@ const COLOR_FN_SPACES = new Set([
   'xyz',
 ])
 
+/**
+ * `COLOR_FN_SPACES`/`NAMED_COLORS` как read-only массивы имён — реюз P6.2 (`patch-grammar.ts`
+ * строит `COLOR_PATTERN` для JSON-схемы из ЭТИХ ЖЕ списков, не дублирует их вручную вторым
+ * литералом; drift названий = дыра рассинхрона схема↔парсер).
+ */
+export const COLOR_FN_SPACE_NAMES: readonly string[] = [...COLOR_FN_SPACES]
+
 function parseColorFunction(s: string): DTCGColorValue | null {
   const m = /^color\(([^)]+)\)$/i.exec(s)
   if (!m) return null
@@ -449,6 +456,9 @@ function parseNamed(s: string): DTCGColorValue | null {
   const hex = NAMED_COLORS[s.toLowerCase()]
   return hex ? parseHex(hex) : null
 }
+
+/** Имена `NAMED_COLORS` — реюз P6.2 (`patch-grammar.ts::COLOR_PATTERN`), см. `COLOR_FN_SPACE_NAMES`. */
+export const NAMED_COLOR_NAMES: readonly string[] = Object.keys(NAMED_COLORS)
 
 /**
  * Parses a CSS color string into the DTCG 2025.10 structural form. Covers all 14 spec

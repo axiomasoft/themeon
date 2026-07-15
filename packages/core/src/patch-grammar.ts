@@ -16,7 +16,7 @@
  */
 
 import { ThemeonError } from './errors'
-import { formatColor, parseColor } from './dtcg/color'
+import { COLOR_FN_SPACE_NAMES, NAMED_COLOR_NAMES, formatColor, parseColor } from './dtcg/color'
 import type { TokenType } from './types'
 
 /** Composite text-значение патча (уже нормализовано — `lineHeight` всегда строка на выходе,
@@ -49,6 +49,35 @@ export const DURATION_PATTERN = '^\\d{1,5}(\\.\\d{1,4})?(ms|s)$'
 export const FONT_WEIGHT_PATTERN = '^([1-9]00|normal|bold|bolder|lighter)$'
 export const FONT_FAMILY_PATTERN = '^[A-Za-z][A-Za-z0-9 _-]{0,63}(, ?[A-Za-z][A-Za-z0-9 _-]{0,63}){0,7}$'
 export const TEXT_LINE_HEIGHT_PATTERN = '^\\d{1,2}(\\.\\d{1,3})?$'
+
+/**
+ * `color` не имеет единого exported-регэкспа в `validateColorValue` (14 CSS-нотаций разбирает
+ * `parseColor` — программный dispatcher, не один анкоренный паттерн, `dtcg/color.ts`). P6.2
+ * (JSON Schema для внешнего PHP-валидатора) тем не менее обязана дать что-то для `pattern` —
+ * ниже СТРУКТУРНАЯ огибающая (envelope), построенная из ТЕХ ЖЕ списков имён, что и парсер
+ * (`COLOR_FN_SPACE_NAMES`, `NAMED_COLOR_NAMES` — реэкспорт `dtcg/color.ts`, ноль дублирования
+ * данных), а не из значений тест-векторов (анти-подгонка). Приоритет — БЕЗОПАСНОСТЬ, не
+ * числовая точность: ни одна альтернатива не допускает ни одного символа из `METACHAR_RE`
+ * (никаких `\s` — только литеральный пробел, иначе `\n`/`\t` просочились бы обратно), поэтому
+ * даже если паттерн где-то ЛОЯЛЬНЕЕ `parseColor` (примет синтаксически похожую, но
+ * нераспознанную комбинацию чисел) — это не дыра инъекции, это лишь более раннее расхождение с
+ * `parseColor`, которое `applyThemePatch` всё равно перепроверит и добьёт `BAD_VALUE`
+ * (defense-in-depth, R-16 §2 «сервер валидирует схемой, ядро ревалидирует»). Anti-drift тест
+ * (`schema.test.ts`) проверяет ТОЛЬКО согласие на матрице легальных значений + вектор атак
+ * P6.1 — не побитовую эквивалентность `parseColor` для произвольной строки (недостижимо без
+ * дублирования самого парсера, что запрещено zero-dep-правилом D12).
+ */
+const CSS_NUM = '-?\\d+(?:\\.\\d+)?%?'
+const SP = ' *'
+function colorFnPattern(name: string): string {
+  return `${name}\\(${SP}${CSS_NUM}(?:${SP}[, ]${SP}${CSS_NUM}){2}(?:${SP}[,/]${SP}${CSS_NUM})?${SP}\\)`
+}
+const COLOR_SPACE_FN_PATTERN = `color\\(${SP}(?:${COLOR_FN_SPACE_NAMES.join('|')})(?: +${CSS_NUM}){3}(?:${SP}/${SP}${CSS_NUM})?${SP}\\)`
+export const COLOR_PATTERN = `^(?:#[0-9a-fA-F]{3,8}|${colorFnPattern('rgba?')}|${colorFnPattern(
+  'hsla?',
+)}|${colorFnPattern('hwb')}|${colorFnPattern('lab')}|${colorFnPattern('lch')}|${colorFnPattern(
+  'oklab',
+)}|${colorFnPattern('oklch')}|${COLOR_SPACE_FN_PATTERN}|(?:${NAMED_COLOR_NAMES.join('|')}))$`
 
 const DIMENSION_RE = new RegExp(DIMENSION_PATTERN)
 const NUMBER_RE = new RegExp(NUMBER_PATTERN)

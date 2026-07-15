@@ -22,6 +22,9 @@ export { applyTheme, clearTheme, themeVars } from './apply'
 export { applyThemePatch, serializeThemePatch } from './patch'
 export { ALLOWED_TENANT_TYPES } from './patch-grammar'
 
+// ── Tenant patch JSON Schema (multi-tenant, P6.2) ──
+export { tenantThemeSchema } from './schema'
+
 // ── Naming engine ──
 export { cssVar, formatVarName, kebabSegment, NAMESPACE_TABLE } from './naming'
 
@@ -63,6 +66,7 @@ export type { SerializeCssOptions } from './serialize'
 export type { ElementLike } from './apply'
 export type { ApplyPatchOptions, ApplyPatchResult, SerializePatchOptions } from './patch'
 export type { TextStyleTenantValue } from './patch-grammar'
+export type { JsonSchema, JsonSchemaNode, TenantSchemaOptions } from './schema'
 export type { ToDTCGOptions, DTCGExport } from './dtcg/to-dtcg'
 export type { FromDTCGResult } from './dtcg/from-dtcg'
 export type { ThemeonErrorCode } from './errors'

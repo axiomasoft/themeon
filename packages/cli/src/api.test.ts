@@ -16,6 +16,7 @@ test('публичная поверхность заморожена (ранта
       "runBuild",
       "runCheck",
       "runInit",
+      "runSchema",
       "scanSources",
     ]
   `)

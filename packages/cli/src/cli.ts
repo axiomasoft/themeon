@@ -11,6 +11,7 @@ const main = defineCommand({
     init: () => import('./commands/init').then((m) => m.initCommand),
     build: () => import('./commands/build').then((m) => m.buildCommand),
     check: () => import('./commands/check').then((m) => m.checkCommand),
+    schema: () => import('./commands/schema').then((m) => m.schemaCommand),
   },
 })
 
