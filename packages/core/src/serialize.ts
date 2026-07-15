@@ -47,21 +47,30 @@ function selectorBlock(indent: string, selector: string, lines: readonly string[
 }
 
 /**
- * Latent CSS-injection guard (code-review P1.5, MED): `serializeThemeCss` interpolates
- * `themeName` and several options verbatim into selectors/at-rules/comments with no
- * escaping. Today these are developer literals, but the theme-name channel is on a path
- * to tenant-supplied identifiers (P6 `serializeThemePatch`) — reject `{`/`}` (the
- * block-open/close primitives an injected value needs to smuggle in a whole new CSS rule)
- * up front rather than escape silently, so a malicious identifier fails loudly instead of
- * producing subtly-wrong CSS. The comment-close sequence alone is not checked: without
- * `{`/`}` a prematurely closed comment cannot form a new rule, and the default banner
- * legitimately ends with one.
+ * Latent CSS-injection guard (code-review P1.5, MED; hardened P6.1 adversarial-verify, MED):
+ * `serializeThemeCss` interpolates `themeName` and several options verbatim into
+ * selectors/at-rules/comments with no escaping. Today these are developer literals, but the
+ * theme-name channel is on a path to tenant-supplied identifiers (P6 `serializeThemePatch`,
+ * which reuses this same guard for its `selector`/`layer` options) — reject `{`/`}` (the
+ * block-open/close primitives an injected value needs to smuggle in a whole new CSS rule) up
+ * front rather than escape silently, so a malicious identifier fails loudly instead of
+ * producing subtly-wrong CSS. The comment-close sequence alone is not checked: without `{`/`}`
+ * a prematurely closed comment cannot form a new rule, and the default banner legitimately
+ * ends with one.
+ *
+ * Also rejects `<`/`>` — the HTML break-out primitives (`</style>`, `<script>`) that let a
+ * tenant-derived selector/layer escape the enclosing `<style nonce>` element even without
+ * `{`/`}` (H3 stored-XSS class; mirrors the `<`/`>` reject in `patch-grammar.ts`'s
+ * `METACHAR_RE`, the value-path guard for the same injection surface). Quotes are
+ * deliberately NOT rejected here — unlike token *values*, a selector legitimately needs them
+ * for attribute selectors (the documented per-tenant `[data-tenant="…"]` pattern); without
+ * `{}`/`<>` a stray quote cannot open a new rule or escape the style element.
  */
 export function assertSafeCssToken(value: string, label: string): void {
-  if (/[{}]/.test(value)) {
+  if (/[{}<>]/.test(value)) {
     throw new ThemeonError(
       'UNSAFE_CSS_TOKEN',
-      `${label} must not contain "{" or "}" (CSS-injection guard): ${JSON.stringify(value)}`,
+      `${label} must not contain "{", "}", "<" or ">" (CSS-injection guard): ${JSON.stringify(value)}`,
     )
   }
 }

