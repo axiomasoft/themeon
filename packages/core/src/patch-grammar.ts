@@ -42,13 +42,23 @@ export const ALLOWED_TENANT_TYPES: ReadonlySet<TokenType> = new Set([
   'text',
 ])
 
+/**
+ * Строгий конец строки для ОБОИХ потребителей паттерна (P6.2 anti-drift, R-16 §2 failure-path-1):
+ * ECMA-262 `$` без `/m` уже строг, но PCRE `$` (внешний PHP/Flex*-валидатор — целевой consumer
+ * схемы, см. докблок файла) по умолчанию матчит и ПЕРЕД финальным `\n` — `pattern` тогда
+ * пропускает `"1rem\n"`, а `applyThemePatch`/`rejectMetachars` его бросает (`\n` ∈ METACHAR_RE) →
+ * schema-accept/core-throw drift. `(?![\s\S])` — negative lookahead «нет ни одного символа
+ * дальше» — ведёт себя одинаково в обоих движках (не завязан на `$`/`D`-модификатор).
+ */
+const END = '(?![\\s\\S])'
+
 // ── Паттерны как строки (SSOT для P6.2 JSON Schema) ──
-export const DIMENSION_PATTERN = '^-?\\d{1,4}(\\.\\d{1,4})?(px|rem|em|%|vh|vw|vmin|vmax|ch|ex)$'
-export const NUMBER_PATTERN = '^-?\\d{1,4}(\\.\\d{1,4})?$'
-export const DURATION_PATTERN = '^\\d{1,5}(\\.\\d{1,4})?(ms|s)$'
-export const FONT_WEIGHT_PATTERN = '^([1-9]00|normal|bold|bolder|lighter)$'
-export const FONT_FAMILY_PATTERN = '^[A-Za-z][A-Za-z0-9 _-]{0,63}(, ?[A-Za-z][A-Za-z0-9 _-]{0,63}){0,7}$'
-export const TEXT_LINE_HEIGHT_PATTERN = '^\\d{1,2}(\\.\\d{1,3})?$'
+export const DIMENSION_PATTERN = `^-?\\d{1,4}(\\.\\d{1,4})?(px|rem|em|%|vh|vw|vmin|vmax|ch|ex)${END}`
+export const NUMBER_PATTERN = `^-?\\d{1,4}(\\.\\d{1,4})?${END}`
+export const DURATION_PATTERN = `^\\d{1,5}(\\.\\d{1,4})?(ms|s)${END}`
+export const FONT_WEIGHT_PATTERN = `^([1-9]00|normal|bold|bolder|lighter)${END}`
+export const FONT_FAMILY_PATTERN = `^[A-Za-z][A-Za-z0-9 _-]{0,63}(, ?[A-Za-z][A-Za-z0-9 _-]{0,63}){0,7}${END}`
+export const TEXT_LINE_HEIGHT_PATTERN = `^\\d{1,2}(\\.\\d{1,3})?${END}`
 
 /**
  * `color` не имеет единого exported-регэкспа в `validateColorValue` (14 CSS-нотаций разбирает
@@ -66,18 +76,34 @@ export const TEXT_LINE_HEIGHT_PATTERN = '^\\d{1,2}(\\.\\d{1,3})?$'
  * (`schema.test.ts`) проверяет ТОЛЬКО согласие на матрице легальных значений + вектор атак
  * P6.1 — не побитовую эквивалентность `parseColor` для произвольной строки (недостижимо без
  * дублирования самого парсера, что запрещено zero-dep-правилом D12).
+ *
+ * Регистр и пробелы по краям — сознательно СИММЕТРИЧНЫ `parseColor`: он матчит функции/именованные
+ * цвета case-insensitive (`/i` на каждом `parse*` в `dtcg/color.ts`) и обрезает вход `.trim()`
+ * ДО диспатча. Литералы ниже пропускаются через {@link ci} (посимвольный `[xX]`-класс — сам
+ * паттерн строкой, `pattern`-поле JSON Schema не несёт regex-флагов, поэтому нечувствительность
+ * к регистру обязана быть закодирована в теле паттерна, не во флаге), а вся альтернатива обёрнута
+ * опциональными краевыми пробелами (`SP`, только литеральный пробел — `\n`/`\t` и так уже в
+ * `METACHAR_RE`, до per-type-парсинга сюда не доходят ни при каком вводе). Без этого JSON Schema
+ * (внешний PHP-контракт) отклоняла бы легальные `'RED'`/`'OKLCH(...)'`/`' red'`, которые
+ * `validateTenantValue('color', …)` принимает — обратный drift (schema reject / core accept).
  */
 const CSS_NUM = '-?\\d+(?:\\.\\d+)?%?'
 const SP = ' *'
-function colorFnPattern(name: string): string {
-  return `${name}\\(${SP}${CSS_NUM}(?:${SP}[, ]${SP}${CSS_NUM}){2}(?:${SP}[,/]${SP}${CSS_NUM})?${SP}\\)`
+/** Посимвольный case-insensitive char-class для буквенного литерала (regex-метасимволы вроде `?` не трогает). */
+function ci(literal: string): string {
+  return literal.replace(/[a-zA-Z]/g, (ch) => `[${ch.toLowerCase()}${ch.toUpperCase()}]`)
 }
-const COLOR_SPACE_FN_PATTERN = `color\\(${SP}(?:${COLOR_FN_SPACE_NAMES.join('|')})(?: +${CSS_NUM}){3}(?:${SP}/${SP}${CSS_NUM})?${SP}\\)`
-export const COLOR_PATTERN = `^(?:#[0-9a-fA-F]{3,8}|${colorFnPattern('rgba?')}|${colorFnPattern(
+function colorFnPattern(name: string): string {
+  const n = ci(name)
+  return `${n}\\(${SP}${CSS_NUM}(?:${SP}[, ]${SP}${CSS_NUM}){2}(?:${SP}[,/]${SP}${CSS_NUM})?${SP}\\)`
+}
+const COLOR_SPACE_FN_PATTERN = `${ci('color')}\\(${SP}(?:${COLOR_FN_SPACE_NAMES.map(ci).join('|')})(?: +${CSS_NUM}){3}(?:${SP}/${SP}${CSS_NUM})?${SP}\\)`
+const HEX_PATTERN = '#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})'
+export const COLOR_PATTERN = `^${SP}(?:${HEX_PATTERN}|${colorFnPattern('rgba?')}|${colorFnPattern(
   'hsla?',
 )}|${colorFnPattern('hwb')}|${colorFnPattern('lab')}|${colorFnPattern('lch')}|${colorFnPattern(
   'oklab',
-)}|${colorFnPattern('oklch')}|${COLOR_SPACE_FN_PATTERN}|(?:${NAMED_COLOR_NAMES.join('|')}))$`
+)}|${colorFnPattern('oklch')}|${COLOR_SPACE_FN_PATTERN}|(?:${NAMED_COLOR_NAMES.map(ci).join('|')}))${SP}${END}`
 
 const DIMENSION_RE = new RegExp(DIMENSION_PATTERN)
 const NUMBER_RE = new RegExp(NUMBER_PATTERN)
@@ -91,19 +117,30 @@ const TEXT_LINE_HEIGHT_RE = new RegExp(TEXT_LINE_HEIGHT_PATTERN)
  * `{`/`}` — терминатор правила/блока; `;` — терминатор декларации; `:` — старт нового
  * свойства/селекторный контекст; `@` — at-rules; `<`/`>` — выход в HTML-контекст (stored XSS,
  * H3 И1); кавычки `"`/`'`/`` ` `` и `\` (включая CSS unicode-escape `\NN` — обратный слэш сам
- * по себе уже reject); перевод строки/таб. `/*` (комментарий) и подстрока `url` (CSS Exfil,
- * `@import`, R-16 §2) проверяются отдельными паттернами.
+ * по себе уже reject); перевод строки/таб. `/*` (комментарий) и вызов функции `url(...)`
+ * (CSS Exfil, `@import`, R-16 §2) проверяются отдельными паттернами.
+ *
+ * `URL_RE` матчит `url` ТОЛЬКО как начало вызова функции (`url` + опциональные пробелы + `(` —
+ * ровно то, во что CSS-токенайзер разворачивает эксфильтрацию/`@import`), не произвольную
+ * подстроку: голое `/url/i` ловило `url` внутри легального именованного цвета `burlywood`
+ * (`NAMED_COLOR_NAMES`, `dtcg/color.ts`) — `COLOR_PATTERN` его принимает (в списке имён),
+ * `rejectMetachars` бросал `UNSAFE_CSS_TOKEN` ДО того, как `validateColorValue` вообще
+ * запускался — schema-accept/core-throw drift на легальном вводе, не инъекции. Сужение до
+ * `url\s*\(` не открывает вектор: сам вызов `url(` по-прежнему ловится при любом количестве
+ * пробелов перед скобкой, а `(`/`)` не входят в позитивную грамматику ни одного НЕ-color типа
+ * (см. докблок файла), color же валидируется `parseColor`, который не распознаёт `url(...)`
+ * как цвет и бросит `BAD_VALUE` отдельно.
  */
 const METACHAR_RE = /[{};:@<>"'`\\\n\r\t]/
 const COMMENT_RE = /\/\*/
-const URL_RE = /url/i
+const URL_RE = /url\s*\(/i
 
 /** Reject-рубеж ДО per-type-парсинга (defense-in-depth) — throw `UNSAFE_CSS_TOKEN`, fail-loud. */
 function rejectMetachars(value: string): void {
   if (METACHAR_RE.test(value) || COMMENT_RE.test(value) || URL_RE.test(value)) {
     throw new ThemeonError(
       'UNSAFE_CSS_TOKEN',
-      `Tenant value contains a rejected CSS metacharacter, comment marker or "url" substring: ${JSON.stringify(value)}`,
+      `Tenant value contains a rejected CSS metacharacter, comment marker or "url(" call: ${JSON.stringify(value)}`,
     )
   }
 }

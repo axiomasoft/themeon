@@ -80,6 +80,15 @@ describe('tenantThemeSchema — anti-drift: pattern↔validateTenantValue сог
   test.each([
     ['color', colorPattern, '#1A73E8'],
     ['color', colorPattern, 'oklch(0.6 0.15 250)'],
+    // Regression P6.2-fix: named color literal с подстрокой "url" — не должна путаться с
+    // вызовом функции `url(...)` (rejectMetachars URL_RE сужен до `url\s*\(`).
+    ['color', colorPattern, 'burlywood'],
+    // Regression: case-insensitive и trim-парность со `parseColor` (`.trim()` + `/i` на каждом
+    // `parse*`, dtcg/color.ts) — раньше схема отклоняла то, что ядро принимает (обратный drift).
+    ['color', colorPattern, 'RED'],
+    ['color', colorPattern, 'OKLCH(0.6 0.15 250)'],
+    ['color', colorPattern, ' red'],
+    ['color', colorPattern, 'red '],
     ['dimension', dimensionPattern, '8px'],
     ['dimension', dimensionPattern, '1.5rem'],
     ['fontWeight', fontWeightPattern, '600'],
@@ -90,8 +99,25 @@ describe('tenantThemeSchema — anti-drift: pattern↔validateTenantValue сог
     expect(ok(() => validateTenantValue(type, value))).toBe(true)
   })
 
+  test.each([
+    // Regression: COLOR_PATTERN раньше допускал 5/7-значный hex (`{3,8}`), `parseHex` — только
+    // 3/4/6/8 (dtcg/color.ts) → schema-accept/core-throw drift, вне матрицы атак.
+    ['color', colorPattern, '#fffff'],
+    ['color', colorPattern, '#fffffff'],
+    // Regression R-16 §2 failure-path-1: PCRE `$` (внешний PHP-consumer схемы) матчит и перед
+    // финальным `\n`, ECMA-262 `$` — нет; тест здесь эмулирует PCRE-семантику через сам паттерн,
+    // а не через `new RegExp` (иначе он снова ничего не поймает, см. R-16 finding) —
+    // `pattern`-строка обязана явным образом отвергать хвостовой `\n` (END, не голый `$`).
+    ['dimension', dimensionPattern, '1rem\n'],
+  ] as const)('%s нелегальное значение %s → reject и схемой, и validateTenantValue', (type, pattern, value) => {
+    expect(pattern.test(value)).toBe(false)
+    expect(ok(() => validateTenantValue(type, value))).toBe(false)
+  })
+
   test('pattern строится ИЗ patch-grammar.ts констант, не дублируется вторым литералом', () => {
-    expect(dimensionSchema[4]!.pattern).toBe('^-?\\d{1,4}(\\.\\d{1,4})?(px|rem|em|%|vh|vw|vmin|vmax|ch|ex)$')
+    expect(dimensionSchema[4]!.pattern).toBe(
+      '^-?\\d{1,4}(\\.\\d{1,4})?(px|rem|em|%|vh|vw|vmin|vmax|ch|ex)(?![\\s\\S])',
+    )
   })
 })
 
