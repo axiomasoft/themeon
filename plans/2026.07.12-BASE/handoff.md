@@ -1,59 +1,63 @@
-# HANDOFF — 2026-07-15 — after P6
+# HANDOFF — 2026-07-15 — after P8
 
-**Next:** Фазы P5 и P6 закрыты и проаудированы (оба вердикта `ATTENTION`, реопен не
-потребовался — все находки Minor/бухгалтерия плана, ушли в Pending Work). Эта сессия
-закоммитила недокоммиченные тексты `## Audit P5`/`## Audit P6`, оставшиеся от прошлой
-сессии, и починила устаревшую строку `## 0. Meta` `Status` в `plan.md`. Единственная
-незакрытая фаза сейчас — **P8** (реопенена под P8.15, которая уже закрыта, но формальное
-перезакрытие фазы P8 — bookkeeping — не выполнено).
+**Next:** Фаза P8 закрыта (15/15 items терминальны — 12🟢+3🟠), Phase Handoff перезаписан
+целиком, маркер «УСТАРЕЛ» снят. Пилоты P5.9/P5.11/P5.10 разблокированы (были заблокированы
+решением владельца до закрытия ВСЕЙ фазы P8) — уже фактически реализованы в P5, формально
+разблокированы этим закрытием. Единственная нетерминальная фаза плана — **P7** (Backlog,
+0/6 ⬜, skeleton, trigger-gated по решению P-D47).
 
 | Параметр | Значение |
 |:--|:--|
-| Model | sonnet |
-| Thinking | low — механическая сверка/закрытие фазы по git-фактам |
-| Context | continue (/clear) — ручной item |
-| Суть | Закрыть фазу P8 bookkeeping'ом: сверить 15/15 items терминальны, снять маркер «УСТАРЕЛ» с Phase Handoff (реопен P8.15), обновить Status Board/Update Log, plan-lint, один коммит. |
+| Model | opus |
+| Thinking | high — детализация backlog-фазы, trigger-gated решения по item'ам |
+| Context | NEW SESSION — шаг-не-item |
+| Суть | `/task:plan-design 2026.07.12-BASE P7` — довести Backlog (registry пресетов, Bootstrap/Vuetify/PrimeVue адаптеры, Vue-обёртки примитивов, composer-пакет Blade) до полного DoD, либо подтвердить trigger-gated skeleton остаётся как есть (P-D47) и план считать закрытым по остатку. |
 
 ```
-/task:plan-close 2026.07.12-BASE P8
+/task:plan-design 2026.07.12-BASE P7
 ```
 
 **Done:**
 
-- P5 — 11/11 items терминальны (🟠 Done with deviations), фаза закрыта коммитом `02c8105`.
-  Аудит P5 (`## Audit P5` в `phases/P5.md`) — вердикт `ATTENTION`, продукт фазы цел, реопен
-  не потребовался; находки F1–F3 (Escalation-поле не enum, `Files` неполон на 4 items,
-  RAG-маркеры §7 недобиты) — Pending Work.
-- P6 — 5/5 items терминальны (4× 🟢 + P6.5 🟠), фаза закрыта коммитом `2f65c57`. Аудит P6
-  (`## Audit P6` в `phases/P6.md`) — вердикт `ATTENTION`, H3 перепроверен живыми прогонами
-  (287+50+3 теста зелёные); F1/F2 Major (workflow-скрипт вопреки P-D69 без записи в
-  D-лог; §7-контракт `serializeThemePatch` не содержит `base` в замороженной сигнатуре) —
-  Pending Work, реопен не потребовался.
-- Эта сессия: закоммичены оба текста аудита + починена стала строка `## 0. Meta` `Status`
-  в `plan.md` (утверждала «P5 предстоит закрыть» после того, как P5 и P6 уже были закрыты).
+- P8 — 15/15 items терминальны (12🟢 + 3🟠: P8.1/P8.13/P8.14), фаза реопенена 2026-07-15
+  P-D67 под P8.15 (layer-order-преамбула `themeon build --tailwind-layers`, коммит `de86c7b`,
+  закрывает пробел P8.7 для статик-канала пилота) и закрыта этим `plan-close`. Все 5 Blocker +
+  18 Major + 5 Minor находок аудита 2026-07-14 плюс 5 дефектов дизайн-разведки (P-D52) плюс
+  пробел P8.7 (P-D67) устранены и доказаны реальной трубой (vite/Tailwind/naive-ui/nuxt dev/
+  Chromium), не моком границы.
+- Phase Handoff `phases/P8.md` перезаписан целиком: маркер «УСТАРЕЛ» снят, агрегат Known
+  Deviations собран механически по 15 items, порядок item'ов и инварианты фазы актуализированы
+  под 15/15.
+- Status Board `plan.md` §4: строка P8 → `12/15 | 🟠 Done with deviations`, текст ссылается на
+  коммит `de86c7b` и завершённый `plan-close`.
+- `plan-lint --baseline HEAD`: 16 ERROR / 78 WARN на дереве, **0 новых от этого закрытия**
+  (все остаточные — pre-existing дрейф P1–P5/P3.8, не в скоупе P8).
 
 **Remaining:**
 
-1. `/task:plan-close 2026.07.12-BASE P8` (см. launch-block выше) — bookkeeping закрытия
-   фазы P8 (P8.15 уже 🟢, все 15 items терминальны, но Phase Handoff несёт маркер
-   «УСТАРЕЛ» от реопена — снять целиком по протоколу).
-2. После P8 — фаза P7 (Backlog, 0/6 ⬜, skeleton) следующая по остатку плана.
-3. Pending Work из аудитов P5/P6 (F1–F3 P5, F1/F2 P6) — точечный follow-up, не блокирует.
+1. `/task:plan-design 2026.07.12-BASE P7` (launch-block выше) — единственная нетерминальная
+   фаза плана. Решить: полный DoD или подтвердить trigger-gated skeleton (P-D47) как финальное
+   состояние фазы.
+2. Pending Work из P8 (перенос, не блокеры): остаточные APCA-запасы части пар дефолт-темы;
+   двойной инстанс `@themeon/core` в графе `@themeon/vite`; `$theme`-типизация без рантайм-
+   гарантии без плагина; DTCG-имена тем с `.`/`{`/`}` не экранируются; `dtcgValueToRaw` не
+   warn'ит на нестандартном `$type`; `GENERATED_BANNER_RE` — локальная копия в CLI.
+3. Pending Work из P5/P6 аудитов (F1–F3 P5, F1/F2 P6) — точечный follow-up, не блокирует.
 
 **Заблокировано:** нет.
 
 **Sources of truth:**
 
 - План: `~/projects/packages/themeon/plans/2026.07.12-BASE/` (repo = SSOT).
-- P5: `phases/P5.md` (`## Phase Handoff` + `## Audit P5`).
-- P6: `phases/P6.md` (`## Phase Handoff` + `## Audit P6`).
-- P8: `phases/P8.md` (реопенена P-D67 под P8.15, маркер «УСТАРЕЛ» на Phase Handoff).
+- P8: `phases/P8.md` (`## Phase Handoff`, снят маркер «УСТАРЕЛ»; 15 items P8.1–P8.15).
+- P5/P6: `phases/P5.md`/`phases/P6.md` (`## Phase Handoff` + `## Audit P5`/`## Audit P6`).
 
 **Git-факты (коммиты этой сессии):**
 
 | Коммит | Суть |
 |:--|:--|
-| (этот коммит) | docs(plan): закоммичены Audit P5/P6 + фикс устаревшей строки Status (2026.07.12-BASE) |
+| (этот коммит) | docs(plan): фаза P8 закрыта (2026.07.12-BASE) |
+| `de86c7b` | P8.15 закрыт (layer-order-преамбула, предыдущая сессия) |
 | `02c8105` | Фаза P5 закрыта |
 | `2f65c57` | Фаза P6 закрыта |
 
@@ -61,12 +65,13 @@
 
 **Open risks:**
 
-- `/task:plan-close 2026.07.12-BASE P8` остаётся в очереди (bookkeeping закрытия фазы P8).
-- plan-lint остаточные ошибки вне этой сессии (16 ERROR на дереве, 0 новых от закрытия) —
+- plan-lint остаточные ошибки вне этой фазы (16 ERROR на дереве, 0 новых от закрытия P8) —
   сосредоточены в P1/P2/P3/P4/P5 Status Board рассинхронах и P3.8/P4.*/P5.7-8 полевых
   дефектах; не блокируют, чинятся своими фазами.
+- P7 — единственная нетерминальная фаза плана; без её закрытия (в любой форме) план не
+  архивируется целиком.
 
 **Workarounds / Deferred / Open questions:** без изменений от предыдущего handoff (P6.5 —
 стадия 2 интеграция в Flex*/CoreX не в scope, самодостаточный демо-стенд, P-D71; P6.4 —
 Composer/Blade-пакет отложен до FlexCMS; tenant-типы shadow/gradient/cubicBezier запрещены
-v1, P-D70).
+v1, P-D70; P8 Pending Work — см. Remaining п.2).
