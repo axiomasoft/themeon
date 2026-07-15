@@ -88,7 +88,10 @@ export default defineConfig({
 ## Laravel + Vite
 
 ThemeOn ships no framework glue for Laravel — Laravel projects consume the plugin exactly
-like any other Vite project, through `vite.config.js`:
+like any other Vite project, through `vite.config.js`. This section covers this plugin's own
+channel (custom theme, JS-import); see [`docs/laravel.md`](../../docs/laravel.md) for the full
+picture of all three Laravel-facing channels (including the shipped-default-theme `@import`
+recipe this plugin does not cover) and for the Blade anti-FOUC snippet:
 
 ```js
 // vite.config.js
