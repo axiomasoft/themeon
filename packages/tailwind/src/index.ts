@@ -7,3 +7,4 @@
 export { tailwindBridge } from './bridge'
 export type { TailwindBridgeOptions } from './bridge'
 export { TAILWIND_NAMESPACES } from './namespaces'
+export { TAILWIND_LAYER_ORDER, tailwindLayerPreamble } from './layers'

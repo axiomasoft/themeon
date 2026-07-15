@@ -115,6 +115,37 @@ describe('runBuild', () => {
     expect(inlineCss).toContain('#111111')
   })
 
+  it('--tailwind-layers вставляет order-statement первой строкой (P8.15)', async () => {
+    const { outPath } = await runBuild({
+      cwd,
+      config: 'theme.config.ts',
+      out: 'tokens.css',
+      tailwindLayers: true,
+    })
+
+    const css = readFileSync(outPath, 'utf8')
+    const firstLine = css.split('\n')[0]
+    expect(firstLine).toBe(
+      '@layer theme, base, themeon.tokens, themeon.reset, themeon.base, themeon.composition, themeon.blueprints, themeon.components, themeon.utilities, components, utilities;',
+    )
+  })
+
+  it('без --tailwind-layers вывод байт-в-байт прежний (регресс-гейт dterema/P5.11)', async () => {
+    const withoutFlag = await runBuild({ cwd, config: 'theme.config.ts', out: 'plain.css' })
+    const explicitFalse = await runBuild({
+      cwd,
+      config: 'theme.config.ts',
+      out: 'explicit-false.css',
+      tailwindLayers: false,
+    })
+
+    const plainCss = readFileSync(withoutFlag.outPath, 'utf8')
+    const explicitFalseCss = readFileSync(explicitFalse.outPath, 'utf8')
+
+    expect(plainCss).not.toContain('@layer theme, base, themeon.tokens')
+    expect(plainCss).toBe(explicitFalseCss)
+  })
+
   it('битый config (нет .sys) — reject', async () => {
     writeFileSync(join(cwd, 'bad.config.ts'), 'export default { notATheme: true }\n', 'utf8')
 

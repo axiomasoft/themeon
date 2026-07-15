@@ -11,7 +11,7 @@ import { defineCommand } from 'citty'
 import { consola } from 'consola'
 import { resolveTheme, serializeThemeCss } from '@themeon/core'
 import type { AliasesOption } from '@themeon/core'
-import { tailwindBridge } from '@themeon/tailwind'
+import { tailwindBridge, tailwindLayerPreamble } from '@themeon/tailwind'
 import { DEFAULT_THEME_CONFIG_PATH } from '../constants'
 import { loadThemeConfig } from '../load-theme'
 
@@ -22,6 +22,7 @@ export interface BuildOptions {
   tailwind?: string
   refLayer?: 'referenced' | 'all' | 'inline'
   aliases?: string
+  tailwindLayers?: boolean
 }
 
 export interface BuildResult {
@@ -59,7 +60,13 @@ export async function runBuild(opts: BuildOptions): Promise<BuildResult> {
 
   const outPath = resolve(opts.cwd, opts.out)
   await mkdir(dirname(outPath), { recursive: true })
-  await writeFile(outPath, serializeThemeCss(resolved), 'utf8')
+  // P8.15: --tailwind-layers вставляет order-statement (P-D61/P-D67) ПЕРВОЙ строкой,
+  // до баннера serializeThemeCss — тот же рецепт, что import-потребитель @themeon/css
+  // получает через layers-tailwind.css, но для статик-артефактного канала (P-D34).
+  const tokensCss = opts.tailwindLayers
+    ? tailwindLayerPreamble() + serializeThemeCss(resolved)
+    : serializeThemeCss(resolved)
+  await writeFile(outPath, tokensCss, 'utf8')
   consola.success(`themeon build → ${relative(opts.cwd, outPath)}`)
 
   let bridgePath: string | undefined
@@ -102,6 +109,11 @@ export const buildCommand = defineCommand({
       type: 'string',
       description: 'Legacy alias rule name (e.g. "legacy-v0")',
     },
+    'tailwind-layers': {
+      type: 'boolean',
+      description: 'Prepend the Tailwind v4 @layer order-statement (P-D61) to the emitted tokens.css',
+      default: false,
+    },
   },
   async run({ args }) {
     try {
@@ -112,6 +124,7 @@ export const buildCommand = defineCommand({
         tailwind: args.tailwind,
         refLayer: args['ref-layer'] as BuildOptions['refLayer'],
         aliases: args.aliases,
+        tailwindLayers: args['tailwind-layers'],
       })
     } catch (err) {
       consola.error(err instanceof Error ? err.message : String(err))

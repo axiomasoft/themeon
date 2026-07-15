@@ -9,8 +9,10 @@ test('публичная поверхность заморожена (ранта
   const mod = await import('./index')
   expect(Object.keys(mod).sort()).toMatchInlineSnapshot(`
     [
+      "TAILWIND_LAYER_ORDER",
       "TAILWIND_NAMESPACES",
       "tailwindBridge",
+      "tailwindLayerPreamble",
     ]
   `)
 })
