@@ -54,7 +54,7 @@
 
 | Коммит | Суть |
 |:--|:--|
-| (bookkeeping этой сессии) | docs(plan): P7 подтверждена как живой open-ended backlog (P-D73) |
+| `ba3bce5` | docs(plan): P7 подтверждена как живой open-ended backlog (P-D73) |
 
 **Расхождения план↔факты:** нет — сведены этой сессией (repo-grounded сверка 6 items на HEAD).
 
