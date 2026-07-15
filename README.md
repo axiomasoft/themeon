@@ -11,6 +11,8 @@ Pilot migrations of real apps are in progress.
 `00_MASTER_PLAN.md`, research: `20_research/`) — synced with the Brain vault
 (`ThemeOn.md` control tower) via `brain sync plans ThemeOn`; edit on either side, sync propagates.
 
+**Docs:** https://axioma-studio.github.io/themeon/
+
 ## Packages
 
 | Package | What it does |
