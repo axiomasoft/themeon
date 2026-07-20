@@ -17,6 +17,10 @@
   },
   "type": "module",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
   "sideEffects": false,
   "files": ["dist"],
   "exports": {

@@ -1,6 +1,6 @@
 ---
 "@themeon/tailwind": minor
-"themeon": minor
+"@themeon/cli": minor
 ---
 
 `themeon build` gained an opt-in `--tailwind-layers` flag (P-D67): it prepends the

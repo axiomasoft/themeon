@@ -1,5 +1,5 @@
 ---
-"themeon": minor
+"@themeon/cli": minor
 ---
 
 New CLI flag `themeon check --tenant <patch.json>` — fail-closed APCA publication gate for a

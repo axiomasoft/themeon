@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { runInit } from 'themeon'
+import { runInit } from '@themeon/cli'
 import { afterEach, describe, expect, test } from 'vitest'
 import { mkFixture, rmFixture } from '../helpers/fixture'
 import { spawnNuxtDev } from '../helpers/nuxt-dev'

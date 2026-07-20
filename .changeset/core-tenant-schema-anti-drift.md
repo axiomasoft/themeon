@@ -1,6 +1,6 @@
 ---
 "@themeon/core": minor
-"themeon": minor
+"@themeon/cli": minor
 ---
 
 New `tenantThemeSchema(base, opts?)` in `@themeon/core` — builds a JSON Schema (draft 2020-12)

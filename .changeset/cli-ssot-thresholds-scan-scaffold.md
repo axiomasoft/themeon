@@ -1,5 +1,5 @@
 ---
-"themeon": minor
+"@themeon/cli": minor
 ---
 
 Fix `themeon check` running every contrast pair at the `usage: 'body'` threshold (|Lc| 75) while

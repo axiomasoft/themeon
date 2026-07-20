@@ -1,5 +1,5 @@
 {
-  "name": "themeon",
+  "name": "@themeon/cli",
   "version": "0.0.0",
   "description": "ThemeOn design-token CLI: init/build/check — scaffold theme.config.ts, compile it to tokens.css (+ optional Tailwind bridge), lint token coverage/contrast/hardcoded values.",
   "keywords": [
@@ -16,6 +16,10 @@
   },
   "type": "module",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
   "sideEffects": false,
   "files": ["dist"],
   "bin": {

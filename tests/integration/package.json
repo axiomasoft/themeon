@@ -15,7 +15,7 @@
     "@themeon/naive": "workspace:*",
     "@themeon/vue": "workspace:*",
     "@themeon/nuxt": "workspace:*",
-    "themeon": "workspace:*",
+    "@themeon/cli": "workspace:*",
     "vite": "catalog:",
     "@tailwindcss/node": "catalog:",
     "tailwindcss": "catalog:",
