@@ -8,17 +8,17 @@
     "theming",
     "design-system"
   ],
-  "homepage": "https://github.com/themeon/themeon#readme",
+  "homepage": "https://github.com/axiomasoft/themeon#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/themeon/themeon.git",
+    "url": "git+https://github.com/axiomasoft/themeon.git",
     "directory": "packages/naive"
   },
   "type": "module",
   "license": "MIT",
   "publishConfig": {
     "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org"
   },
   "sideEffects": false,
   "files": ["dist"],
