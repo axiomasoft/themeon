@@ -6,37 +6,37 @@ allowBuilds:
   '@parcel/watcher': true
   esbuild: true
 catalog:
-  vue: 3.5.39
-  tailwindcss: 4.3.2
-  "@tailwindcss/vite": 4.3.2
-  "@tailwindcss/node": 4.3.2
-  "@nuxt/kit": 4.4.8
-  "@nuxt/schema": 4.4.8
-  "@nuxt/module-builder": 1.0.2
-  nuxt: 4.4.8
-  vite: 8.1.4
-  colorjs.io: 0.7.0
+  vue: 3.5.43
+  tailwindcss: 4.3.3
+  "@tailwindcss/vite": 4.3.3
+  "@tailwindcss/node": 4.3.3
+  "@nuxt/kit": 4.5.2
+  "@nuxt/schema": 4.5.2
+  "@nuxt/module-builder": 1.0.3
+  nuxt: 4.5.2
+  vite: 8.3.0
+  colorjs.io: 0.7.1
   culori: 4.0.2
-  "@terrazzo/parser": 2.4.0
-  "naive-ui": 2.44.1
+  "@terrazzo/parser": 2.7.1
+  "naive-ui": 2.45.3
   citty: 0.2.2
   consola: 3.4.2
   jiti: 2.7.0
   tinyglobby: 0.2.17
   "@types/culori": 4.0.1
-  lightningcss: 1.32.0
+  lightningcss: 1.33.0
   "@types/node": 24.13.3
   typescript: 6.0.3
-  tsdown: 0.22.3
+  tsdown: 0.23.0
   vitest: 4.1.10
   fast-check: 4.10.2
   "@stryker-mutator/core": 10.0.0
   "@stryker-mutator/vitest-runner": 10.0.0
   "@stryker-mutator/typescript-checker": 10.0.0
   "@vitest/coverage-v8": 4.1.10
-  oxlint: 1.73.0
-  publint: 0.3.21
-  "@arethetypeswrong/cli": 0.18.4
+  oxlint: 1.83.0
+  publint: 0.3.24
+  "@arethetypeswrong/cli": 0.18.5
   "@changesets/cli": 2.31.0
   vitepress: 1.6.4
 minimumReleaseAgeExclude:
