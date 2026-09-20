@@ -10,7 +10,7 @@
   "devDependencies": {
     "@themeon/core": "workspace:*",
     "@types/node": "catalog:",
-    "postcss": "8.5.6",
+    "postcss": "8.5.28",
     "stylelint": "16.26.1",
     "typescript": "catalog:",
     "vitest": "catalog:"
