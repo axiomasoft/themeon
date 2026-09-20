@@ -26,7 +26,7 @@ catalog:
   "@types/culori": 4.0.1
   lightningcss: 1.32.0
   "@types/node": 24.13.3
-  typescript: 6.0.3
+  typescript: 7.0.2
   tsdown: 0.22.3
   vitest: 4.1.10
   fast-check: 4.10.2
