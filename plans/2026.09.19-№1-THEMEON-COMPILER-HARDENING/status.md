@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-09-20
-inputs_sha256: f90fc2d7a3a55ccb4c9712bae6c03c2cf029251c20a8f95000fd838379411d9e
+inputs_sha256: 380c87be349b7ce0a71e890064e62531071357e57f270d509c7a7308ffbb351e
 generated_by: task plan-views status
 -->
 
@@ -35,7 +35,7 @@ generated_by: task plan-views status
 | P0.1 | DTCG 2025.10 support and loss contract | 🟢 Done | 2026-09-20 |
 | P0.2 | WCAG 2.2 normative contrast policy | 🟢 Done | 2026-09-20 |
 | P0.3 | Tenant patch security envelope | 🟢 Done | 2026-09-20 |
-| P0.4 | Trusted release and reusable verification | 🟡 In progress | 2026-09-20 |
+| P0.4 | Trusted release and reusable verification | 🟠 Done with deviations | 2026-09-20 |
 | P0.5 | Publication/package truth and dependency hygiene | 🟡 In progress | 2026-09-20 |
 | P0.6 | Measured critical coverage gates | 🟡 In progress | 2026-09-20 |
 
@@ -158,7 +158,11 @@ generated_by: task plan-views status
 | 2026-09-20 | plan-auditor/grok-4.6/high | plan-audit · audit-red · Whole-plan design audit RED: frozen P3.6 bundle not byte-fresh vs status.md; plan-lint 1 error. Prior F1–F4 closed. Evidence: findings/design-audit-2026-09-20-committed.md. |
 | 2026-09-20 | plan-designer/grok-4.6/high | plan-design · in-progress · START design-finish of committed-audit F1–F2. Rebuild P3.6 bundle after status; Routing why D10. No product. |
 | 2026-09-20 | plan-designer/grok-4.6/high | plan-design · no-op · Design-finish committed-audit F1–F2: P3.6 bundle rebuilt after status; P0.4 Routing why D10. Next audit-design after git-commit. |
+| 2026-09-20 | plan-auditor/grok-4.6/high | plan-audit · in-progress · START whole-plan design audit of committed F1–F2 candidate. Read-only over product. |
+| 2026-09-20 | plan-auditor/grok-4.6/high | plan-audit · audit-green · Whole-plan design audit GREEN: committed F1–F2 freeze lint-clean; P0.4 Authority routine; successor P0.4. Evidence: findings/design-audit-2026-09-20-committed-f1-f2.md. |
+| 2026-09-20 | plan-run/grok-4.6/high | plan-run · closed-deviations · P0.4 in-plan plumbing GREEN (D10 🟠). Residual NPM-TRUSTED-PUBLISHER outside plan; token fallback kept; GitHub env is github-pages only.
+write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
 
-- —
+- P0.4: known deviation

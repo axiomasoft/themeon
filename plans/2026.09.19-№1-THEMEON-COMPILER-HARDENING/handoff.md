@@ -1,35 +1,35 @@
-# HANDOFF — 2026-09-20 — after P0
+# HANDOFF — 2026-09-20 — after P0.4
 
-**Next:** audit-design: task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design
+**Next:** exec-items: task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.5 P0.6
 
 | Параметр | Значение |
 |:--|:--|
-| Batch | n/a |
-| Model class | frontier |
+| Batch | B0-HYGIENE |
+| Model class | implementation |
 | Effort | high |
-| Capabilities | plan audit · independent whole-plan design review · no product expansion |
-| Context | cold-start-root: design-root-terminal |
-| Суть | Independent design audit of the committed-audit F1–F2 repair (P3.6 bundle rebuilt after status; P0.4 Routing why D10). Do not execute items. |
+| Capabilities | plan-exec · publication/package truth · no npm publish |
+| Context | continue-root |
+| Суть | Re-admit P0.5 (then P0.6) under compiled Routing. Do not grant residual npm/GitHub configure scope. |
 
 ```session-continuity-decision/v1
-{"evidence":["batch:53c5adf255a9bc6ca3e45f2d5ef48c946a30c127a6b1d279b6b051ebcb526cdb","loaded-inputs:not-reusable","cold-start-cost:2","checkpoint:findings/design-finish-2026-09-20-committed-f1-f2.md"],"outcome":"cold-start-root","reason":"design-root-terminal","runnable":true,"schema_version":"session-continuity-decision/v1"}
+{"evidence":["batch:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c","loaded-inputs:reusable","cold-start-cost:0","lifecycle:scope-complete","checkpoint:artifacts/P0.4/scope-complete.json"],"outcome":"continue-root","reason":"authorized-scope-complete","runnable":true,"schema_version":"session-continuity-decision/v1"}
 ```
 
 **Native Cursor command:**
 
 ```bash
-agent --workspace /home/vostrikov/projects/packages/themeon --model grok-4.6 --force --sandbox disabled --trust --approve-mcps 'task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design'
+agent --workspace /home/vostrikov/projects/packages/themeon --model composer-2.5 --force --sandbox disabled --trust --approve-mcps 'task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.5 P0.6'
 ```
 
-**Done:** Design-finish of committed-audit F1–F2. `bundles/P3.6.json` rebuilt after journal/status. `plan.md` P0.4 why-column residualizes NPM-TRUSTED-PUBLISHER to D10/roadmap. `plan-lint` 0 errors / 1 recovered phase-order warning. Routing membership unchanged.
+**Done:** P0.4 closed 🟠 under D10: reusable `verify.yml`, SHA-pinned CI/release, OIDC publish job, pack/SBOM dry-run, token fallback documented. Residual `NPM-TRUSTED-PUBLISHER` remains outside this plan (`predicate_satisfied: false`). Local `pnpm build/lint/typecheck/test/test:int/check:pack` green.
 
-**Remaining:** Independent `task:plan-audit design` of this committed candidate. After GREEN, re-admit P0.4 under compiled Routing as `🟠` (D10). Do not archive. Do not execute items from this design root.
+**Remaining:** B0-HYGIENE P0.5–P0.6; close P0. Then remaining P2/P3 under Routing. Do not re-open GREEN P0.1–P0.3. Do not archive.
 
-**Sources of truth:** `plan.md`; `bundles/P3.6.json`; `status.md`; `phases/P0/P0.4.md`; `roadmap.md`; `decisions/D10-trusted-publisher-deferral.md`; `findings/design-finish-2026-09-20-committed-f1-f2.md`.
+**Sources of truth:** `plan.md`; `phases/P0/P0.4.md`; `phases/P0/P0.4.state.md`; `decisions/D10-trusted-publisher-deferral.md`; `docs/architecture/release-security.md`; `artifacts/P0.4/external-trust.json`.
 
-**Open risks:** Existing implementation may still be valid; lifecycle still proves only P0.1–P0.3 and P1. A GREEN receipt still requires this candidate committed. Launching P0.4 must not grant residual npm/GitHub configure scope.
+**Open risks:** GitHub has only `github-pages`; protected `release` environment and npm trusted publishers are unconfigured. Token fallback remains until that residual grant. Dirty-tree later-phase work must not be mistaken for P0.4 product scope.
 
 **Workarounds/Deferred/Open questions:**
-- workarounds: D11 friction exceptions remain valid (hash-matched)
-- deferred: NPM-TRUSTED-PUBLISHER residual (D10, outside this item's machine gate); `@themeon/testing` and stylelint packages (D8/D9)
-- open_questions: —
+- workarounds: CSS tsdown `neverBundle` lists `@themeon/core/authoring` so TOKEN_BRAND is not inlined into `default.js`
+- deferred: NPM-TRUSTED-PUBLISHER residual (D10); `@themeon/testing` and stylelint packages (D8/D9)
+- open_questions: D7 solo-rationale nit (owner gate vs D10 routine) — optional later touch

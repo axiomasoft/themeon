@@ -1,0 +1,208 @@
+{
+  "schema_version": "p0.4-workflow-inspection/v1",
+  "pins": [
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 12,
+      "action": "./.github/workflows/verify.yml",
+      "kind": "local"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 27,
+      "action": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 29,
+      "action": "pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda",
+      "kind": "sha-pinned",
+      "version": "v4.1.0"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 32,
+      "action": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 54,
+      "action": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 57,
+      "action": "github/codeql-action/init@3ea06614dafe36dec890db3446326e0d40ce53d4",
+      "kind": "sha-pinned",
+      "version": "v3.38.1"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 62,
+      "action": "github/codeql-action/analyze@3ea06614dafe36dec890db3446326e0d40ce53d4",
+      "kind": "sha-pinned",
+      "version": "v3.38.1"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 75,
+      "action": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 80,
+      "action": "ossf/scorecard-action@05b42c624433fc40578a4040d5cf5e36ddca8cde",
+      "kind": "sha-pinned",
+      "version": "v2.4.2"
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "line": 87,
+      "action": "github/codeql-action/upload-sarif@3ea06614dafe36dec890db3446326e0d40ce53d4",
+      "kind": "sha-pinned",
+      "version": "v3.38.1"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 19,
+      "action": "./.github/workflows/verify.yml",
+      "kind": "local"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 34,
+      "action": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 36,
+      "action": "pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda",
+      "kind": "sha-pinned",
+      "version": "v4.1.0"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 39,
+      "action": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 97,
+      "action": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "kind": "sha-pinned",
+      "version": "v4.6.2"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 111,
+      "action": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 114,
+      "action": "anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26",
+      "kind": "sha-pinned",
+      "version": "v0.24.2"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 132,
+      "action": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 134,
+      "action": "pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda",
+      "kind": "sha-pinned",
+      "version": "v4.1.0"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 137,
+      "action": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 161,
+      "action": "changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba",
+      "kind": "sha-pinned",
+      "version": "v1.5.3"
+    },
+    {
+      "file": ".github/workflows/verify.yml",
+      "line": 33,
+      "action": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/verify.yml",
+      "line": 35,
+      "action": "pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda",
+      "kind": "sha-pinned",
+      "version": "v4.1.0"
+    },
+    {
+      "file": ".github/workflows/verify.yml",
+      "line": 38,
+      "action": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/verify.yml",
+      "line": 60,
+      "action": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830",
+      "kind": "sha-pinned",
+      "version": "v4.3.0"
+    },
+    {
+      "file": ".github/workflows/dependency-review.yml",
+      "line": 16,
+      "action": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "kind": "sha-pinned",
+      "version": "v4.4.0"
+    },
+    {
+      "file": ".github/workflows/dependency-review.yml",
+      "line": 19,
+      "action": "actions/dependency-review-action@40c09b7dc99638e5ddb0bfd91c1673effc064d8a",
+      "kind": "sha-pinned",
+      "version": "v4.8.1"
+    }
+  ],
+  "errors": [],
+  "publish": {
+    "pull_request_trigger": false,
+    "main_only": true,
+    "oidc": true,
+    "token_fallback": true,
+    "environment": true,
+    "reuses_verify": true
+  },
+  "ci_reuses_verify": true,
+  "github_environments_observed": [
+    {
+      "name": "github-pages",
+      "protection_rules": 0
+    }
+  ]
+}

@@ -12,5 +12,13 @@ export default defineConfig({
   // символом (module-instance hazard) — `isToken()` в реальном `@themeon/core`, вызванном из
   // gen-tokens.mjs, тогда не узнаёт Token-объекты из забандленной копии, и резолвер трактует
   // их как обычные подгруппы {type,path,value} вместо ссылок.
-  deps: { neverBundle: ['@themeon/core', '@themeon/colors'] },
+  deps: { neverBundle: [
+    '@themeon/core',
+    '@themeon/core/authoring',
+    '@themeon/core/compiler',
+    '@themeon/core/runtime',
+    '@themeon/core/dtcg',
+    '@themeon/core/tenant',
+    '@themeon/colors',
+  ] },
 })

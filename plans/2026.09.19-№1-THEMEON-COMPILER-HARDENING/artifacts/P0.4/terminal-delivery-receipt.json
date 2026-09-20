@@ -1,0 +1,78 @@
+{
+  "adapter_attestation": {
+    "canonical_command_sha256": "sha256:fcec0c67bb951c1d274dc40fed4b2c390f498fa22b22c3f9ae3f02275381b82d",
+    "command_id": "task:plan-run",
+    "package": "task",
+    "version": "0.20.3"
+  },
+  "commit_sha": "93e8631a961c3d310fa277b86f8be6b1b9f3d001",
+  "continuity": {
+    "evidence": [
+      "batch:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+      "loaded-inputs:reusable",
+      "cold-start-cost:0",
+      "lifecycle:scope-complete",
+      "checkpoint:artifacts/P0.4/scope-complete.json"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:f9a2f0a7f7c5d6d442740b287d5e4ac5a635450b18bdd0238ba01fb068227839",
+    "plan": "sha256:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+    "state": "sha256:5ada392fc6bd4a54ca7d8098a23643cb80e78892660321cc2fe6f30f6bcbdc20"
+  },
+  "journal": {
+    "batch_receipt": {
+      "batch_id": "solo",
+      "completed_prefix": [],
+      "handoff_digest": null,
+      "invocation_digest": "e71bc33fae12ced0a57d7042349a981626a487520a71ff45afae806fea0c1dde",
+      "membership": [
+        "P0.4"
+      ],
+      "routing_digest": "0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+      "schema_version": "batch-receipt/v1",
+      "spec_digest": "7f0ef29552f149774559b5e9d531a2b0eaaba8c3f344474adf39625b779e6280",
+      "stop_disposition": "continue"
+    },
+    "command": "plan-run",
+    "line": 85,
+    "result": "closed-deviations",
+    "run_id": "d7e12e433ed3efd178cd5e57d56c13af838d24231eb48bcc1b73903de56e2b48",
+    "sha256": "sha256:dd07126c5c32ae29c4bbb75a8b4f671372b1014e1736ababcc7fa4c52cdfe79d"
+  },
+  "next_exact": "exec-items: task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.5 P0.6",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "rationale": {
+    "open_risks": "GitHub has only `github-pages`; protected `release` environment and npm trusted publishers are unconfigured. Token fallback remains until that residual grant. Dirty-tree later-phase work must not be mistaken for P0.4 product scope.",
+    "remaining": "B0-HYGIENE P0.5–P0.6; close P0. Then remaining P2/P3 under Routing. Do not re-open GREEN P0.1–P0.3. Do not archive."
+  },
+  "recommendation": "**Next:** exec-items: task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.5 P0.6\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | B0-HYGIENE |\n| Model class | implementation |\n| Effort | high |\n| Capabilities | plan-exec · publication/package truth · no npm publish |\n| Context | continue-root |\n| Суть | Re-admit P0.5 (then P0.6) under compiled Routing. Do not grant residual npm/GitHub configure scope. |\n\n```session-continuity-decision/v1\n{\"evidence\":[\"batch:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c\",\"loaded-inputs:reusable\",\"cold-start-cost:0\",\"lifecycle:scope-complete\",\"checkpoint:artifacts/P0.4/scope-complete.json\"],\"outcome\":\"continue-root\",\"reason\":\"authorized-scope-complete\",\"runnable\":true,\"schema_version\":\"session-continuity-decision/v1\"}\n```\n\n**Native Cursor command:**\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/themeon --model composer-2.5 --force --sandbox disabled --trust --approve-mcps 'task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.5 P0.6'\n```",
+  "route": {
+    "batch": "B0-HYGIENE",
+    "command": null,
+    "context": "continue-root",
+    "continuity": {
+      "evidence": [
+        "batch:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+        "loaded-inputs:reusable",
+        "cold-start-cost:0",
+        "lifecycle:scope-complete",
+        "checkpoint:artifacts/P0.4/scope-complete.json"
+      ],
+      "outcome": "continue-root",
+      "reason": "authorized-scope-complete",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": null,
+    "thinking": null
+  },
+  "schema_version": "terminal-delivery-receipt/v1",
+  "status": "🟠 Done with deviations",
+  "subject": "P0.4"
+}

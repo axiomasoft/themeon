@@ -1,0 +1,19 @@
+{
+  "schema_version": "route-run-receipt/v1",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "item_id": "P0.4",
+  "attempt": 2,
+  "session_id": "835b6bf1-cb14-475a-8567-236b9bd40e08",
+  "run_id": "d7e12e433ed3efd178cd5e57d56c13af838d24231eb48bcc1b73903de56e2b48",
+  "evidence": {
+    "cwd": "/home/vostrikov/projects/packages/themeon",
+    "effort": "high",
+    "invocation": "task:plan-run 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.4",
+    "model": "grok-4.6",
+    "model_class": "frontier",
+    "source": "provider-attestation",
+    "source_version": "cursor-plan-run/p0.4",
+    "thread_id": "835b6bf1-cb14-475a-8567-236b9bd40e08",
+    "ts": "2026-09-20T12:42:02Z"
+  }
+}

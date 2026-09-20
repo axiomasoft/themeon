@@ -1,3 +1,6 @@
+# Publish authority lives only in this file (release.yml). npm trusted-publisher
+# configuration must name this filename, not verify.yml.
+# This workflow never runs on pull_request.
 name: Release packages
 
 on:
@@ -5,29 +8,139 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-  packages: write
+permissions: {}
 
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  release:
+  verify:
+    uses: ./.github/workflows/verify.yml
+    permissions:
+      contents: read
+    with:
+      node-versions: '["22", "24"]'
+      run-integration: true
+
+  pack-inspect:
+    name: pack-inspect
+    needs: verify
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Assert git tree is clean after build
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            echo 'Build left a dirty git tree' >&2
+            exit 1
+          fi
+
+      - name: Pack workspaces and snapshot manifests
+        run: mkdir -p /tmp/themeon-pack-inspect && rm -f /tmp/themeon-pack-inspect/*.tgz && pnpm -r --filter "./packages/*" pack --pack-destination /tmp/themeon-pack-inspect
+
+      - name: Diff packed manifests against workspace
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, tarfile, pathlib, sys
+          pack_dir = pathlib.Path('/tmp/themeon-pack-inspect')
+          tarballs = sorted(pack_dir.glob('*.tgz'))
+          if not tarballs:
+              sys.exit('no packed tarballs')
+          mismatches = []
+          for tarball in tarballs:
+              with tarfile.open(tarball) as archive:
+                  member = archive.extractfile('package/package.json')
+                  packed = json.load(member)
+              name = packed['name']
+              workspace = None
+              for manifest in pathlib.Path('packages').glob('*/package.json'):
+                  data = json.loads(manifest.read_text())
+                  if data.get('name') == name:
+                      workspace = data
+                      break
+              if workspace is None:
+                  mismatches.append(f'{name}: packed name has no workspace package.json')
+                  continue
+              for field in ('name', 'license', 'type', 'publishConfig'):
+                  if packed.get(field) != workspace.get(field):
+                      mismatches.append(
+                          f'{name}.{field}: packed={packed.get(field)!r} workspace={workspace.get(field)!r}'
+                      )
+              print(f'{name} {packed.get("version")} {tarball.name}')
+          if mismatches:
+              print('\n'.join(mismatches), file=sys.stderr)
+              sys.exit(1)
+          PY
+
+      - name: Upload packed tarballs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: themeon-pack-tarballs
+          path: /tmp/themeon-pack-inspect/*.tgz
+          if-no-files-found: error
+
+  sbom:
+    name: sbom
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        with:
+          format: spdx-json
+          artifact-name: themeon-sbom.spdx.json
+          upload-artifact: true
+
+  publish:
+    name: publish
+    needs: [verify, pack-inspect, sbom]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+          # registry-url writes NODE_AUTH_TOKEN into .npmrc. Keep it only while
+          # the NPM_TOKEN fallback is still required. After trusted publishing
+          # is live, delete registry-url and NODE_AUTH_TOKEN together.
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
@@ -36,8 +149,16 @@ jobs:
       - name: Build packages
         run: pnpm build
 
+      - name: Assert git tree is clean after build
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            echo 'Build left a dirty git tree' >&2
+            exit 1
+          fi
+
       - name: Create release PR or publish packages
-        uses: changesets/action@v1
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
         with:
           version: pnpm changeset version
           publish: pnpm changeset publish
@@ -45,4 +166,6 @@ jobs:
           title: "chore: обновили версии пакетов"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Fallback until owner-gated trusted publisher is configured and proven.
+          # Never echo this value. Remove together with setup-node registry-url.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

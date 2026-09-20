@@ -1,0 +1,37 @@
+{
+  "schema_version": "plan-context-receipt/v1",
+  "item_id": "P0.4",
+  "snapshot_sha256": "d3606750b88f4a0644d9ffb9b55ef73cfd0698aa81666394978a2ddf24862d97",
+  "members": [
+    {
+      "role": "plan-core",
+      "path": "plan.md",
+      "sha256": "0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+      "bytes": 11876
+    },
+    {
+      "role": "phase-context",
+      "path": "phases/P0/P0.md",
+      "sha256": "258756daaf5d7639eb4bc0bbf7a6f294978cda6a9615a343eb45da5fa08060d6",
+      "bytes": 3894
+    },
+    {
+      "role": "item-spec",
+      "path": "phases/P0/P0.4.md",
+      "sha256": "7f0ef29552f149774559b5e9d531a2b0eaaba8c3f344474adf39625b779e6280",
+      "bytes": 4067
+    },
+    {
+      "role": "bundle",
+      "path": "bundles/P0.4.json",
+      "sha256": "180d6bb468851932b62349886b5f945a1e672c6fde4129826f0c057b78ee4629",
+      "bytes": 7227
+    },
+    {
+      "role": "item-state",
+      "path": "phases/P0/P0.4.state.md",
+      "sha256": "84380b3cb33924e021adffd1d022c979a522f64cf7687f8c8ca525a1e18183f7",
+      "bytes": 603
+    }
+  ]
+}
