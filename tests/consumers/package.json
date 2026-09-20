@@ -15,7 +15,7 @@
     "vitest": "catalog:",
     "vite": "catalog:",
     "vue": "catalog:",
-    "vue-tsc": "3.1.4",
+    "vue-tsc": "3.3.11",
     "nuxt": "catalog:"
   }
 }
