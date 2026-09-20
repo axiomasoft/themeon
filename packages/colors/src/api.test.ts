@@ -1,5 +1,12 @@
 import { expect, test } from 'vitest'
-import type { ContrastOptions, ContrastPair, ContrastReport, ContrastCheckResult, SemanticPairSpec } from './contrast'
+import type {
+  ContrastOptions,
+  ContrastPair,
+  ContrastReport,
+  ContrastCheckResult,
+  SemanticPairSpec,
+  WcagContrastReport,
+} from './contrast'
 
 /**
  * API-freeze (P2.7, по образцу `packages/core/src/api.test.ts` P1.8): snapshot публичной
@@ -19,12 +26,21 @@ test('публичная поверхность заморожена (ранта
       "SEMANTIC_CONTRAST_PAIRS",
       "STEP10_DELTA",
       "STEP_ROLES",
+      "WCAG22_AA_LARGE_TEXT_RATIO",
+      "WCAG22_AA_NON_TEXT_RATIO",
+      "WCAG22_AA_NORMAL_TEXT_RATIO",
+      "WCAG_THRESHOLDS",
       "checkContrast",
       "checkThemeContrast",
       "contrastAPCA",
+      "contrastWCAG22Ratio",
+      "evaluateWcag22Policy",
       "generateScale",
       "generateScalePair",
+      "relativeLuminanceSrgb",
       "scaleToTokens",
+      "wcag22Threshold",
+      "wcagContrastRatio",
     ]
   `)
 })
@@ -43,7 +59,8 @@ type Exact<T, Keys extends string> = [Exclude<keyof T, Keys>] extends [never]
 const contrastOptionsFrozen: Exact<ContrastOptions, 'base'> = true
 const contrastPairFrozen: Exact<ContrastPair, 'fg' | 'bg' | 'usage' | 'label' | 'base'> = true
 const contrastReportFrozen: Exact<ContrastReport, 'pair' | 'lc' | 'required' | 'pass'> = true
-const contrastCheckResultFrozen: Exact<ContrastCheckResult, 'pass' | 'reports'> = true
+const contrastCheckResultFrozen: Exact<ContrastCheckResult, 'pass' | 'apcaPass' | 'wcagReports' | 'reports'> = true
+const wcagContrastReportFrozen: Exact<WcagContrastReport, 'pair' | 'result'> = true
 const semanticPairSpecFrozen: Exact<SemanticPairSpec, 'fg' | 'bg' | 'usage' | 'label'> = true
 
 test('форма публичных типов заморожена (проверяется компилятором)', () => {
@@ -53,5 +70,6 @@ test('форма публичных типов заморожена (прове�
     contrastReportFrozen,
     contrastCheckResultFrozen,
     semanticPairSpecFrozen,
-  ]).toEqual([true, true, true, true, true])
+    wcagContrastReportFrozen,
+  ]).toEqual([true, true, true, true, true, true])
 })

@@ -1,0 +1,57 @@
+{
+  "schema_version": "adapter-conformance/v1",
+  "contract": {
+    "fixture": "tests/integration/src/conformance/compiled-contract.ts",
+    "css_sha256": "computed-at-runtime"
+  },
+  "cases": [
+    {
+      "id": "tailwind-consumed-color",
+      "adapter": "@themeon/tailwind",
+      "class": "consumed",
+      "summary": "Tailwind bridge emits literal --color-action-primary from resolved tokens"
+    },
+    {
+      "id": "tailwind-ignored-non-namespace",
+      "adapter": "@themeon/tailwind",
+      "class": "ignored",
+      "summary": "Custom vars outside Tailwind namespaces never appear in @theme reference"
+    },
+    {
+      "id": "vite-consumed-css",
+      "adapter": "@themeon/vite",
+      "class": "consumed",
+      "summary": "virtual:themeon.css matches serializeThemeCss(resolveTheme(theme))"
+    },
+    {
+      "id": "vite-diagnostic-resolve",
+      "adapter": "@themeon/vite",
+      "class": "diagnostic",
+      "summary": "Resolve failures surface structured [themeon] diagnostics, not silent CSS"
+    },
+    {
+      "id": "vue-fouc-consumed",
+      "adapter": "@themeon/vue",
+      "class": "consumed",
+      "summary": "themeInitScript is the single anti-FOUC generator for runtime adapters"
+    },
+    {
+      "id": "nuxt-fouc-consumed",
+      "adapter": "@themeon/nuxt",
+      "class": "consumed",
+      "summary": "Nuxt buildFoucScriptOptions maps to the same themeInitScript surface as Vite"
+    },
+    {
+      "id": "naive-consumed-hex",
+      "adapter": "@themeon/naive",
+      "class": "consumed",
+      "summary": "toNative(resolveTheme(theme)) emits hex literals, never var() chains"
+    },
+    {
+      "id": "naive-diagnostic-bad-color",
+      "adapter": "@themeon/naive",
+      "class": "diagnostic",
+      "summary": "Invalid resolved colors throw BAD_COLOR with var name context"
+    }
+  ]
+}

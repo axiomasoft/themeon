@@ -19,9 +19,31 @@ themeon build [--config] [--out] [--tailwind] [--ref-layer] [--aliases]
 themeon check [--config] [--src] [--out] [--tailwind] [--ignore] [--no-coverage] [--no-contrast]
               [--no-hardcode] [--allow-px] [--coverage-ignore]
                                           # lint token coverage / APCA contrast / hardcoded values
+themeon inspect [--config] [--format pretty|json|github] [--ref-layer] [--aliases]
+                                          # compiler fingerprint, counts and diagnostics
+themeon explain <token> [--config] [--format pretty|json|github] [--ref-layer] [--aliases]
+                                          # alias chain, CSS variable and theme overrides
+themeon graph [--config] [--format pretty|json|github] [--ref-layer] [--aliases]
+                                          # alias reference graph (deterministic, capped)
+themeon diff <old> [new] [--format pretty|json|github] [--ref-layer] [--aliases]
+                                          # semantic diff between two configs (versioned change classes)
+themeon doctor [--config] [--baseline] [--format pretty|json|github] [--ref-layer] [--aliases]
+                                          # compile/graph health; optional baseline diff + dry-run hints
+themeon migrate <from> [to] [--format pretty|json|github] [--ref-layer] [--aliases]
+                                          # dry-run migration hints only (never writes sources)
+themeon schema [--config] [--out]         # tenant-patch JSON Schema (draft 2020-12)
 ```
 
-`themeon --help` lists all three subcommands.
+`themeon --help` lists all subcommands.
+
+Query commands (`inspect`, `explain`, `graph`) share one compiler query layer and emit
+versioned JSON when `--format json` (schema version `1`). Semantic commands (`diff`, `doctor`,
+`migrate`) use schema version `1` with additive change classes (`token.added`, `value.changed`,
+`token.renamed.candidate`, …). Each hint names confidence and evidence; rename-like matches stay
+`safety: unknown` when ambiguous. `migrate` is dry-run only. Exit code `1` on compile/graph
+blocking errors, unknown explain paths, or breaking semantic diffs; warnings alone do not fail
+unless paired with errors. `--format github` prints GitHub Actions workflow annotations for
+diagnostics only.
 
 ## `themeon init`
 
@@ -53,10 +75,11 @@ Three linters, run against `--config` (default `theme/theme.config.ts`) + your s
   third-party custom properties (component-library vars like `--reka-*`, your own `--pad`, …)
   aren't ThemeOn tokens either — use `--coverage-ignore <prefix1,prefix2,…>` to exclude them from
   the dead-ref `error` instead of disabling the whole linter with `--no-coverage`.
-- **contrast** — APCA contrast of the semantic text-on-bg role pairs defined by
-  `SEMANTIC_CONTRAST_PAIRS`/`checkThemeContrast` (`@themeon/colors` — the single source of truth
-  shared with `@themeon/css`'s own build-time gate), for the base theme and every theme patch.
-  Fail-closed: an unparseable color is an `error`, not a skip. A failing pair is an `error`.
+- **contrast** — WCAG 2.2 AA (normative) plus APCA (advisory) on the semantic pairs from
+  `SEMANTIC_CONTRAST_PAIRS`/`checkThemeContrast` (`@themeon/colors`, shared with `@themeon/css`'s
+  build-time gate). WCAG failures are `error` (`THEMEON_CONTRAST_WCAG_AA`); APCA-only findings are
+  `warning` (`THEMEON_CONTRAST_APCA_ADVISORY`). Unparseable colors and indeterminate contexts are
+  fail-closed (`error` / `warning`, not skip).
 - **hardcode** — hex literals, raw `Npx` values (0/1 allowed by default, `--allow-px` extends the
   allowlist) and `rgb()`/`hsl()`/`oklch()` literals in your source files. Always a `warning` — it
   never fails the build on its own.

@@ -4,38 +4,47 @@
  *
  * Виртуальный модуль `virtual:themeon.css` — конвенция Vite: публичный id должен начинаться с
  * `virtual:`, а `resolveId` возвращает тот же id с ведущим `\0` (Rollup-конвенция «не трогать
- * другим плагинам/резолву на диске», https://vite.dev/guide/api-plugin). `load` отдаёт CSS темы
- * (`serializeThemeCss(resolveTheme(theme))`, P-D14 — naming/резолв уже сделаны ядром, этот
- * плагин ничего не именует сам). **Канонический канал — `import 'virtual:themeon.css'` из
- * JS-энтри; CSS-`@import` виртуального модуля физически невозможен** — `vite:css` резолвит
- * `@import` через postcss-import собственным fs-резолвером, плагинные `resolveId`/`load` в
- * этой ветке не вызываются (P-D55, `findings/P8-vite-channel-hmr.md` §3/§6.1).
+ * другим плагинам/резолву на диске, https://vite.dev/guide/api-plugin). `load` отдаёт CSS темы
+ * из одного `compileTheme` на инвалидацию (P3.3). **Канонический канал — `import 'virtual:themeon.css'`
+ * из JS-энтри; CSS-`@import` виртуального модуля физически невозможен** — `vite:css` резолвит
+ * `@import` через postcss-import собственным fs-резолвером (P-D55).
  *
- * HMR токенов — хук `hotUpdate` (Vite Environment API). Возвращаем `[mod]` и даём Vite самому
- * сформировать и отправить payload: только эта форма устойчива к `\0`-нормализации dev-URL
- * (виртуальный `mod.url` — сырой `\0virtual:themeon.css`, а не `/@id/__x00__…`, поэтому ручной
- * `hot.send` с любым угаданным path — no-op). `tokensFiles` резолвятся в АБСОЛЮТНЫЕ пути в
- * `configResolved` (от `config.root`) — `hotUpdate({file})` всегда даёт абсолютный путь, а
- * относительные пути из README иначе никогда не матчатся. Supersedes P-D26 (`css-update`).
- * `findings/P8-vite-channel-hmr.md` §4/§6.2 (D1–D3).
- *
- * `cssImport` — ДОПОЛНИТЕЛЬНАЯ опция для CSS-first проектов без JS-энтри (Laravel Blade и
- * т.п.): плагин пишет CSS темы в реальный файл на диске и алиасит `virtualId` на этот файл
- * (`resolve.alias`) — документированный синтаксис `@import 'virtual:themeon.css'` остаётся
- * рабочим, потому что резолвится он теперь как ОБЫЧНЫЙ файл (fs), а не virtual-модуль; HMR идёт
- * штатным вотчером Vite на реальный файл (§6.3). Не замена канона, а опция.
+ * `cssImport` — опция для CSS-first проектов: реальный файл + alias; manifest/CSP artifacts
+ * пишутся атомарно в `.themeon/` для PHP/Laravel потребителей (P3.3).
  */
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, resolve as resolveFromRoot } from 'node:path'
+import { resolve as resolveFromRoot } from 'node:path'
 import { normalizePath } from 'vite'
-import { resolveTheme, serializeThemeCss } from '@themeon/core'
+import {
+  compileTheme,
+  diagnosticFromUnknown,
+  formatDiagnostics,
+} from '@themeon/core/compiler'
+import type { CompileResult } from '@themeon/core/compiler'
 import { themeInitScript } from '@themeon/vue/anti-fouc'
 import type { Plugin, ResolvedConfig } from 'vite'
-import type { ThemeonViteOptions } from './types'
+import { resolveArtifactPaths, writeDeliveryArtifacts } from './artifacts'
+import { createTrailingDebounce } from './debounce'
+import { atomicWriteText } from './fs'
+import type { ThemeonArtifactsOptions, ThemeonViteOptions } from './types'
 
-export type { ThemeonViteOptions } from './types'
+export type { ThemeonArtifactsOptions, ThemeonViteOptions } from './types'
 
 const DEFAULT_CSS_IMPORT_FILE = '.themeon/theme.css'
+
+function renderThemeFailure(err: unknown): string {
+  return `[themeon] ${formatDiagnostics(
+    [diagnosticFromUnknown(err, { provenance: { stage: 'adapter', producer: '@themeon/vite' } })],
+    'plain',
+  )}`
+}
+
+function resolveArtifactsOption(options: ThemeonViteOptions): false | ThemeonArtifactsOptions {
+  if (options.artifacts === false) return false
+  if (options.artifacts !== undefined) {
+    return options.artifacts === true ? {} : options.artifacts
+  }
+  return options.cssImport ? {} : false
+}
 
 /** Создаёт Vite-плагин ThemeOn: виртуальный CSS темы + HMR + опц. анти-FOUC. */
 export function themeon(options: ThemeonViteOptions): Plugin {
@@ -45,51 +54,81 @@ export function themeon(options: ThemeonViteOptions): Plugin {
 
   const V_ID = options.virtualId ?? 'virtual:themeon.css'
   const RESOLVED = `\0${V_ID}`
+  const artifactsOpt = resolveArtifactsOption(options)
 
-  // D3 (findings §4): hotUpdate({file}) даёт АБСОЛЮТНЫЙ путь; относительные пути из README
-  // (tokensFiles) иначе никогда не матчатся — резолвим один раз, когда известен config.root.
   let tokensFiles = new Set<string>()
   let cssImportFile: string | undefined
+  let projectRoot = process.cwd()
+  let artifactPaths: ReturnType<typeof resolveArtifactPaths> | undefined
+  let pendingDelivery: CompileResult | undefined
+  let debouncedRefresh: (() => Promise<CompileResult>) | undefined
 
-  /** Пересобирает CSS темы: тема-фабрика вызывается заново на каждый `load` — читает актуальное состояние при HMR. */
-  const buildCss = async (): Promise<string> => {
-    const t = typeof options.theme === 'function' ? await options.theme() : options.theme
-    return serializeThemeCss(resolveTheme(t, options.resolve), options.serialize)
+  const readTheme = async () =>
+    typeof options.theme === 'function' ? await options.theme() : options.theme
+
+  const compileFresh = async (): Promise<CompileResult> =>
+    compileTheme(await readTheme(), {
+      resolve: options.resolve,
+      serialize: options.serialize,
+    })
+
+  const resolvePaths = (): ReturnType<typeof resolveArtifactPaths> | undefined => {
+    if (artifactsOpt === false) return undefined
+    artifactPaths ??= resolveArtifactPaths(projectRoot, artifactsOpt, cssImportFile)
+    return artifactPaths
   }
 
-  /** `cssImport`-канал: перезаписывает реальный файл на диске актуальным CSS темы. */
-  const writeCssImportFile = async (): Promise<void> => {
-    if (!cssImportFile) return
-    const css = await buildCss()
-    mkdirSync(dirname(cssImportFile), { recursive: true })
-    writeFileSync(cssImportFile, css)
+  const deliver = async (): Promise<CompileResult> => {
+    const compiled = await compileFresh()
+    pendingDelivery = compiled
+    if (cssImportFile) {
+      atomicWriteText(cssImportFile, compiled.css)
+    }
+    const paths = resolvePaths()
+    if (paths) {
+      writeDeliveryArtifacts({
+        root: projectRoot,
+        paths,
+        compiled,
+        virtualModuleId: V_ID,
+        fouc: options.injectFouc,
+      })
+    }
+    return compiled
   }
 
   return {
     name: 'themeon',
 
     config(config) {
+      projectRoot = config.root ?? process.cwd()
       if (!options.cssImport) return undefined
-      const root = config.root ?? process.cwd()
+      const root = projectRoot
       const rel =
         typeof options.cssImport === 'object' && options.cssImport.file
           ? options.cssImport.file
           : DEFAULT_CSS_IMPORT_FILE
       cssImportFile = resolveFromRoot(root, rel)
-      // `@rollup/plugin-alias`-совместимый резолвер CSS-конвейера участвует в alias — в отличие
-      // от virtual-модулей (§6.1/§6.3) — поэтому документированный `@import 'virtual:…'` здесь
-      // резолвится как обычный файл на диске.
       return { resolve: { alias: [{ find: V_ID, replacement: cssImportFile }] } }
     },
 
     configResolved(config: ResolvedConfig) {
+      projectRoot = config.root
       tokensFiles = new Set(
         (options.tokensFiles ?? []).map((f) => normalizePath(resolveFromRoot(config.root, f))),
       )
+      resolvePaths()
+      const waitMs = artifactsOpt === false ? 0 : (artifactsOpt.debounceMs ?? 50)
+      debouncedRefresh =
+        waitMs > 0 ? createTrailingDebounce(() => deliver(), waitMs) : undefined
     },
 
     async buildStart() {
-      await writeCssImportFile()
+      try {
+        await deliver()
+      } catch (err) {
+        this.error(renderThemeFailure(err))
+      }
     },
 
     resolveId(id) {
@@ -98,23 +137,30 @@ export function themeon(options: ThemeonViteOptions): Plugin {
     },
 
     load(id) {
-      if (id === RESOLVED) return buildCss()
-      return undefined
+      if (id !== RESOLVED) return undefined
+      const usePending = pendingDelivery
+      if (usePending) {
+        pendingDelivery = undefined
+        return usePending.css
+      }
+      return deliver()
+        .then((r) => r.css)
+        .catch((err: unknown) => {
+          this.error(renderThemeFailure(err))
+        })
     },
 
-    // Без debounce (v1, ТЗ допускает): один save файла токенов = один hotUpdate-вызов Vite,
-    // повторное сохранение того же файла в течение мс — редкий кейс для авторинга темы (не
-    // hot-reload при печати кода); UnoCSS дебонсит ради частых событий watch-глоба множества
-    // файлов, здесь `tokensFiles` — единичные файлы темы.
     async hotUpdate({ file }) {
       if (!tokensFiles.has(normalizePath(file))) return undefined
-      await writeCssImportFile()
+      try {
+        if (debouncedRefresh) await debouncedRefresh()
+        else await deliver()
+      } catch (err) {
+        this.error(renderThemeFailure(err))
+      }
       const mod = this.environment.moduleGraph.getModuleById(RESOLVED)
       if (!mod) return undefined
-      this.environment.moduleGraph.invalidateModule(mod) // не обязателен при `return [mod]`, но безвреден и явен
-      // Vite сам формирует и шлёт `js-update` с нормализованным path (/@id/__x00__…) и
-      // прогоняет его через self-accepting CSS-обёртку виртуального модуля
-      // (__vite__updateStyle → <style data-vite-dev-id>) — без full reload.
+      this.environment.moduleGraph.invalidateModule(mod)
       return [mod]
     },
 

@@ -77,6 +77,32 @@ describe('runCheck', () => {
     expect(ok).toBe(false)
   })
 
+  it('coverage:false и contrast:false оставляют только hardcode-линтер', async () => {
+    const { findings } = await runCheck({
+      cwd,
+      config: 'theme.config.ts',
+      coverage: false,
+      contrast: false,
+    })
+
+    expect(findings.some((f) => f.rule === 'token-coverage' && f.level === 'error')).toBe(false)
+    expect(findings.some((f) => f.rule === 'contrast')).toBe(false)
+    expect(findings.some((f) => f.rule === 'hardcode')).toBe(true)
+  })
+
+  it('пустой скан (нет совпадающих src) → warning no sources scanned', async () => {
+    const { findings, ok } = await runCheck({
+      cwd,
+      config: 'theme.config.ts',
+      src: ['**/*.tsx'],
+    })
+
+    expect(findings).toContainEqual(
+      expect.objectContaining({ level: 'warning', rule: 'token-coverage', message: 'no sources scanned' }),
+    )
+    expect(ok).toBe(true)
+  })
+
   it('чистый проект (нет var()-ссылок, нет литералов) → ok:true, нет findings', async () => {
     writeFileSync(join(cwd, 'app.css'), '.clean { color: black; }\n', 'utf8')
 
@@ -158,9 +184,9 @@ describe('runCheck --tenant (fail-closed APCA-гейт публикации, P6.
 
     expect(ok).toBe(false)
     expect(findings).toHaveLength(1)
-    expect(findings[0]).toMatchObject({ level: 'error', rule: 'contrast' })
+    expect(findings[0]).toMatchObject({ level: 'error', rule: 'contrast', code: 'THEMEON_PATCH_POLICY' })
     expect(findings[0]!.message).toContain('validation failed')
-    expect(findings[0]!.message).toContain('unknown path')
+    expect(findings[0]!.message).toContain('outside the selected trust policy')
   })
 
   it('(4) тёмная тема + полупрозрачный `--color-bg-elevated` → корректный |Lc|, не false-pass/throw (сторож Major #15)', async () => {
@@ -168,16 +194,16 @@ describe('runCheck --tenant (fail-closed APCA-гейт публикации, P6.
     // `lookup` гейта сохраняет `--color-bg-page` как подложку для `flattenAlpha` (иначе throw
     // `ALPHA_NEEDS_BASE`) и корректно композитит на фактическую тёмную подложку, а не на
     // безусловный белый (Major #15) — оба привели бы к `ok:false`/throw вместо ожидаемого pass.
-    writePatch({ space: { gap: '12px' } })
+    writePatch({})
 
     const { findings, ok } = await runCheck({ cwd, config: 'theme.config.ts', tenant: 'patch.json' })
 
     expect(ok).toBe(true)
-    expect(findings).toHaveLength(0)
+    expect(findings.filter((finding) => finding.level === 'error')).toHaveLength(0)
   })
 
   it('(5) патч без цветов → ok:true (легальный pass — нечего проверять сверх базы)', async () => {
-    writePatch({ space: { gap: '16px' } })
+    writePatch({})
 
     const { findings, ok } = await runCheck({ cwd, config: 'theme.config.ts', tenant: 'patch.json' })
 

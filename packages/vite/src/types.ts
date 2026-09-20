@@ -4,8 +4,21 @@
  * `virtual:themeon.css`, переисчитывает его по HMR (`hotUpdate`) при изменении файлов токенов
  * и опционально вставляет анти-FOUC скрипт в `index.html`.
  */
-import type { ResolveOptions, SerializeCssOptions, ThemeDefinition } from '@themeon/core'
+import type { ThemeDefinition } from '@themeon/core/authoring'
+import type { ResolveOptions, SerializeCssOptions } from '@themeon/core/compiler'
 import type { ThemeInitScriptOptions } from '@themeon/vue/anti-fouc'
+
+/** Disk artifacts for PHP/Laravel consumers (P3.3). */
+export interface ThemeonArtifactsOptions {
+  /** Output directory relative to Vite root. Default `.themeon`. */
+  dir?: string
+  /** Manifest filename inside `dir`. Default `manifest.json`. */
+  manifestFile?: string
+  /** CSP artifact filename inside `dir`. Default `csp.json`. */
+  cspFile?: string
+  /** Trailing debounce for watch/HMR artifact writes. Default `50` ms. */
+  debounceMs?: number
+}
 
 export interface ThemeonViteOptions {
   /**
@@ -38,4 +51,9 @@ export interface ThemeonViteOptions {
    * `transformIndexHtml`. `true` — с дефолтными опциями скрипта, объект — проброс опций.
    */
   injectFouc?: boolean | ThemeInitScriptOptions
+  /**
+   * Emit PHP-readable `manifest.json` (+ optional `csp.json` when `injectFouc` is set) under
+   * `.themeon/`. Defaults to `true` when `cssImport` is enabled; otherwise `false`.
+   */
+  artifacts?: boolean | ThemeonArtifactsOptions
 }

@@ -1,0 +1,9 @@
+{
+  "color": {
+    "broken": {
+      "$type": "color",
+      "$value": "#000000",
+      "nested": { "child": { "$type": "color", "$value": "#ffffff" } }
+    }
+  }
+}

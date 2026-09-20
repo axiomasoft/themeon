@@ -3,6 +3,10 @@
 Token model (`ref`/`sys`/`comp`), `defineTheme`, resolver, naming engine, CSS/DTCG serializers,
 runtime applier. Zero runtime deps.
 
+Advanced seams use additive subpaths (`@themeon/core/compiler`, `./runtime`, `./dtcg`, `./tenant`).
+See [Compiler compatibility](/architecture/compiler-compatibility) and the
+[architecture index](/architecture/).
+
 ## Main exports
 
 | Export | What it does |
@@ -10,6 +14,7 @@ runtime applier. Zero runtime deps.
 | `defineTokens` | Author a group of tokens (palette, scale) — leaves that reference another `Token` become `var()` chains. |
 | `defineTheme` | Define a theme: a base contract plus named partial patches (`dark`, …). |
 | `resolveTheme` | Resolve once — collapses reference chains, applies the naming engine, detects cycles/collisions. |
+| `compileTheme` | Staged compile (IR + CSS + fingerprint + diagnostics) — prefer from `@themeon/core/compiler`. |
 | `serializeThemeCss` | Build channel — static CSS (`@layer`, `:root`, `[data-theme]`) for `<head>`. |
 | `applyTheme` / `clearTheme` / `themeVars` | Runtime channel — inline variables for theme/tenant switching without a rebuild. |
 | `toDTCG` / `fromDTCG` | Bridge to/from the [DTCG](https://www.designtokens.org/) interchange format. |

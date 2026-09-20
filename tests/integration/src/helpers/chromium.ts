@@ -1,24 +1,29 @@
 import { chromium, type Browser, type Page } from 'playwright'
+import { activeBrowserName, closeBrowser, withBrowserPage } from './browser'
 
-let browserPromise: Promise<Browser> | undefined
+let navBrowserPromise: Promise<Browser> | undefined
 
-function getBrowser(): Promise<Browser> {
-  browserPromise ??= chromium.launch()
-  return browserPromise
+function getNavBrowser(): Promise<Browser> {
+  navBrowserPromise ??= chromium.launch()
+  return navBrowserPromise
 }
 
-/** Закрывает переиспользуемый экземпляр Chromium — звать из `afterAll` вызывающего файла. */
+/** Закрывает переиспользуемый браузер — звать из `afterAll` вызывающего файла. */
 export async function closeChromium(): Promise<void> {
-  if (!browserPromise) return
-  const browser = await browserPromise
-  browserPromise = undefined
-  await browser.close()
+  await closeBrowser()
+  if (navBrowserPromise) {
+    const browser = await navBrowserPromise
+    navBrowserPromise = undefined
+    await browser.close()
+  }
 }
 
 export interface ChromiumOptions {
   theme?: string
   width?: number
   height?: number
+  initScripts?: string[]
+  headHtml?: string
 }
 
 /**
@@ -32,19 +37,10 @@ export async function withChromium<T>(
   fn: (page: Page) => Promise<T>,
   options: ChromiumOptions = {},
 ): Promise<T> {
-  const browser = await getBrowser()
-  const page = await browser.newPage({
-    viewport: { width: options.width ?? 1280, height: options.height ?? 600 },
-  })
-  try {
-    await page.setContent(
-      `<!doctype html><html${options.theme ? ` data-theme="${options.theme}"` : ''}>` +
-        `<head><style>${css}</style></head><body>${html}</body></html>`,
-    )
-    return await fn(page)
-  } finally {
-    await page.close()
+  if (activeBrowserName() !== 'chromium') {
+    throw new Error('withChromium is PR-lane only; use withBrowserPage for cross-browser periodic tests')
   }
+  return withBrowserPage(html, css, fn, options)
 }
 
 /**
@@ -56,7 +52,10 @@ export async function withPage<T>(
   fn: (page: Page) => Promise<T>,
   options: Pick<ChromiumOptions, 'width' | 'height'> = {},
 ): Promise<T> {
-  const browser = await getBrowser()
+  if (activeBrowserName() !== 'chromium') {
+    throw new Error('withPage is PR-lane only; use cross-browser helpers for periodic lane')
+  }
+  const browser = await getNavBrowser()
   const page = await browser.newPage({
     viewport: { width: options.width ?? 1280, height: options.height ?? 600 },
   })

@@ -19,7 +19,15 @@ import {
   NUMBER_PATTERN,
   TEXT_LINE_HEIGHT_PATTERN,
 } from './patch-grammar'
-import { UNSAFE_KEYS } from './define'
+import {
+  DEFAULT_TENANT_TRUST,
+  inspectPatchPath,
+  RESERVED_PATCH_KEY_SET,
+  resolveTenantPatchPolicy,
+  tenantPatchKeySchema,
+  type TenantPatchPolicy,
+  type TenantTrustLevel,
+} from './patch-policy'
 import type { ResolvedTheme, TokenType } from './types'
 
 /** Один узел JSON Schema — либо группа (`object`), либо лист (per-type `pattern`/composite `text`). */
@@ -31,10 +39,14 @@ export interface JsonSchema {
   readonly type: 'object'
   readonly additionalProperties: false
   readonly properties: Readonly<Record<string, JsonSchemaNode>>
+  readonly propertyNames: JsonSchemaNode
+  readonly maxProperties: number
 }
 
-/** Опции {@link tenantThemeSchema}. Пусто в v1 — зарезервировано для будущего `$id`/версионирования (Scope Excluded P6.2). */
-export interface TenantSchemaOptions {}
+/** Опции {@link tenantThemeSchema}. `policy` defaults to `branding`; `trusted` is opt-in. */
+export interface TenantSchemaOptions {
+  readonly policy?: TenantTrustLevel
+}
 
 /**
  * fix(P6.2 adversarial-verify MED): `validateTenantValue`/`validateTenantTextValue`
@@ -83,55 +95,73 @@ function leafPatternFor(type: Exclude<TokenType, 'text'>): string {
   }
 }
 
-/** Строковый лист `{type:'string', pattern}` либо, для `number`/`fontWeight`, `anyOf` со
- *  string-веткой (та же `pattern`) и number-веткой ({@link numericLeafFor}) — см. докблок там же. */
-function scalarLeafSchema(type: Exclude<TokenType, 'text'>): JsonSchemaNode {
-  const stringLeaf = { type: 'string', pattern: leafPatternFor(type) }
-  if (type === 'number' || type === 'fontWeight') {
-    return { anyOf: [stringLeaf, numericLeafFor(type)] }
-  }
-  return stringLeaf
+function stringLeaf(pattern: string, maxLength: number): JsonSchemaNode {
+  return { type: 'string', pattern, maxLength }
 }
 
-/** `text` — композит `{ size, lineHeight? }`, тот же контракт, что `validateTenantTextValue` (P6.1). */
-function textLeafSchema(): JsonSchemaNode {
+/** Строковый лист `{type:'string', pattern}` либо, для `number`/`fontWeight`, `anyOf` со
+ *  string-веткой (та же `pattern`) и number-веткой ({@link numericLeafFor}) — см. докблок там же. */
+function scalarLeafSchema(type: Exclude<TokenType, 'text'>, maxLength: number): JsonSchemaNode {
+  const leaf = stringLeaf(leafPatternFor(type), maxLength)
+  if (type === 'number' || type === 'fontWeight') {
+    return { anyOf: [leaf, numericLeafFor(type)] }
+  }
+  return leaf
+}
+
+function groupSchema(
+  properties: Record<string, JsonSchemaNode>,
+  policy: TenantPatchPolicy,
+): {
+  type: 'object'
+  additionalProperties: false
+  properties: Record<string, JsonSchemaNode>
+  propertyNames: JsonSchemaNode
+  maxProperties: number
+} {
   return {
     type: 'object',
     additionalProperties: false,
-    required: ['size'],
-    properties: {
-      size: { type: 'string', pattern: DIMENSION_PATTERN },
-      // TEXT_LINE_HEIGHT_PATTERN: `\d{1,2}(\.\d{1,3})?` — неотрицательное, 1-2 целых+до 3 дробных
-      // знаков (0..99.xxx). `validateTenantTextValue` (patch-grammar.ts:207) коэрсит JSON-число в
-      // строку ДО этого паттерна — схема обязана принимать ту же numeric-форму (см. докблок
-      // {@link numericLeafFor} — тот же класс drift, что fontWeight/number).
-      // multipleOf 0.001 — precision-cap симметричный NUMBER-ветке fix (см. numericLeafFor):
-      // без него 1.4567 проходит min/max, но core бросает (>3 дробных знаков).
-      lineHeight: {
-        anyOf: [
-          { type: 'string', pattern: TEXT_LINE_HEIGHT_PATTERN },
-          { type: 'number', minimum: 0, maximum: 99.999, multipleOf: 0.001 },
-        ],
+    properties,
+    propertyNames: tenantPatchKeySchema(policy.bounds),
+    maxProperties: policy.bounds.maxKeys,
+  }
+}
+
+/** `text` — композит `{ size, lineHeight? }`, тот же контракт, что `validateTenantTextValue` (P6.1). */
+function textLeafSchema(policy: TenantPatchPolicy): JsonSchemaNode {
+  const { maxValueLength } = policy.bounds
+  return {
+    ...groupSchema(
+      {
+        size: stringLeaf(DIMENSION_PATTERN, maxValueLength),
+        lineHeight: {
+          anyOf: [
+            stringLeaf(TEXT_LINE_HEIGHT_PATTERN, maxValueLength),
+            { type: 'number', minimum: 0, maximum: 99.999, multipleOf: 0.001 },
+          ],
+        },
       },
-    },
+      policy,
+    ),
+    required: ['size'],
   }
 }
 
 /** Вставляет `leaf` по вложенному `path` в дерево `properties`, заводя `object`-группы по пути. */
-function insertLeaf(root: Record<string, JsonSchemaNode>, path: readonly string[], leaf: JsonSchemaNode): void {
+function insertLeaf(
+  root: Record<string, JsonSchemaNode>,
+  path: readonly string[],
+  leaf: JsonSchemaNode,
+  policy: TenantPatchPolicy,
+): void {
   let properties = root
   for (let i = 0; i < path.length - 1; i++) {
     const segment = path[i]!
-    // Пути базы — авторские (theme.config.ts), не tenant-ввод, но защита по построению дешева
-    // и симметрична guard'у P6.1 patch.ts (UNSAFE_PATH) — сегмент-ловушка сюда не просочится.
-    if (UNSAFE_KEYS.has(segment)) continue
+    if (RESERVED_PATCH_KEY_SET.has(segment)) continue
     const existing = properties[segment] as { properties: Record<string, JsonSchemaNode> } | undefined
     if (existing === undefined) {
-      const group: { type: 'object'; additionalProperties: false; properties: Record<string, JsonSchemaNode> } = {
-        type: 'object',
-        additionalProperties: false,
-        properties: {},
-      }
+      const group = groupSchema({}, policy)
       properties[segment] = group
       properties = group.properties
     } else {
@@ -139,14 +169,16 @@ function insertLeaf(root: Record<string, JsonSchemaNode>, path: readonly string[
     }
   }
   const lastSegment = path[path.length - 1]!
-  if (UNSAFE_KEYS.has(lastSegment)) return
+  if (RESERVED_PATCH_KEY_SET.has(lastSegment)) return
   properties[lastSegment] = leaf
 }
 
 /**
  * Builds a JSON Schema (draft 2020-12) describing the legal tenant patch shape for `base` —
- * only `ALLOWED_TENANT_TYPES` paths are included, each leaf carrying the exact `pattern` used
- * by {@link import('./patch').applyThemePatch} (`patch-grammar.ts`, single source of truth).
+ * only `ALLOWED_TENANT_TYPES` paths allowed by the selected trust policy are included, each
+ * leaf carrying the exact `pattern` used by {@link import('./patch').applyThemePatch}
+ * (`patch-grammar.ts`, single source of truth) plus the shared length/key bounds from
+ * {@link import('./patch-policy').TENANT_PATCH_POLICIES}.
  * `additionalProperties: false` at every level rejects tenant-added keys structurally, before
  * any per-value grammar check runs. Output order always follows `base.tokens` (same
  * determinism guarantee as `applyThemePatch`).
@@ -154,29 +186,28 @@ function insertLeaf(root: Record<string, JsonSchemaNode>, path: readonly string[
  * @example
  * ```ts
  * const schema = tenantThemeSchema(base)
- * // { $schema: '...2020-12/schema', type: 'object', additionalProperties: false,
- * //   properties: { color: { type: 'object', additionalProperties: false,
- * //     properties: { bg: { ... properties: { page: { type: 'string', pattern: COLOR_PATTERN } } } } } } }
+ * // branding by default; pass { policy: 'extended' } for space/duration/z paths
  * ```
  */
-export function tenantThemeSchema(base: ResolvedTheme, _opts: TenantSchemaOptions = {}): JsonSchema {
+export function tenantThemeSchema(base: ResolvedTheme, opts: TenantSchemaOptions = {}): JsonSchema {
+  const policy = resolveTenantPatchPolicy(opts.policy ?? DEFAULT_TENANT_TRUST)
   const properties: Record<string, JsonSchemaNode> = {}
   const seenPaths = new Set<string>()
 
   for (const token of base.tokens) {
     if (!ALLOWED_TENANT_TYPES.has(token.type)) continue
+    if (!inspectPatchPath(token.path, policy).ok) continue
     const pathKey = JSON.stringify(token.path)
-    if (seenPaths.has(pathKey)) continue // 'text' резолвится в ДВЕ ResolvedToken (size+line-height) — одна схема-запись
+    if (seenPaths.has(pathKey)) continue
     seenPaths.add(pathKey)
 
-    const leaf = token.type === 'text' ? textLeafSchema() : scalarLeafSchema(token.type)
-    insertLeaf(properties, token.path, leaf)
+    const leaf =
+      token.type === 'text' ? textLeafSchema(policy) : scalarLeafSchema(token.type, policy.bounds.maxValueLength)
+    insertLeaf(properties, token.path, leaf, policy)
   }
 
   return {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
-    type: 'object',
-    additionalProperties: false,
-    properties,
+    ...groupSchema(properties, policy),
   }
 }

@@ -1,6 +1,6 @@
 import { createJiti } from 'jiti'
 import { pathToFileURL } from 'node:url'
-import type { ThemeDefinition } from '@themeon/core'
+import type { ThemeDefinition } from '@themeon/core/authoring'
 
 /** Контракт файла пользовательской темы (`options.theme`, codegen P3.4). */
 export interface ThemeModuleExports {

@@ -2,8 +2,10 @@ import { describe, expect, test } from 'vitest'
 import { defineTheme } from './define'
 import { resolveTheme } from './resolve'
 import { validateTenantTextValue, validateTenantValue } from './patch-grammar'
+import { applyThemePatch } from './patch'
 import { tenantThemeSchema } from './schema'
-import type { ResolvedTheme } from './types'
+import type { JsonSchema, JsonSchemaNode } from './schema'
+import type { ResolvedTheme, TokenTreeInput } from './types'
 
 /**
  * `tenantThemeSchema` (P6.2) — JSON Schema draft 2020-12 из грамматики P6.1. Несущий тест —
@@ -40,7 +42,7 @@ function ok(fn: () => unknown): boolean {
 
 describe('tenantThemeSchema — anti-drift: pattern↔validateTenantValue согласованы', () => {
   const base = fullBase()
-  const schema = tenantThemeSchema(base)
+  const schema = tenantThemeSchema(base, { policy: 'extended' })
   const colorSchema = (schema.properties.color as { properties: Record<string, unknown> }).properties.bg as {
     properties: Record<string, { pattern: string }>
   }
@@ -237,25 +239,43 @@ describe('tenantThemeSchema — text-композит (nested object, не type:
 
 describe('tenantThemeSchema — структурные инварианты', () => {
   const base = fullBase()
-  const schema = tenantThemeSchema(base)
+  const branding = tenantThemeSchema(base)
+  const extended = tenantThemeSchema(base, { policy: 'extended' })
 
   test('$schema/type/additionalProperties:false на корне', () => {
-    expect(schema.$schema).toBe('https://json-schema.org/draft/2020-12/schema')
-    expect(schema.type).toBe('object')
-    expect(schema.additionalProperties).toBe(false)
+    expect(branding.$schema).toBe('https://json-schema.org/draft/2020-12/schema')
+    expect(branding.type).toBe('object')
+    expect(branding.additionalProperties).toBe(false)
   })
 
   test('additionalProperties:false на вложенных группах', () => {
-    const colorGroup = schema.properties.color as { additionalProperties: false }
+    const colorGroup = branding.properties.color as { additionalProperties: false }
     expect(colorGroup.additionalProperties).toBe(false)
   })
 
   test('shadow (запрещён v1, P-D70) ОТСУТСТВУЕТ в properties', () => {
-    expect('shadow' in schema.properties).toBe(false)
+    expect('shadow' in branding.properties).toBe(false)
+    expect('shadow' in extended.properties).toBe(false)
   })
 
-  test('z (тип number, разрешён) присутствует', () => {
-    expect('z' in schema.properties).toBe(true)
+  test('default branding omits space/duration/z; extended includes them', () => {
+    expect('space' in branding.properties).toBe(false)
+    expect('z' in branding.properties).toBe(false)
+    expect('duration' in branding.properties).toBe(false)
+    expect('color' in branding.properties).toBe(true)
+    expect('font' in branding.properties).toBe(true)
+    expect('z' in extended.properties).toBe(true)
+    expect('space' in extended.properties).toBe(true)
+  })
+
+  test('propertyNames and maxLength come from the shared policy', () => {
+    expect(branding.propertyNames).toMatchObject({ type: 'string', maxLength: 64 })
+    const page = (
+      branding.properties.color as {
+        properties: Record<string, { properties: Record<string, { maxLength: number } | undefined> } | undefined>
+      }
+    ).properties.bg?.properties.page
+    expect(page?.maxLength).toBe(128)
   })
 
   test('детерминизм: двойной вызов даёт байт-в-байт равный JSON', () => {
@@ -264,3 +284,61 @@ describe('tenantThemeSchema — структурные инварианты', ()
     expect(a).toBe(b)
   })
 })
+
+function schemaAccepts(schema: JsonSchema, value: unknown): boolean {
+  const walk = (node: JsonSchemaNode, input: unknown): boolean => {
+    const anyOf = node.anyOf as readonly JsonSchemaNode[] | undefined
+    if (anyOf) return anyOf.some((branch) => walk(branch, input))
+    if (node.type === 'object') {
+      if (typeof input !== 'object' || input === null || Array.isArray(input)) return false
+      const record = input as Record<string, unknown>
+      const properties = (node.properties ?? {}) as Record<string, JsonSchemaNode>
+      const names = node.propertyNames as { pattern?: string; maxLength?: number } | undefined
+      const nameRe = names?.pattern ? new RegExp(names.pattern) : null
+      if (typeof node.maxProperties === 'number' && Object.keys(record).length > node.maxProperties) return false
+      for (const key of Object.keys(record)) {
+        if (nameRe && !nameRe.test(key)) return false
+        if (typeof names?.maxLength === 'number' && key.length > names.maxLength) return false
+        if (node.additionalProperties === false && !(key in properties)) return false
+        const child = properties[key]
+        if (child !== undefined && !walk(child, record[key])) return false
+      }
+      return true
+    }
+    if (node.type === 'string') {
+      if (typeof input !== 'string') return false
+      if (typeof node.maxLength === 'number' && input.length > node.maxLength) return false
+      if (typeof node.pattern === 'string' && !new RegExp(node.pattern).test(input)) return false
+      return true
+    }
+    return false
+  }
+  return walk(schema as unknown as JsonSchemaNode, value)
+}
+
+describe('tenantThemeSchema — runtime parity (P0.3)', () => {
+  const base = fullBase()
+
+  test.each([
+    [{ color: { bg: { page: '#101014' } } }, 'branding'],
+    [{ color: { action: { primary: '#3355ff' } }, font: { sans: 'Inter' } }, 'branding'],
+    [{ space: { 4: '1.25rem' } }, 'extended'],
+  ] as const)('legal patch is accepted by schema and applyThemePatch (%s / %s)', (patch, policy) => {
+    const schema = tenantThemeSchema(base, { policy })
+    expect(schemaAccepts(schema, patch)).toBe(true)
+    expect(() => applyThemePatch(base, patch, { policy })).not.toThrow()
+  })
+
+  test('hostile or over-policy patches are rejected by both schema and runtime', () => {
+    const schema = tenantThemeSchema(base, { policy: 'branding' })
+    const breakout = { color: { bg: { page: `red}${String.fromCharCode(60)}/style>` } } }
+    const extra = { extra: '#000000' }
+    const space = { space: { 4: '1rem' } }
+    const tooLong = { color: { bg: { page: 'x'.repeat(129) } } }
+    for (const patch of [breakout, extra, space, tooLong]) {
+      expect(schemaAccepts(schema, patch)).toBe(false)
+      expect(ok(() => applyThemePatch(base, patch as TokenTreeInput, { policy: 'branding' }))).toBe(false)
+    }
+  })
+})
+

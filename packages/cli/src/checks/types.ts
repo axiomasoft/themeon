@@ -11,6 +11,8 @@ export interface Finding {
   readonly level: Level
   readonly rule: Rule
   readonly message: string
+  /** Stable machine code (P0.2 contrast diagnostics). */
+  readonly code?: string
   readonly file?: string
   readonly line?: number
 }

@@ -7,7 +7,7 @@
  * или контракт, НЕ naming engine core (P-D14).
  */
 
-import { defineTheme, defineTokens } from '@themeon/core'
+import { defineTheme, defineTokens } from '@themeon/core/authoring'
 import { generateScalePair, scaleToTokens } from '@themeon/colors'
 
 // Нейтральная шкала (фон/текст/бордеры) + акцентная шкала (action/link/focus) — по одному

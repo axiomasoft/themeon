@@ -68,12 +68,25 @@ describe('load', () => {
     expect(await asFn(plugin.load)('/some/other.css')).toBeUndefined()
   })
 
-  it('theme-фабрика вызывается на каждый load', async () => {
+  it('повторный load без инвалидации переиспользует последнюю доставку (один compile)', async () => {
     const themeFactory = vi.fn(() => makeTheme())
     const plugin = themeon({ theme: themeFactory })
     await asFn(plugin.load)('\0virtual:themeon.css')
     await asFn(plugin.load)('\0virtual:themeon.css')
-    expect(themeFactory).toHaveBeenCalledTimes(2)
+    expect(themeFactory).toHaveBeenCalledTimes(1)
+  })
+
+  it('resolve failure reports THEMEON_BAD_VALUE through this.error, not message parsing', async () => {
+    const plugin = themeon({
+      theme: defineTheme({ base: { space: { 4: 16 as unknown as string } } }),
+    })
+    const error = vi.fn((message: string): never => {
+      throw new Error(message)
+    })
+    await expect(callWith(plugin.load, { error }, '\0virtual:themeon.css')).rejects.toThrow(/THEMEON_BAD_VALUE/)
+    expect(error).toHaveBeenCalledTimes(1)
+    expect(String(error.mock.calls[0]?.[0])).toContain('THEMEON_BAD_VALUE')
+    expect(String(error.mock.calls[0]?.[0])).toContain('error')
   })
 })
 

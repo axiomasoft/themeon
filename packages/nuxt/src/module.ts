@@ -8,7 +8,8 @@ import {
   updateTemplates,
   useLogger,
 } from '@nuxt/kit'
-import { resolveTheme, serializeThemeCss } from '@themeon/core'
+import { resolveTheme, serializeThemeCss } from '@themeon/core/compiler'
+import { formatThemeFailure } from './internal/diagnostics'
 import { themeInitScript } from '@themeon/vue/anti-fouc'
 import { resolve as resolveAbs } from 'node:path'
 import {
@@ -103,8 +104,8 @@ export default defineNuxtModule<ModuleOptions>({
           return serializeThemeCss(resolveTheme(await loadTheme()))
         } catch (err) {
           // Fail loud (Rule 5): циклы/коллизии в пользовательской теме не должны молча
-          // деградировать в пустой/старый CSS.
-          console.error('[themeon] module: не удалось сериализовать пользовательскую тему:', err)
+          // деградировать в пустой/старый CSS. Machines consume codes via the diagnostic adapter.
+          useLogger('themeon').error(formatThemeFailure(err, 'pretty'))
           throw err
         }
       }

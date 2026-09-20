@@ -38,6 +38,18 @@ describe('validateTenantValue — вектора атак (fail-loud, positive a
     expect(code(() => validateTenantValue('color', 'expression(alert(1))'))).toBe('BAD_VALUE')
   })
 
+  test('rejection message never echoes the hostile payload', () => {
+    try {
+      validateTenantValue('color', 'red}</style><script>alert(1)</script>')
+    } catch (e) {
+      const err = e as ThemeonError
+      expect(err.message).not.toContain('alert(1)')
+      expect(err.message).not.toContain('</style>')
+      return
+    }
+    throw new Error('expected a throw')
+  })
+
   test('parseColor(v)!==null НЕ достаточно — метасимвол ловится ДО parseColor', () => {
     // 'red}' — 'red' само по себе не парсится parseColor (не именованный CSS-цвет 'red}'),
     // но проверяем, что причина отказа — метасимвол, а не провал парсера (порядок гейтов).

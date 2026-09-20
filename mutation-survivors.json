@@ -1,0 +1,56 @@
+{
+  "$schema": "themeon/mutation-survivors/v1",
+  "measuredAt": "2026-09-20",
+  "tool": "stryker@10.0.0",
+  "summary": {
+    "survived": 265,
+    "triaged": 265,
+    "blocking": 0
+  },
+  "decisions": [
+    {
+      "id": "errors-hint-conditional",
+      "file": "packages/core/src/errors.ts",
+      "line": 41,
+      "mutator": "ConditionalExpression",
+      "status": "equivalent",
+      "evidence": "TS class fields `path`/`hint` are own properties with value `undefined` when omitted; assigning `undefined` is indistinguishable from skipping assignment."
+    },
+    {
+      "id": "catalog-string-literals",
+      "file": "packages/core/src/diagnostics/catalog.ts",
+      "status": "deferred",
+      "evidence": "Survivors are mostly `StringLiteral` mutations on THEMEON_* code constants; tests assert mapping existence and prefix, not every literal value. Ratchet via targeted catalog tests in a follow-up, not semantics change."
+    },
+    {
+      "id": "patch-bulk-survivors",
+      "file": "packages/core/src/patch.ts",
+      "status": "deferred",
+      "evidence": "100 survived mutants on tenant merge paths; property laws (P2.1) cover composition but many branch-level mutants lack direct assertions. Non-blocking at measured covered MSI floor; track under patch hardening."
+    },
+    {
+      "id": "patch-policy-survivors",
+      "file": "packages/core/src/patch-policy.ts",
+      "status": "deferred",
+      "evidence": "76 survivors on policy vectors; envelope tests exist but do not pin every bound mutator. Floor gated at 65.5% covered MSI."
+    },
+    {
+      "id": "graph-build-survivors",
+      "file": "packages/core/src/graph/build.ts",
+      "status": "deferred",
+      "evidence": "33 survivors; graph suite covers cycles/depth/missing ref but not every ordering mutant. Floor gated at 68.5% covered MSI."
+    },
+    {
+      "id": "resolve-survivors",
+      "file": "packages/core/src/resolve.ts",
+      "status": "deferred",
+      "evidence": "34 survivors; resolver characterization + property laws cover main contracts; remaining mutants are branch-level. Floor gated at 82.0% covered MSI."
+    },
+    {
+      "id": "format-path-label",
+      "file": "packages/core/src/diagnostics/format.ts",
+      "status": "partially-addressed",
+      "evidence": "Added formatter tests for empty/missing `path` (P2.2); 14 survivors remain on JSON stable sort and source line rendering."
+    }
+  ]
+}

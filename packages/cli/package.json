@@ -34,7 +34,7 @@
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --root ../.. --project themeon"
+    "test": "vitest run --root ../.. --project @themeon/cli"
   },
   "dependencies": {
     "@themeon/core": "workspace:*",
@@ -46,9 +46,6 @@
     "tinyglobby": "catalog:"
   },
   "devDependencies": {
-    "@themeon/core": "workspace:*",
-    "@themeon/tailwind": "workspace:*",
-    "@themeon/colors": "workspace:*",
     "@types/node": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",

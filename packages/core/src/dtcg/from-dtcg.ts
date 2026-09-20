@@ -43,6 +43,8 @@ import { walkTree } from '../internal/walk'
 import { isToken } from '../types'
 import { ThemeonError } from '../errors'
 import { formatColor } from './color'
+import { diagnosticsFromWarnings, isLossyDtcgDiagnostic } from './diagnostics'
+import type { DTCGDiagnostic } from './diagnostics'
 import { setByPath } from './to-dtcg'
 import type { DTCGColorValue, DTCGDimensionValue, DTCGDocument } from './types'
 import type { SysPatch, SysTreeInput, TextStyleValue, ThemeDefinition, Token, TokenTreeInput } from '../types'
@@ -55,12 +57,18 @@ export interface FromDTCGOptions {
   themes?: Record<string, string>
   /** Пустой результат импорта (ни одного токена): `'warn'` (деф.) — громкий warning с диагнозом; `'error'` — `ThemeonError('DTCG_PARSE', …)`. */
   onEmpty?: 'warn' | 'error'
+  /**
+   * D2 (P0.1): lossy interchange (dropped `$extensions`, unsupported composites, …) fails unless
+   * explicitly allowed. Default `false`.
+   */
+  allowLossy?: boolean
 }
 
 /** Результат импорта: рантайм-`ThemeDefinition` + отчёт о потерях/неподдержанном. */
 export interface FromDTCGResult {
   definition: ThemeDefinition
   warnings: string[]
+  diagnostics: DTCGDiagnostic[]
 }
 
 /** Разобранный лист DTCG-документа: конкретное значение либо алиас на путь другого токена. */
@@ -636,5 +644,14 @@ export function fromDTCG(files: DTCGDocument | Record<string, DTCGDocument>, opt
     warnings.push(msg)
   }
 
-  return { definition, warnings }
+  const diagnostics = diagnosticsFromWarnings(warnings)
+  if (opts.allowLossy !== true && diagnostics.some((d) => isLossyDtcgDiagnostic(d.code))) {
+    const lossy = diagnostics.filter((d) => isLossyDtcgDiagnostic(d.code))
+    throw new ThemeonError(
+      'DTCG_LOSSY_IMPORT',
+      `DTCG import would lose interchange data (${lossy.length} lossy diagnostic(s)); pass allowLossy: true to proceed. First: ${lossy[0]!.message}`,
+    )
+  }
+
+  return { definition, warnings, diagnostics }
 }

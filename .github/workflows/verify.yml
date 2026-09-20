@@ -52,8 +52,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Unit tests
-        run: pnpm test
+      - name: Unit tests and critical coverage gate
+        run: pnpm test:coverage
+
+      - name: Package manifest hygiene
+        run: pnpm check:manifests
 
       - name: Cache Playwright browsers
         if: inputs.run-integration

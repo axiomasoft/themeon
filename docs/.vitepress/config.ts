@@ -66,6 +66,27 @@ function recipesSidebar() {
   ]
 }
 
+function architectureSidebar() {
+  return [
+    {
+      text: 'Architecture',
+      items: [
+        { text: 'Index', link: '/architecture/' },
+        { text: 'Overview', link: '/architecture/overview' },
+        { text: 'Package graph', link: '/architecture/package-graph' },
+        { text: 'Compiler map', link: '/architecture/current-compiler' },
+        { text: 'Compatibility', link: '/architecture/compiler-compatibility' },
+        { text: 'Diagnostics', link: '/architecture/diagnostics-and-errors' },
+        { text: 'Machine contracts', link: '/architecture/machine-contracts' },
+        { text: 'Security model', link: '/architecture/security-model' },
+        { text: 'Testing strategy', link: '/architecture/testing-strategy' },
+        { text: 'P3 tooling (D8/D9)', link: '/architecture/tooling-outcomes-p3' },
+        { text: 'ADR index', link: '/adr/' },
+      ],
+    },
+  ]
+}
+
 function makeSidebarMap(factory: () => any[], pages: string[]) {
   return Object.fromEntries(pages.map(p => [p, factory()]))
 }
@@ -84,6 +105,13 @@ const bestPracticesPages = [
 ]
 const recipesPages = [
   '/recipes/laravel-vite', '/recipes/anti-fouc',
+]
+const architecturePages = [
+  '/architecture/', '/architecture/overview', '/architecture/package-graph',
+  '/architecture/current-compiler', '/architecture/compiler-compatibility',
+  '/architecture/diagnostics-and-errors', '/architecture/machine-contracts',
+  '/architecture/security-model', '/architecture/testing-strategy',
+  '/architecture/tooling-outcomes-p3', '/adr/',
 ]
 
 // ─── Config ────────────────────────────────────────────────────────────────
@@ -113,6 +141,7 @@ export default defineConfig({
       { text: 'Introduction', link: '/introduction/why-themeon', activeMatch: '/introduction/' },
       { text: 'Basic Usage', link: '/basic-usage/core', activeMatch: '/basic-usage/' },
       { text: 'Best Practices', link: '/best-practices/fail-loud', activeMatch: '/best-practices/' },
+      { text: 'Architecture', link: '/architecture/', activeMatch: '/architecture/' },
       { text: 'Advanced', link: '/recipes/laravel-vite', activeMatch: '/recipes/' },
       { text: 'GitHub', link: 'https://github.com/axioma-studio/themeon' },
     ],
@@ -122,6 +151,7 @@ export default defineConfig({
       ...makeSidebarMap(basicUsageSidebar, basicUsagePages),
       ...makeSidebarMap(bestPracticesSidebar, bestPracticesPages),
       ...makeSidebarMap(recipesSidebar, recipesPages),
+      ...makeSidebarMap(architectureSidebar, architecturePages),
     },
 
     socialLinks: [

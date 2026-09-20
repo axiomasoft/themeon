@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { defineTheme, defineTokens } from './define'
+import { GRAPH_MAX_DEPTH } from './graph/build'
 import { resolveTheme } from './resolve'
 import { ThemeonError } from './errors'
 import { TOKEN_BRAND } from './types'
@@ -25,11 +26,11 @@ describe('resolveTheme — пример вход→выход (P1.4 Code Guidanc
   test('refLayer referenced: порядок токенов, var-chain, companion, тема', () => {
     const r = resolveTheme(sampleTheme(), { refLayer: 'referenced' })
 
-    // ref-токен идёт первым (эмитится перед sys-слоем), затем sys в порядке обхода.
+    // ref-токен идёт первым, затем sys в каноническом identity-порядке (P1.3).
     expect(r.tokens.map((t) => t.varName)).toEqual([
       '--color-forest-600',
-      '--color-bg-page',
       '--color-action-primary',
+      '--color-bg-page',
       '--spacing-4',
       '--text-2xl',
       '--text-2xl--line-height',
@@ -43,7 +44,7 @@ describe('resolveTheme — пример вход→выход (P1.4 Code Guidanc
       value: 'oklch(0.55 0.13 155)',
     })
     // sys-ссылка: value схлопнут до финального, ref указывает на непосредственную цель
-    expect(r.tokens[2]).toEqual({
+    expect(r.tokens[1]).toEqual({
       path: ['color', 'action', 'primary'],
       varName: '--color-action-primary',
       type: 'color',
@@ -246,5 +247,17 @@ describe('resolveTheme — детерминизм', () => {
   test('два вызова на одной теме дают идентичный результат', () => {
     const t = sampleTheme()
     expect(resolveTheme(t)).toEqual(resolveTheme(t))
+  })
+})
+
+describe('resolveTheme — policy errors', () => {
+  test('ref chain deeper than GRAPH_MAX_DEPTH throws CYCLE with depth message', () => {
+    let ref: Token = defineTokens('color', { leaf: '#000' }).leaf
+    for (let i = 0; i < GRAPH_MAX_DEPTH + 1; i++) {
+      const palette = defineTokens('color', { [`n${i}`]: ref } as Record<string, Token>)
+      ref = Object.values(palette)[0]!
+    }
+    const theme = defineTheme({ base: { color: { deep: ref } } })
+    expect(() => resolveTheme(theme)).toThrow(/GRAPH_MAX_DEPTH/)
   })
 })

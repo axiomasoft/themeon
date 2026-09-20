@@ -1,0 +1,15 @@
+{
+  "schema": "themeon-property-replay/v1",
+  "law": "dtcg-round-trip",
+  "seed": 20260919,
+  "counterexample": {
+    "base": {
+      "color": {
+        "brand": { "base": "#336699" }
+      },
+      "space": { "2": "0.5rem" },
+      "z": { "modal": 50 }
+    }
+  },
+  "message": "Committed regression fixture for DTCG semantic round-trip."
+}

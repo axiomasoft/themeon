@@ -29,6 +29,8 @@ import { walkTree } from '../internal/walk'
 import { isToken } from '../types'
 import { ThemeonError } from '../errors'
 import { parseColor } from './color'
+import { diagnosticsFromWarnings } from './diagnostics'
+import type { DTCGDiagnostic } from './diagnostics'
 import type { DTCGDocument, DTCGToken } from './types'
 import type { TextStyleValue, ThemeDefinition, Token, TokenTreeInput, TokenType } from '../types'
 
@@ -45,6 +47,7 @@ export interface DTCGExport {
   files: Record<string, DTCGDocument>
   /** Непредставимые значения, экранированные имена, пропущенные типы — по одной записи. */
   warnings: string[]
+  diagnostics: DTCGDiagnostic[]
 }
 
 /** ThemeOn TokenType → DTCG `$type` (данные, не if-каскад). */
@@ -414,5 +417,5 @@ export function toDTCG(def: ThemeDefinition, opts: ToDTCGOptions = {}): DTCGExpo
   }
 
   attachRootBridge(baseDoc, baseBridge)
-  return { files, warnings }
+  return { files, warnings, diagnostics: diagnosticsFromWarnings(warnings) }
 }

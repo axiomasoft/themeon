@@ -1,0 +1,15 @@
+{
+  "spec": "DTCG Format Module 2025.10",
+  "primarySource": "https://www.designtokens.org/TR/2025.10/format/",
+  "retrieved": "2026-09-19",
+  "rows": [
+    { "id": "color-string", "fixture": "color-string.json", "import": "supported", "export": "lossless" },
+    { "id": "color-structural", "fixture": "color-structural.json", "import": "supported", "export": "lossless" },
+    { "id": "dimension-structural", "fixture": "dimension-structural.json", "import": "supported", "export": "lossless" },
+    { "id": "group-type-inherit", "fixture": "group-type-inherit.json", "import": "supported", "export": "lossless" },
+    { "id": "alias-curly", "fixture": "alias-curly.json", "import": "supported", "export": "lossless" },
+    { "id": "extensions-token", "fixture": "extensions-token.json", "import": "lossy", "export": "n/a", "gap": "P1 metadata carriage" },
+    { "id": "root-extends", "fixture": "root-extends.json", "import": "reject-warn", "export": "n/a", "gap": "P1 group inheritance" },
+    { "id": "token-group-mix", "fixture": "token-group-mix.json", "import": "reject-error", "export": "n/a" }
+  ]
+}

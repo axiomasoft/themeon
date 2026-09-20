@@ -1,0 +1,125 @@
+import { THEMEON_ERROR_CODES } from '../errors'
+import type { ThemeonErrorCode } from '../errors'
+import type { DTCGDiagnosticCode } from '../dtcg/diagnostics'
+import type { GraphIssue } from '../graph/build'
+
+/**
+ * Known diagnostic codes. Evolution is additive: unknown codes stay opaque strings
+ * and must round-trip. Removing or renaming a published code is a breaking change.
+ */
+export const DIAGNOSTIC_CODES = [
+  'THEMEON_REF_CYCLE',
+  'THEMEON_REF_NOT_FOUND',
+  'THEMEON_REF_DEPTH',
+  'THEMEON_NAME_COLLISION',
+  'THEMEON_BAD_VALUE',
+  'THEMEON_DTCG_PARSE',
+  'THEMEON_DTCG_UNKNOWN_TYPE',
+  'THEMEON_DTCG_UNSUPPORTED_REF',
+  'THEMEON_DTCG_UNSUPPORTED_ROOT',
+  'THEMEON_DTCG_UNSUPPORTED_EXTENDS',
+  'THEMEON_DTCG_EXTENSIONS_NOT_CARRIED',
+  'THEMEON_DTCG_LOSSY_IMPORT',
+  'THEMEON_DTCG_UNRESOLVED_ALIAS',
+  'THEMEON_DTCG_EMPTY_IMPORT',
+  'THEMEON_DTCG_UNRECOGNIZED_VALUE',
+  'THEMEON_DTCG_COMPOSITE_UNSUPPORTED',
+  'THEMEON_DTCG_TYPOGRAPHY_PARTIAL',
+  'THEMEON_DTCG_UNSAFE_KEY',
+  'THEMEON_DTCG_UNEXPECTED_NODE',
+  'THEMEON_DTCG_BUNDLE_RESOLVER',
+  'THEMEON_DTCG_BUNDLE_HEURISTIC',
+  'THEMEON_DTCG_THEME_UNKNOWN_PATH',
+  'THEMEON_DTCG_EXPORT_UNREPRESENTABLE',
+  'THEMEON_DTCG_EXPORT_TEXT_DEGRADED',
+  'THEMEON_DTCG_NAME_COLLISION',
+  'THEMEON_UNSAFE_PATH',
+  'THEMEON_UNSAFE_CSS_TOKEN',
+  'THEMEON_BAD_COLOR',
+  'THEMEON_PATCH_UNSAFE_VALUE',
+  'THEMEON_PATCH_LIMIT',
+  'THEMEON_PATCH_POLICY',
+  'THEMEON_PATCH_UNICODE',
+  'THEMEON_PATCH_CYCLE',
+  'THEMEON_PATCH_PARSE',
+  'THEMEON_CONTRAST_WCAG_AA',
+  'THEMEON_CONTRAST_WCAG_INDETERMINATE',
+  'THEMEON_CONTRAST_APCA_ADVISORY',
+  'THEMEON_CONTRAST_BAD_COLOR',
+  'THEMEON_CHECK_COVERAGE',
+  'THEMEON_CHECK_HARDCODE',
+  'THEMEON_SYS_LITERAL_FORBIDDEN',
+  'THEMEON_COMPONENT_USES_PRIMITIVE',
+  'THEMEON_INTERNAL',
+  'THEMEON_EXTENSION_COLLISION',
+  'THEMEON_EXTENSION_CACHE',
+  'THEMEON_EXTENSION_ASYNC',
+  'THEMEON_QUERY_UNKNOWN_TOKEN',
+  'THEMEON_QUERY_GRAPH_TRUNCATED',
+] as const
+
+export type DiagnosticCatalogCode = (typeof DIAGNOSTIC_CODES)[number]
+
+const CATALOG = new Set<string>(DIAGNOSTIC_CODES)
+
+export const THEMEON_ERROR_TO_DIAGNOSTIC = {
+  CYCLE: 'THEMEON_REF_CYCLE',
+  UNKNOWN_PATH: 'THEMEON_REF_NOT_FOUND',
+  BAD_VALUE: 'THEMEON_BAD_VALUE',
+  NAME_COLLISION: 'THEMEON_NAME_COLLISION',
+  DTCG_PARSE: 'THEMEON_DTCG_PARSE',
+  UNSAFE_PATH: 'THEMEON_UNSAFE_PATH',
+  UNSAFE_CSS_TOKEN: 'THEMEON_UNSAFE_CSS_TOKEN',
+  BAD_COLOR: 'THEMEON_BAD_COLOR',
+  DTCG_NAME_COLLISION: 'THEMEON_DTCG_NAME_COLLISION',
+  DTCG_LOSSY_IMPORT: 'THEMEON_DTCG_LOSSY_IMPORT',
+  UNSUPPORTED_TENANT_TYPE: 'THEMEON_PATCH_UNSAFE_VALUE',
+  PATCH_LIMIT: 'THEMEON_PATCH_LIMIT',
+  PATCH_POLICY: 'THEMEON_PATCH_POLICY',
+  PATCH_UNICODE: 'THEMEON_PATCH_UNICODE',
+  PATCH_CYCLE: 'THEMEON_PATCH_CYCLE',
+  EXTENSION_COLLISION: 'THEMEON_EXTENSION_COLLISION',
+  EXTENSION_CACHE: 'THEMEON_EXTENSION_CACHE',
+  EXTENSION_ASYNC: 'THEMEON_EXTENSION_ASYNC',
+} as const satisfies Record<ThemeonErrorCode, DiagnosticCatalogCode>
+
+export const GRAPH_ISSUE_TO_DIAGNOSTIC = {
+  CYCLE: 'THEMEON_REF_CYCLE',
+  MISSING_REF: 'THEMEON_REF_NOT_FOUND',
+  DEPTH: 'THEMEON_REF_DEPTH',
+} as const satisfies Record<GraphIssue['code'], DiagnosticCatalogCode>
+
+/** Tenant / untrusted-input codes whose messages and hints must be redacted. */
+export const SENSITIVE_DIAGNOSTIC_CODES: ReadonlySet<string> = new Set([
+  'THEMEON_PATCH_UNSAFE_VALUE',
+  'THEMEON_PATCH_LIMIT',
+  'THEMEON_PATCH_POLICY',
+  'THEMEON_PATCH_UNICODE',
+  'THEMEON_PATCH_CYCLE',
+  'THEMEON_PATCH_PARSE',
+  'THEMEON_UNSAFE_PATH',
+  'THEMEON_UNSAFE_CSS_TOKEN',
+])
+
+export function isDiagnosticCatalogCode(code: string): code is DiagnosticCatalogCode {
+  return CATALOG.has(code)
+}
+
+export function diagnosticCodeFromThemeonError(code: ThemeonErrorCode): DiagnosticCatalogCode {
+  return THEMEON_ERROR_TO_DIAGNOSTIC[code]
+}
+
+export function diagnosticCodeFromGraphIssue(code: GraphIssue['code']): DiagnosticCatalogCode {
+  return GRAPH_ISSUE_TO_DIAGNOSTIC[code]
+}
+
+/** DTCG interchange codes are already THEMEON_* and remain stable (P0.1 / P1.4). */
+export function diagnosticCodeFromDtcg(code: DTCGDiagnosticCode): string {
+  return code
+}
+
+const ERROR_CODE_SET = new Set<string>(THEMEON_ERROR_CODES)
+
+export function isThemeonErrorCode(code: string): code is ThemeonErrorCode {
+  return ERROR_CODE_SET.has(code)
+}

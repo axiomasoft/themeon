@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "owner": "@themeon/vite",
+  "compilerVersion": "test",
+  "fingerprint": "abc",
+  "css": {
+    "delivery": "virtual",
+    "virtualModuleId": "virtual:themeon.css",
+    "sha256": "00",
+    "bytes": 0,
+    "integrity": "sha256-00"
+  },
+  "themes": ["dark"],
+  "cssVariables": ["--color-bg-page", "--color-action-primary"],
+  "deprecatedCssVariables": [
+    { "name": "--color-action-primary", "message": "use color.action.brand" }
+  ]
+}

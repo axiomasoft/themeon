@@ -12,6 +12,13 @@ import {
 } from 'colorjs.io/fn'
 
 import { ColorsError } from './errors'
+import {
+  WCAG22_AA_LARGE_TEXT_RATIO,
+  WCAG22_AA_NON_TEXT_RATIO,
+  WCAG22_AA_NORMAL_TEXT_RATIO,
+  evaluateWcag22Policy,
+  type Wcag22ContrastResult,
+} from './wcag22'
 
 // colorjs.io/fn (процедурный tree-shakeable вход) не регистрирует цветовые пространства
 // автоматически — это обязана сделать сама библиотека-потребитель (colorjs.io/docs/procedural).
@@ -154,12 +161,29 @@ export interface ContrastReport {
   readonly pass: boolean
 }
 
+export interface WcagContrastReport {
+  readonly pair: ContrastPair
+  readonly result: Wcag22ContrastResult
+}
+
 export interface ContrastCheckResult {
+  /** Normative WCAG 2.2 AA gate (D3, P0.2). */
   readonly pass: boolean
+  /** APCA experimental/advisory channel — does not drive `pass`. */
+  readonly apcaPass: boolean
+  readonly wcagReports: readonly WcagContrastReport[]
   readonly reports: readonly ContrastReport[]
 }
 
-/** Батч-гейт: pass = ВСЕ пары прошли. Непарсибельная пара = throw (fail-closed), не skip. */
+function wcagPolicyForUsage(
+  usage: ContrastUsage,
+): { kind: 'wcag22-text'; context: { level: 'AA'; size: 'normal' | 'large' } } | { kind: 'wcag22-non-text' } {
+  if (usage === 'non-text') return { kind: 'wcag22-non-text' }
+  if (usage === 'large') return { kind: 'wcag22-text', context: { level: 'AA', size: 'large' } }
+  return { kind: 'wcag22-text', context: { level: 'AA', size: 'normal' } }
+}
+
+/** Батч-гейт: `pass` = WCAG 2.2 AA; APCA в `apcaPass` (advisory). Непарсибельная пара = throw (fail-closed). */
 export function checkContrast(pairs: readonly ContrastPair[]): ContrastCheckResult {
   const reports = pairs.map((pair): ContrastReport => {
     const lc = contrastAPCA(pair.fg, pair.bg, { base: pair.base })
@@ -167,7 +191,26 @@ export function checkContrast(pairs: readonly ContrastPair[]): ContrastCheckResu
     return { pair, lc, required, pass: Math.abs(lc) >= required }
   })
 
-  return { pass: reports.every((report) => report.pass), reports }
+  const wcagReports = pairs.map((pair): WcagContrastReport => {
+    const policy = wcagPolicyForUsage(pair.usage)
+    const result =
+      policy.kind === 'wcag22-non-text'
+        ? evaluateWcag22Policy(pair.fg, pair.bg, policy, { base: pair.base })
+        : evaluateWcag22Policy(pair.fg, pair.bg, policy, { base: pair.base })
+    return { pair, result }
+  })
+
+  const normativePass = wcagReports.every((report) => report.result.status === 'pass')
+  const apcaPass = reports.every((report) => report.pass)
+
+  return { pass: normativePass, apcaPass, wcagReports, reports }
+}
+
+export const WCAG_THRESHOLDS: Readonly<Record<ContrastUsage, number>> = {
+  body: WCAG22_AA_NORMAL_TEXT_RATIO,
+  text: WCAG22_AA_NORMAL_TEXT_RATIO,
+  large: WCAG22_AA_LARGE_TEXT_RATIO,
+  'non-text': WCAG22_AA_NON_TEXT_RATIO,
 }
 
 /** Роль пары в SSOT `SEMANTIC_CONTRAST_PAIRS` — fg/bg заданы именами CSS-переменных темы. */

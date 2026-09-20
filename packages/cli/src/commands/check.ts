@@ -9,8 +9,16 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { defineCommand } from 'citty'
 import { consola } from 'consola'
-import { applyThemePatch, resolveTheme } from '@themeon/core'
-import type { TokenTreeInput } from '@themeon/core'
+import {
+  applyThemePatch,
+  aggregateDiagnostics,
+  diagnosticFromThemeonError,
+  diagnosticFromUnknown,
+  formatDiagnostics,
+  resolveTheme,
+  ThemeonError,
+} from '@themeon/core'
+import type { Diagnostic, TokenTreeInput } from '@themeon/core'
 import { checkThemeContrast } from '@themeon/colors'
 import { DEFAULT_THEME_CONFIG_PATH } from '../constants'
 import { loadThemeConfig } from '../load-theme'
@@ -18,7 +26,14 @@ import { scanSources } from '../checks/scan'
 import { checkCoverage } from '../checks/coverage'
 import { checkContrastPairs } from '../checks/contrast'
 import { checkHardcode } from '../checks/hardcode'
+import { findingsToDiagnostics } from '../checks/diagnostics'
 import type { Finding } from '../checks/types'
+
+export interface CheckResult {
+  readonly findings: Finding[]
+  readonly diagnostics: readonly Diagnostic[]
+  readonly ok: boolean
+}
 
 export interface CheckOptions {
   cwd: string
@@ -84,7 +99,11 @@ function scanIgnorePatterns(opts: CheckOptions): string[] {
  * Rules item'а — запрещён try/catch, глотающий throw в «пропустить»); `pass===false` — тоже
  * `error`-finding. Три случая суммарно дают fail-closed на ВСЕХ путях H3 И2.
  */
-async function runTenantCheck(opts: CheckOptions): Promise<{ findings: Finding[]; ok: boolean }> {
+function tenantFailure(finding: Finding, diagnostic: Diagnostic): CheckResult {
+  return { findings: [finding], diagnostics: [diagnostic], ok: false }
+}
+
+async function runTenantCheck(opts: CheckOptions): Promise<CheckResult> {
   const theme = await loadThemeConfig(resolve(opts.cwd, opts.config))
   const base = resolveTheme(theme, { refLayer: 'inline' })
 
@@ -93,56 +112,91 @@ async function runTenantCheck(opts: CheckOptions): Promise<{ findings: Finding[]
     const raw = await readFile(resolve(opts.cwd, opts.tenant!), 'utf8')
     patch = JSON.parse(raw) as TokenTreeInput
   } catch (error) {
-    return {
-      findings: [
-        {
-          level: 'error',
-          rule: 'contrast',
-          message: `tenant patch unreadable or not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
-        },
-      ],
-      ok: false,
-    }
+    const diagnostic = aggregateDiagnostics([
+      {
+        code: 'THEMEON_PATCH_PARSE',
+        severity: 'error',
+        message: `tenant patch unreadable or not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
+        provenance: { stage: 'tenant', producer: 'runTenantCheck' },
+      },
+    ])[0]!
+    return tenantFailure(
+      {
+        level: 'error',
+        rule: 'contrast',
+        code: diagnostic.code,
+        message: diagnostic.message,
+      },
+      diagnostic,
+    )
   }
 
   let vars: Readonly<Record<string, string>>
   try {
     ;({ vars } = applyThemePatch(base, patch))
   } catch (error) {
-    return {
-      findings: [
-        {
-          level: 'error',
-          rule: 'contrast',
-          message: `tenant patch validation failed: ${error instanceof Error ? error.message : String(error)}`,
-        },
-      ],
-      ok: false,
-    }
+    const diagnostic =
+      error instanceof ThemeonError
+        ? diagnosticFromThemeonError(error, { provenance: { stage: 'tenant', producer: 'applyThemePatch' } })
+        : diagnosticFromUnknown(error, { provenance: { stage: 'tenant', producer: 'applyThemePatch' } })
+    return tenantFailure(
+      {
+        level: 'error',
+        rule: 'contrast',
+        code: diagnostic.code,
+        message: `tenant patch validation failed: ${diagnostic.message}`,
+      },
+      diagnostic,
+    )
   }
 
   const lookup: Record<string, string> = { ...base.vars, ...vars }
   try {
-    const { pass, reports } = checkThemeContrast(lookup)
-    const findings: Finding[] = reports
-      .filter((report) => !report.pass)
-      .map((report) => ({
-        level: 'error' as const,
-        rule: 'contrast' as const,
-        message: `APCA ${Math.abs(report.lc).toFixed(1)} < ${report.required} for ${report.pair.label}`,
-      }))
-    return { findings, ok: pass }
-  } catch (error) {
-    return {
-      findings: [
-        {
+    const { pass, wcagReports, reports } = checkThemeContrast(lookup)
+    const findings: Finding[] = []
+    for (const report of wcagReports) {
+      if (report.result.status === 'indeterminate') {
+        findings.push({
+          level: 'warning',
+          rule: 'contrast',
+          code: 'THEMEON_CONTRAST_WCAG_INDETERMINATE',
+          message: `WCAG indeterminate (${report.result.reason}) for ${report.pair.label}: ${report.result.message}`,
+        })
+        continue
+      }
+      if (!report.result.pass) {
+        findings.push({
           level: 'error',
           rule: 'contrast',
-          message: `unparseable color pair in effective tenant theme: ${error instanceof Error ? error.message : String(error)}`,
-        },
-      ],
-      ok: false,
+          code: 'THEMEON_CONTRAST_WCAG_AA',
+          message: `WCAG 2.2 AA ${report.result.ratio.toFixed(2)}:1 < ${report.result.threshold}:1 for ${report.pair.label}`,
+        })
+      }
     }
+    for (const report of reports) {
+      if (!report.pass) {
+        findings.push({
+          level: 'warning',
+          rule: 'contrast',
+          code: 'THEMEON_CONTRAST_APCA_ADVISORY',
+          message: `APCA advisory |Lc| ${Math.abs(report.lc).toFixed(1)} < ${report.required} for ${report.pair.label}`,
+        })
+      }
+    }
+    return { findings, diagnostics: findingsToDiagnostics(findings), ok: pass }
+  } catch (error) {
+    const diagnostic = diagnosticFromUnknown(error, {
+      provenance: { stage: 'tenant', producer: 'checkThemeContrast' },
+    })
+    return tenantFailure(
+      {
+        level: 'error',
+        rule: 'contrast',
+        code: 'THEMEON_CONTRAST_BAD_COLOR',
+        message: `unparseable color pair in effective tenant theme: ${diagnostic.message}`,
+      },
+      { ...diagnostic, code: 'THEMEON_CONTRAST_BAD_COLOR' },
+    )
   }
 }
 
@@ -155,7 +209,7 @@ async function runTenantCheck(opts: CheckOptions): Promise<{ findings: Finding[]
  * publication gate, P6.3): source scanning/coverage/hardcode linters do not apply to a tenant
  * patch publication decision.
  */
-export async function runCheck(opts: CheckOptions): Promise<{ findings: Finding[]; ok: boolean }> {
+export async function runCheck(opts: CheckOptions): Promise<CheckResult> {
   if (opts.tenant !== undefined) return runTenantCheck(opts)
 
   const theme = await loadThemeConfig(resolve(opts.cwd, opts.config))
@@ -180,17 +234,21 @@ export async function runCheck(opts: CheckOptions): Promise<{ findings: Finding[
   if (opts.contrast ?? true) findings.push(...checkContrastPairs(resolvedInline))
   if (opts.hardcode ?? true) findings.push(...checkHardcode(sources, { allowPx: opts.allowPx }))
 
-  return { findings, ok: findings.every((f) => f.level !== 'error') }
+  return {
+    findings,
+    diagnostics: findingsToDiagnostics(findings),
+    ok: findings.every((f) => f.level !== 'error'),
+  }
 }
 
 function reportFindings(findings: readonly Finding[]): void {
+  const diagnostics = findingsToDiagnostics(findings)
   let errors = 0
   let warnings = 0
 
-  for (const finding of findings) {
-    const location = finding.file ? `${finding.file}${finding.line !== undefined ? `:${finding.line}` : ''} — ` : ''
-    const line = `[${finding.rule}] ${location}${finding.message}`
-    if (finding.level === 'error') {
+  for (const diagnostic of diagnostics) {
+    const line = formatDiagnostics([diagnostic], 'plain')
+    if (diagnostic.severity === 'error') {
       errors++
       consola.error(line)
     } else {
@@ -284,7 +342,7 @@ export const checkCommand = defineCommand({
       reportFindings(findings)
       process.exitCode = ok ? 0 : 1
     } catch (err) {
-      consola.error(err instanceof Error ? err.message : String(err))
+      consola.error(formatDiagnostics([diagnosticFromUnknown(err)], 'pretty'))
       process.exitCode = 1
     }
   },

@@ -1,0 +1,98 @@
+{
+  "schema_version": "consumer-matrix/v1",
+  "description": "Packed tarball external consumers (P2.3). Each cell installs from file: tarballs, never workspace:*.",
+  "cells": [
+    {
+      "id": "ts-esm-nodenext",
+      "title": "TypeScript ESM (moduleResolution: NodeNext)",
+      "fixture": "ts-esm-nodenext",
+      "resolver": "nodenext",
+      "dependencies": {
+        "@themeon/core": "0.0.0",
+        "typescript": "6.0.3"
+      },
+      "steps": ["install", "typecheck", "node-smoke"]
+    },
+    {
+      "id": "ts-esm-bundler",
+      "title": "TypeScript ESM (moduleResolution: bundler)",
+      "fixture": "ts-esm-bundler",
+      "resolver": "bundler",
+      "dependencies": {
+        "@themeon/core": "0.0.0",
+        "typescript": "6.0.3"
+      },
+      "steps": ["install", "typecheck", "node-smoke"]
+    },
+    {
+      "id": "node-dom-free",
+      "title": "Node without DOM (compiler + colors only)",
+      "fixture": "node-dom-free",
+      "resolver": "nodenext",
+      "dependencies": {
+        "@themeon/core": "0.0.0",
+        "@themeon/colors": "0.0.0"
+      },
+      "steps": ["install", "node-smoke"]
+    },
+    {
+      "id": "vite-virtual-css",
+      "title": "Vite consumer (virtual:themeon.css)",
+      "fixture": "vite-virtual-css",
+      "resolver": "bundler",
+      "dependencies": {
+        "@themeon/vite": "0.0.0",
+        "vite": "8.1.4"
+      },
+      "steps": ["install", "vite-build"]
+    },
+    {
+      "id": "vue-vite-dist",
+      "title": "Vue + packed @themeon/vue dist (vue-tsc)",
+      "fixture": "vue-vite-dist",
+      "resolver": "bundler",
+      "dependencies": {
+        "@themeon/vue": "0.0.0",
+        "vue": "3.5.39",
+        "typescript": "6.0.3",
+        "vue-tsc": "3.1.4"
+      },
+      "steps": ["install", "vue-tsc"]
+    },
+    {
+      "id": "nuxt-ssr-build",
+      "title": "Nuxt SSR production build with @themeon/nuxt",
+      "fixture": "nuxt-ssr-build",
+      "resolver": "bundler",
+      "dependencies": {
+        "@themeon/nuxt": "0.0.0",
+        "nuxt": "4.4.8"
+      },
+      "steps": ["install", "nuxt-build"],
+      "timeoutMs": 180000
+    },
+    {
+      "id": "laravel-css-import",
+      "title": "Laravel-style Vite CSS @import @themeon/css",
+      "fixture": "laravel-css-import",
+      "resolver": "bundler",
+      "dependencies": {
+        "@themeon/css": "0.0.0",
+        "vite": "8.1.4"
+      },
+      "steps": ["install", "vite-build"]
+    },
+    {
+      "id": "tailwind-v4-bridge",
+      "title": "Tailwind v4 + @themeon/tailwind",
+      "fixture": "tailwind-v4-bridge",
+      "resolver": "bundler",
+      "dependencies": {
+        "@themeon/tailwind": "0.0.0",
+        "@tailwindcss/node": "4.3.2",
+        "tailwindcss": "4.3.2"
+      },
+      "steps": ["install", "tailwind-compile"]
+    }
+  ]
+}

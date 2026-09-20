@@ -4,6 +4,21 @@ Every package requires **Node `>= 22.18.0`** (root `package.json` `engines.node`
 ESM-only. Install only the packages your stack needs — the Basic Usage section (one page per
 package) covers what each one does.
 
+## npm availability
+
+Workspace manifests use **`0.0.0`** as a [Changesets](https://github.com/changesets/changesets)
+placeholder until `changeset version` assigns real semver. That **does not** mean the packages are
+already installable from npm: as of **2026-09-19**, `npm view @themeon/<package>` returns `E404`
+for every public workspace package. Use a git dependency or monorepo `workspace:*` link until the
+first release lands on npmjs.
+
+After publish, scoped installs look like:
+
+```sh
+pnpm add @themeon/core
+# or: npm add @themeon/core
+```
+
 ## Core (always needed)
 
 ```sh
@@ -61,11 +76,12 @@ pnpm add @themeon/tailwind
 
 ## CLI
 
-The CLI ships under the bare `themeon` package name (not `@themeon/*`) — it's the umbrella tool,
-not a scoped library adapter:
+The CLI ships as **`@themeon/cli`** (binary name `themeon`) — not a bare `themeon` npm name until
+that package exists on the registry:
 
 ```sh
-npm i -D themeon
+pnpm add -D @themeon/cli
+# or: npm add -D @themeon/cli
 ```
 
 Next: [Quick Start](/introduction/quick-start).

@@ -1,0 +1,5 @@
+{
+  "space": {
+    "s": { "$type": "dimension", "$value": { "value": 0.5, "unit": "rem" } }
+  }
+}

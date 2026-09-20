@@ -1,9 +1,12 @@
 # Changelog
 
-All packages are **pre-1.0 and unpublished** — there has been no versioned release yet, so
-there is nothing to render here. Changes are tracked as pending [Changesets](https://github.com/changesets/changesets)
-in `.changeset/*.md` until the first `changeset version` cuts real package versions; this page
-will switch to a generated release log at that point.
+All packages are **pre-1.0**. Release automation (Changesets + `release.yml`) is wired in the
+repository, but **no version has been published to npm yet** (registry check 2026-09-19: `E404`
+for every `@themeon/*` name). Until the first publish, changes are tracked as pending
+[Changesets](https://github.com/changesets/changesets) in `.changeset/*.md`; workspace manifests
+keep `version: "0.0.0"` as the Changesets placeholder, not as a published semver.
+
+This page will switch to a generated release log after the first `changeset version` / npm publish.
 
 ## Currently pending (15 changesets)
 

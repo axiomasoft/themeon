@@ -1,0 +1,50 @@
+{
+  "$schema": "themeon/performance-baseline/v1",
+  "regressionBudgetRatio": 0.3,
+  "samplePolicy": {
+    "warmIterations": 7,
+    "gateAggregation": "median"
+  },
+  "recordedEnvironment": {
+    "date": "2026-09-20",
+    "node": "v24.5.0",
+    "platform": "linux/x64",
+    "note": "Absolute milliseconds are informational; the gate compares against this baseline with a coarse ratio budget."
+  },
+  "correctness": {
+    "small": {
+      "fingerprint": "6c5f23f45f918c89",
+      "cssSha256": "57c8c501624d132dde024cbb596ba95d82ec3dfa420f51bfce3c74b077015743"
+    }
+  },
+  "scenarios": {
+    "small.compileWarmMs": {
+      "medianMs": 5.61
+    },
+    "medium.compileWarmMs": {
+      "medianMs": 56.16
+    },
+    "large.compileWarmMs": {
+      "medianMs": 267.91
+    },
+    "wideComponent.compileWarmMs": {
+      "medianMs": 96.73
+    },
+    "tenantPatch.compileWarmMs": {
+      "medianMs": 50.34
+    },
+    "small.applyRuntimeMs": {
+      "medianMs": 0.064
+    },
+    "small.dtcgRoundTripMs": {
+      "medianMs": 2.1
+    },
+    "vitePlugin.loadWarmMs": {
+      "medianMs": 1.41
+    }
+  },
+  "laneBudget": {
+    "documentedTimeoutMinutes": 20,
+    "observedWallSecondsLocal": 5
+  }
+}

@@ -11,6 +11,7 @@
 import { TOKEN_BRAND, isToken } from './types'
 import { ThemeonError } from './errors'
 import { walkTree } from './internal/walk'
+import { RESERVED_PATCH_KEY_SET } from './patch-policy'
 import type {
   AutoComplete,
   SysPatch,
@@ -116,12 +117,8 @@ function makeToken(group: string, path: string[], value: TokenLeafInput): Token 
   }) as Token
 }
 
-/** Кладёт лист в результирующее дерево по относительному пути, создавая подгруппы. */
-/** Ключи, чья bracket-запись (`node[key] = ...`) идёт через unset/наследуемый аксессор
- *  вместо создания own-property — `__proto__` подменяет прототип узла целиком (verified
- *  final-audit H2, 2026-07-12), `constructor`/`prototype` — тот же класс риска. Экспортируется
- *  для reuse в `patch.ts` (P6.1, tenant-путь — тот же класс атаки на входе с внешним JSON). */
-export const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+/** Reserved prototype-pollution keys. Alias of {@link RESERVED_PATCH_KEY_SET} (P0.3 SSOT). */
+export const UNSAFE_KEYS = RESERVED_PATCH_KEY_SET
 
 function assignByPath(root: Record<string, unknown>, path: string[], leaf: unknown): void {
   let node = root

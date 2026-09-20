@@ -109,10 +109,14 @@ describe('fromDTCG — отчёт warnings', () => {
   })
 
   test('$extensions сообщается в warnings (модель ThemeOn не несёт $extensions-слота)', () => {
-    const { warnings } = fromDTCG({
-      color: { a: { $type: 'color', $value: '#000', $extensions: { 'com.acme': { foo: 1 } } } },
-    })
+    const { warnings, diagnostics } = fromDTCG(
+      {
+        color: { a: { $type: 'color', $value: '#000', $extensions: { 'com.acme': { foo: 1 } } } },
+      },
+      { allowLossy: true },
+    )
     expect(warnings.some((w) => w.includes('$extensions'))).toBe(true)
+    expect(diagnostics.some((d) => d.code === 'THEMEON_DTCG_EXTENSIONS_NOT_CARRIED')).toBe(true)
   })
 
   test('property-level $ref (не на $value) → warning unsupported', () => {
@@ -278,7 +282,7 @@ describe('fromDTCG — P8.12: коллизия имени темы в эврис
       'dark.tokens.json': { color: { bg: { $type: 'color', $value: '#111111' } } },
       'dark.json': { color: { bg: { $type: 'color', $value: '#222222' } } },
     }
-    const { definition, warnings } = fromDTCG(files)
+    const { definition, warnings } = fromDTCG(files, { allowLossy: true })
     expect(Object.keys(definition.themes)).toEqual(['dark'])
     expect(resolveTheme(definition).themes.dark).toEqual([
       { path: ['color', 'bg'], varName: '--color-bg', type: 'color', value: '#111111' },

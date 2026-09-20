@@ -10,7 +10,7 @@
 // файла — единственное место, где тема берётся из скомпилированного `dist` (ей неоткуда
 // больше взяться при запуске голым `node`, без TS-strip-types — выбор `[VERIFY-ON-IMPL]`
 // P2.7 ТЗ: tsdown-entry вместо `node --experimental-strip-types`).
-import { resolveTheme, serializeThemeCss } from '@themeon/core'
+import { resolveTheme, serializeThemeCss } from '@themeon/core/compiler'
 import { checkThemeContrast } from '@themeon/colors'
 import { mkdirSync, renameSync, writeFileSync } from 'node:fs'
 
@@ -53,7 +53,9 @@ export function genTokens(theme, root = new URL('..', import.meta.url).pathname)
   // удалена (Major #22 — раньше CLI и gen-tokens.mjs гоняли РАЗНЫЕ таблицы на один вопрос).
   const base = checkThemeContrast(themeLookup(resolvedInline, undefined))
   const dark = checkThemeContrast(themeLookup(resolvedInline, 'dark'))
-  const pass = base.pass && dark.pass
+  // File write stays the package APCA gate. After P0.2, `pass` is WCAG 2.2 AA (D3);
+  // `apcaPass` is the historical fail-closed publisher this script documents.
+  const pass = base.apcaPass && dark.apcaPass
   const reports = [...base.reports, ...dark.reports]
 
   if (!pass) {

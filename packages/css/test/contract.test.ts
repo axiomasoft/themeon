@@ -172,12 +172,12 @@ describe('@themeon/css — дефолт-тема dist/tokens.css', () => {
   test('дефолт-тема проходит checkThemeContrast (SSOT) fail-closed на light и dark', () => {
     const resolved = resolveTheme(defaultTheme, { refLayer: 'inline' })
     const lightResult = checkThemeContrast(resolved.vars)
-    expect(lightResult.pass, JSON.stringify(lightResult.reports.filter((r) => !r.pass))).toBe(true)
+    expect(lightResult.apcaPass, JSON.stringify(lightResult.reports.filter((r) => !r.pass))).toBe(true)
 
     const darkLookup = { ...resolved.vars }
     for (const { varName, value } of resolved.themes.dark ?? []) darkLookup[varName] = value
     const darkResult = checkThemeContrast(darkLookup)
-    expect(darkResult.pass, JSON.stringify(darkResult.reports.filter((r) => !r.pass))).toBe(true)
+    expect(darkResult.apcaPass, JSON.stringify(darkResult.reports.filter((r) => !r.pass))).toBe(true)
   })
 
   // P8.7 — обязательный тест #8: каждое имя fg/bg из SSOT `SEMANTIC_CONTRAST_PAIRS`

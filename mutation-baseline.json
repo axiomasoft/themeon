@@ -1,0 +1,45 @@
+{
+  "$schema": "themeon/mutation-baseline/v1",
+  "stryker": "10.0.0",
+  "vitest": "4.1.10",
+  "includes": [
+    "packages/core/src/graph/build.ts",
+    "packages/core/src/resolve.ts",
+    "packages/core/src/patch.ts",
+    "packages/core/src/patch-policy.ts",
+    "packages/core/src/errors.ts",
+    "packages/core/src/diagnostics/catalog.ts",
+    "packages/core/src/diagnostics/format.ts"
+  ],
+  "overall": {
+    "coveredMsi": 69.5
+  },
+  "files": {
+    "packages/core/src/graph/build.ts": {
+      "coveredMsi": 68.5
+    },
+    "packages/core/src/resolve.ts": {
+      "coveredMsi": 82
+    },
+    "packages/core/src/patch.ts": {
+      "coveredMsi": 63.5
+    },
+    "packages/core/src/patch-policy.ts": {
+      "coveredMsi": 65.5
+    },
+    "packages/core/src/errors.ts": {
+      "coveredMsi": 88
+    },
+    "packages/core/src/diagnostics/catalog.ts": {
+      "coveredMsi": 41
+    },
+    "packages/core/src/diagnostics/format.ts": {
+      "coveredMsi": 78
+    }
+  },
+  "laneBudget": {
+    "documentedTimeoutMinutes": 15,
+    "observedWallSecondsLocal": 122,
+    "concurrency": 4
+  }
+}

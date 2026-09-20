@@ -21,7 +21,7 @@ const accentLightTokens = scaleToTokens(accent.light) // { '1': 'oklch(…)', �
 const result = checkContrast([
   { fg: accent.light[11]!.css, bg: accent.light[1]!.css, usage: 'body' },
 ])
-result.pass // true | false
+result.pass // WCAG 2.2 AA normative; see also result.apcaPass
 ```
 
 ## Scale roles (`STEP_ROLES`)
@@ -76,9 +76,13 @@ input.
 | `non-text` | 45 |
 
 Thresholds follow the [APCA in a Nutshell](https://git.apcacontrast.com/documentation/APCA_in_a_Nutshell.html)
-guidance. APCA is a **guardrail metric** — it is not yet a ratified standard (it underlies the
-WCAG 3 draft, still in development); treat the gate as "catches egregiously low contrast",
-not as a legal accessibility certification.
+guidance. APCA is **experimental/advisory** (D3): `checkContrast` / `checkThemeContrast` expose
+`apcaPass` separately from normative WCAG 2.2 AA in `pass` / `wcagReports`.
+
+**WCAG 2.2 (normative, RAG:✅):** [WCAG 2.2 contrast minimum](https://www.w3.org/TR/WCAG22/#contrast-minimum)
+and [non-text contrast](https://www.w3.org/TR/WCAG22/#non-text-contrast) — retrieved 2026-09-19.
+`contrastWCAG22Ratio` / `evaluateWcag22Policy` implement relative luminance contrast; gradients and
+unresolved alpha yield **indeterminate** results, not silent pass.
 
 ### Alpha needs an actual backdrop
 
@@ -111,7 +115,8 @@ const result = checkThemeContrast({
   '--color-bg-page': '#ffffff',
   // …other roles
 })
-result.pass // true | false
+result.pass // WCAG 2.2 AA (normative)
+result.apcaPass // APCA advisory
 ```
 
 ## License note

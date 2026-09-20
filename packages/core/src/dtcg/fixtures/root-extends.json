@@ -1,0 +1,6 @@
+{
+  "group": {
+    "$extends": "./other.json",
+    "token": { "$type": "color", "$value": "#ffffff" }
+  }
+}

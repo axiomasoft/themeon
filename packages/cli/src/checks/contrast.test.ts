@@ -31,6 +31,7 @@ describe('checkContrastPairs', () => {
       expect.objectContaining({ level: 'error', rule: 'contrast' }),
     )
     expect(findings[0]!.message).toContain('text/bg.page')
+    expect(findings[0]!.code).toBe('THEMEON_CONTRAST_WCAG_AA')
   })
 
   it('проходная пара — пусто', () => {
@@ -64,7 +65,8 @@ describe('checkContrastPairs', () => {
 
     const findings = checkContrastPairs(resolved)
 
-    expect(findings).toHaveLength(1)
-    expect(findings[0]!.message).toContain('theme dark')
+    expect(findings.length).toBeGreaterThanOrEqual(1)
+    expect(findings.every((finding) => finding.message.includes('theme dark'))).toBe(true)
+    expect(findings.some((finding) => finding.code === 'THEMEON_CONTRAST_WCAG_AA')).toBe(true)
   })
 })

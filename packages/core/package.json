@@ -27,18 +27,50 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./authoring": {
+      "types": "./dist/public/authoring.d.ts",
+      "import": "./dist/public/authoring.js"
+    },
+    "./compiler": {
+      "types": "./dist/public/compiler.d.ts",
+      "import": "./dist/public/compiler.js"
+    },
+    "./runtime": {
+      "types": "./dist/public/runtime.d.ts",
+      "import": "./dist/public/runtime.js"
+    },
+    "./dtcg": {
+      "types": "./dist/public/dtcg.d.ts",
+      "import": "./dist/public/dtcg.js"
+    },
+    "./tenant": {
+      "types": "./dist/public/tenant.d.ts",
+      "import": "./dist/public/tenant.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "authoring": ["./dist/public/authoring.d.ts"],
+      "compiler": ["./dist/public/compiler.d.ts"],
+      "runtime": ["./dist/public/runtime.d.ts"],
+      "dtcg": ["./dist/public/dtcg.d.ts"],
+      "tenant": ["./dist/public/tenant.d.ts"]
     }
   },
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --root ../.. --project @themeon/core"
+    "test": "vitest run --root ../.. --project @themeon/core",
+    "test:property": "vitest run --root ../.. --project @themeon/core src/property"
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "@terrazzo/parser": "catalog:",
     "colorjs.io": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "fast-check": "catalog:"
   }
 }

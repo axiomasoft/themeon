@@ -1,0 +1,48 @@
+{
+  "schema_version": "types-compat-matrix/v1",
+  "cells": [
+    {
+      "id": "positive-core-subpaths",
+      "kind": "positive",
+      "fixture": "positive-core-subpaths",
+      "dependencies": {
+        "@themeon/core": "workspace-placeholder"
+      }
+    },
+    {
+      "id": "positive-colors",
+      "kind": "positive",
+      "fixture": "positive-colors",
+      "dependencies": {
+        "@themeon/colors": "workspace-placeholder"
+      }
+    },
+    {
+      "id": "positive-vue-subpaths",
+      "kind": "positive",
+      "fixture": "positive-vue-subpaths",
+      "dependencies": {
+        "@themeon/vue": "workspace-placeholder",
+        "@themeon/core": "workspace-placeholder"
+      }
+    },
+    {
+      "id": "positive-vite",
+      "kind": "positive",
+      "fixture": "positive-vite",
+      "dependencies": {
+        "@themeon/vite": "workspace-placeholder",
+        "@themeon/vue": "workspace-placeholder",
+        "@themeon/core": "workspace-placeholder"
+      }
+    },
+    {
+      "id": "negative-unexported-subpath",
+      "kind": "negative",
+      "fixture": "negative-unexported-subpath",
+      "dependencies": {
+        "@themeon/core": "workspace-placeholder"
+      }
+    }
+  ]
+}

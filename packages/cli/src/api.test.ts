@@ -15,7 +15,13 @@ test('публичная поверхность заморожена (ранта
       "loadThemeConfig",
       "runBuild",
       "runCheck",
+      "runDiff",
+      "runDoctor",
+      "runExplain",
+      "runGraph",
       "runInit",
+      "runInspect",
+      "runMigrate",
       "runSchema",
       "scanSources",
     ]

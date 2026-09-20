@@ -1,0 +1,15 @@
+{
+  "schema": "themeon-property-replay/v1",
+  "law": "insertion-order",
+  "seed": 20260919,
+  "counterexample": [
+    {
+      "sys": {
+        "color": {}
+      },
+      "themes": {},
+      "schemes": {}
+    }
+  ],
+  "message": "Property failed after 1 tests\n{ seed: 20260919, path: \"0:0\", endOnFailure: true }\nCounterexample: [{\"sys\":{\"color\":{}},\"themes\":{},\"schemes\":{}}]\nShrunk 1 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run"
+}

@@ -95,15 +95,16 @@ describe('contrastAPCA — учитывает альфа-канал (code-review
 })
 
 describe('checkContrast — батч-гейт', () => {
-  test('пара body с |Lc| ниже требуемого — pass=false', () => {
-    // #767676 на #ffffff даёт |Lc| около 70 — ниже порога body (75).
+  test('нормативный pass следует WCAG; APCA — отдельный apcaPass (D3)', () => {
+    // #767676 на #ffffff: |Lc| APCA ≈70 (<75), но WCAG ratio ≈4.54:1 (≥4.5).
     const result = checkContrast([{ fg: '#767676', bg: '#ffffff', usage: 'body' }])
     const [report] = result.reports
     expect(report).toBeDefined()
     expect(Math.abs(report!.lc)).toBeLessThan(LC_THRESHOLDS.body)
     expect(report!.pass).toBe(false)
-    expect(report!.required).toBe(75)
-    expect(result.pass).toBe(false)
+    expect(result.apcaPass).toBe(false)
+    expect(result.pass).toBe(true)
+    expect(result.wcagReports[0]!.result.status).toBe('pass')
   })
 
   test('пара non-text с достаточным |Lc| — pass=true', () => {

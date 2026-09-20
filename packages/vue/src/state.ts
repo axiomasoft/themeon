@@ -13,7 +13,7 @@
  * Импорт и вызов `createThemeState()` безопасны на сервере; писать в DOM обязан только клиент.
  */
 import { computed, readonly, ref } from 'vue'
-import { applyTheme, clearTheme } from '@themeon/core'
+import { applyTheme, clearTheme } from '@themeon/core/runtime'
 import {
   DEFAULT_ATTRIBUTE,
   DEFAULT_DARK_THEME,

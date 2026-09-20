@@ -1,0 +1,9 @@
+{
+  "color": {
+    "a": {
+      "$type": "color",
+      "$value": "#000000",
+      "$extensions": { "com.vendor": { "note": "opaque preserve target P1" } }
+    }
+  }
+}

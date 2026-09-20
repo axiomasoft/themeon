@@ -1,0 +1,25 @@
+{
+  "buckets": [
+    "architect",
+    "core",
+    "devops",
+    "frontend",
+    "frontend-linting",
+    "frontend-vite",
+    "frontend-vue",
+    "quality",
+    "system",
+    "task"
+  ],
+  "providers": {
+    "selection": {
+      "claude-code": {
+        "enabled": true
+      },
+      "codex": {
+        "enabled": true
+      }
+    },
+    "contract_version": "1.0.0"
+  }
+}

@@ -1,0 +1,6 @@
+export { canonicalId } from './ir'
+export type { IrDocument, IrMetadata, IrPath, IrSource, IrToken, IrValue } from './ir'
+export { irDocument, irToken, withMetadata } from './build'
+export { irFromDefinition } from './from-definition'
+export { toThemeDefinition } from './to-definition'
+export { collectDtcgMetadata } from './dtcg-metadata'

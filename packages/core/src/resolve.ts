@@ -10,7 +10,9 @@
  */
 
 import { ThemeonError } from './errors'
+import { GRAPH_MAX_DEPTH, buildGraph, comparePath } from './graph/build'
 import { walkTree } from './internal/walk'
+import { irFromDefinition } from './model/from-definition'
 import { formatVarName, formatTextVarNames } from './naming'
 import { legacyV0Alias } from './aliases/legacy-v0'
 import { isToken } from './types'
@@ -105,6 +107,15 @@ function resolveChain(start: Token): ChainResult {
  * ```
  */
 export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): ResolvedTheme {
+  const graph = buildGraph(irFromDefinition(def, { kind: 'dsl' }))
+  const depthIssue = graph.issues.find((issue) => issue.code === 'DEPTH')
+  if (depthIssue) {
+    throw new ThemeonError(
+      'CYCLE',
+      `Token reference chain exceeds GRAPH_MAX_DEPTH (${GRAPH_MAX_DEPTH}) at ${depthIssue.from}`,
+    )
+  }
+
   const refLayer = opts.refLayer ?? 'referenced'
   const aliasRule = opts.aliases === 'legacy-v0' ? legacyV0Alias : opts.aliases
 
@@ -193,7 +204,7 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
     }
   }
 
-  // ── 1. Сбор sys-токенов (порядок обхода → детерминированный вывод) ──
+  // ── 1. Сбор sys-токенов; порядок — канонический id, не Object.entries (P1.3) ──
   const sysTokens: Token[] = []
   const baseTypeByPath = new Map<string, TokenType>()
   for (const { value } of walkTree(def.sys as unknown as TokenTreeInput)) {
@@ -202,6 +213,7 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
       baseTypeByPath.set(pathKey(value.path), value.type)
     }
   }
+  sysTokens.sort((a, b) => comparePath(a.path, b.path))
 
   // ── 2. Реестр эмитируемых ref-токенов (заодно ранняя проверка циклов на всех цепочках) ──
   const emittedRefPaths = new Set<string>()
@@ -231,6 +243,7 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
       }
     }
   }
+  refTokens.sort((a, b) => comparePath(a.path, b.path))
 
   /** Var-chain-цель токена: непосредственная ссылка, если эта цель реально эмитится. */
   function directRefOf(token: Token): CssVarName | undefined {
@@ -256,7 +269,10 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
   const themesOut: Record<string, readonly ResolvedToken[]> = {}
   for (const [themeName, patch] of Object.entries(def.themes)) {
     const list: ResolvedToken[] = []
-    for (const { path, value } of walkTree(patch as unknown as TokenTreeInput)) {
+    const patchLeaves = [...walkTree(patch as unknown as TokenTreeInput)].sort((a, b) =>
+      comparePath(a.path, b.path),
+    )
+    for (const { path, value } of patchLeaves) {
       const type = baseTypeByPath.get(pathKey(path)) ?? 'dimension'
       const finalValue = isToken(value)
         ? resolveChain(value).finalValue

@@ -140,7 +140,8 @@ function rejectMetachars(value: string): void {
   if (METACHAR_RE.test(value) || COMMENT_RE.test(value) || URL_RE.test(value)) {
     throw new ThemeonError(
       'UNSAFE_CSS_TOKEN',
-      `Tenant value contains a rejected CSS metacharacter, comment marker or "url(" call: ${JSON.stringify(value)}`,
+      'Tenant value contains a rejected CSS metacharacter, comment marker or url() call',
+      { hint: 'Remove braces, quotes, at-rules, comments and url() from tenant CSS values' },
     )
   }
 }
@@ -149,7 +150,8 @@ function matchOrThrow(re: RegExp, value: string, type: TokenType): string {
   if (!re.test(value)) {
     throw new ThemeonError(
       'BAD_VALUE',
-      `Tenant value for type "${type}" does not match the allowed grammar: ${JSON.stringify(value)}`,
+      `Tenant value for type "${type}" does not match the allowed grammar`,
+      { hint: 'Use a value that matches the published tenant grammar for this token type' },
     )
   }
   return value
@@ -168,7 +170,8 @@ function validateColorValue(value: string): string {
   if (parsed === null) {
     throw new ThemeonError(
       'BAD_VALUE',
-      `Tenant color value is not a recognized CSS color notation: ${JSON.stringify(value)}`,
+      'Tenant color value is not a recognized CSS color notation',
+      { hint: 'Use hex, named, or a supported color function (rgb/hsl/oklch/…)' },
     )
   }
   return formatColor(parsed)
@@ -183,7 +186,7 @@ function validateTextStyleValue(rawValue: unknown): TextStyleTenantValue {
   if (typeof rawValue !== 'object' || rawValue === null || Array.isArray(rawValue)) {
     throw new ThemeonError(
       'BAD_VALUE',
-      `Tenant value for type "text" must be an object { size, lineHeight? }, got ${JSON.stringify(rawValue)}`,
+      'Tenant value for type "text" must be an object { size, lineHeight? }',
     )
   }
   const obj = rawValue as Record<string, unknown>
@@ -192,7 +195,8 @@ function validateTextStyleValue(rawValue: unknown): TextStyleTenantValue {
     if (!allowedKeys.has(key)) {
       throw new ThemeonError(
         'BAD_VALUE',
-        `Tenant value for type "text" has an unexpected key "${key}" (allowed: size, lineHeight)`,
+        'Tenant value for type "text" has an unexpected key (allowed: size, lineHeight)',
+        { hint: 'Send only size and optional lineHeight' },
       )
     }
   }
@@ -215,7 +219,7 @@ function validateTextStyleValue(rawValue: unknown): TextStyleTenantValue {
   if (!TEXT_LINE_HEIGHT_RE.test(lineHeightRaw)) {
     throw new ThemeonError(
       'BAD_VALUE',
-      `Tenant "text.lineHeight" does not match the allowed grammar: ${JSON.stringify(lineHeightRaw)}`,
+      'Tenant "text.lineHeight" does not match the allowed grammar',
     )
   }
   return { size, lineHeight: lineHeightRaw }

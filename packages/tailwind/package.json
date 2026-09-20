@@ -37,7 +37,6 @@
     "@themeon/core": "workspace:*"
   },
   "devDependencies": {
-    "@themeon/core": "workspace:*",
     "@tailwindcss/node": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@types/node": "catalog:",

@@ -1,0 +1,6 @@
+{
+  "color": {
+    "base": { "$type": "color", "$value": "#111111" },
+    "link": { "$type": "color", "$value": "{color.base}" }
+  }
+}

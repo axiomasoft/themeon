@@ -1,0 +1,15 @@
+{
+  "schema": "themeon-property-replay/v1",
+  "law": "resolve-deterministic",
+  "seed": 20260919,
+  "counterexample": {
+    "base": {
+      "color": {
+        "bg": { "page": "#0a1b2c" },
+        "accent": { "primary": "#3d4e5f" }
+      },
+      "space": { "4": "1rem" }
+    }
+  },
+  "message": "Committed regression fixture for resolve determinism."
+}

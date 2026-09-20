@@ -1,0 +1,9 @@
+{
+  "schema": "themeon-property-replay/v1",
+  "law": "forced-bug-demo",
+  "seed": 20260919,
+  "counterexample": [
+    1
+  ],
+  "message": "Property failed after 1 tests\n{ seed: 20260919, path: \"0:0\", endOnFailure: true }\nCounterexample: [1]\nShrunk 1 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run"
+}

@@ -191,6 +191,22 @@ around this by aliasing the virtual id to a real file instead.
 | `virtualId` | `string` | `'virtual:themeon.css'` | Public id of the virtual module. |
 | `cssImport` | `boolean \| { file?: string }` | `false` | CSS-first channel for projects with no JS entry — writes the theme CSS to a real file and aliases `virtualId` to it (see "CSS-only projects"). `true` uses `.themeon/theme.css`; `{ file }` overrides the path (relative to project root). |
 | `injectFouc` | `boolean \| ThemeInitScriptOptions` | `false` | Inserts the generated anti-FOUC script (`@themeon/vue/anti-fouc`) into `index.html` via `transformIndexHtml`, `head-prepend`. |
+| `artifacts` | `boolean \| ThemeonArtifactsOptions` | `true` when `cssImport` is set | Writes PHP-readable `.themeon/manifest.json` (fingerprint, CSS integrity, theme + CSS variable inventory) and, when `injectFouc` is enabled, `.themeon/csp.json` with the CSP `sha256-…` digest of the anti-FOUC script. Updates are atomic (temp + rename) and debounced during HMR. |
+
+## Typed virtual module
+
+Add a reference to the client types, then import the virtual CSS module from JS/TS:
+
+```ts
+/// <reference types="@themeon/vite/client" />
+import 'virtual:themeon.css'
+```
+
+## Laravel / PHP consumers
+
+With `cssImport: true` and `artifacts: true` (default when `cssImport` is on), PHP can read
+`.themeon/manifest.json` after Vite writes artifacts — no TypeScript resolver in PHP. The manifest
+`owner` field is always `@themeon/vite`; foreign files in `.themeon/` are left untouched.
 
 ## How HMR works
 

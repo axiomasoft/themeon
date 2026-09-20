@@ -4,7 +4,7 @@
  * R-13 §2.1), запись в DOM — свой applier ядра (P-D23), не VueUse.
  */
 import type { ComputedRef, Ref } from 'vue'
-import type { ElementLike } from '@themeon/core'
+import type { ElementLike } from '@themeon/core/runtime'
 
 /** Минимальный интерфейс хранилища — совместим с `localStorage`, сидируется для тестов. */
 export interface StorageLike {

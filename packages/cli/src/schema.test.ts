@@ -57,7 +57,7 @@ describe('runSchema', () => {
     expect(schema.$schema).toBe('https://json-schema.org/draft/2020-12/schema')
     expect(schema.additionalProperties).toBe(false)
     expect('color' in schema.properties).toBe(true)
-    expect('space' in schema.properties).toBe(true)
+    expect('space' in schema.properties).toBe(false)
   })
 
   it('shadow (запрещён v1, P-D70) отсутствует в схеме', async () => {

@@ -1,0 +1,763 @@
+=== pnpm build ===
+$ pnpm -r --filter "./packages/*" build
+Scope: 9 of 15 workspace projects
+packages/colors build$ tsdown
+packages/core build$ tsdown
+packages/core build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/colors build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/colors build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/colors/tsdown.config.ts 
+packages/colors build: ℹ entry: src/index.ts
+packages/colors build: ℹ tsconfig: tsconfig.json
+packages/core build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/core/tsdown.config.ts 
+packages/colors build: ℹ Build start
+packages/core build: ℹ entry: src/index.ts, src/public/authoring.ts, src/public/compiler.ts, src/public/runtime.ts, src/public/dtcg.ts, src/public/tenant.ts
+packages/core build: ℹ tsconfig: tsconfig.json
+packages/core build: ℹ Build start
+packages/colors build: ℹ Cleaning 2 files
+packages/core build: ℹ Cleaning 89 files
+packages/colors build: ℹ dist/index.js    27.03 kB │ gzip: 9.42 kB
+packages/colors build: ℹ dist/index.d.ts  12.11 kB │ gzip: 4.65 kB
+packages/colors build: ℹ 2 files, total: 39.14 kB
+packages/colors build: ✔ Build complete in 477ms
+packages/colors build: Done
+packages/core build: ℹ dist/public/compiler.js             2.32 kB │ gzip: 0.67 kB
+packages/core build: ℹ dist/index.js                       1.95 kB │ gzip: 0.59 kB
+packages/core build: ℹ dist/public/tenant.js               0.55 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/public/authoring.js            0.38 kB │ gzip: 0.20 kB
+packages/core build: ℹ dist/public/dtcg.js                 0.31 kB │ gzip: 0.16 kB
+packages/core build: ℹ dist/public/runtime.js              0.21 kB │ gzip: 0.13 kB
+packages/core build: ℹ dist/dtcg/from-dtcg.js             24.50 kB │ gzip: 8.14 kB
+packages/core build: ℹ dist/dtcg/to-dtcg.js               17.45 kB │ gzip: 6.28 kB
+packages/core build: ℹ dist/patch-grammar.js              16.55 kB │ gzip: 6.36 kB
+packages/core build: ℹ dist/dtcg/color.js                 15.54 kB │ gzip: 6.01 kB
+packages/core build: ℹ dist/patch.js                      13.02 kB │ gzip: 4.88 kB
+packages/core build: ℹ dist/resolve.js                     8.93 kB │ gzip: 3.52 kB
+packages/core build: ℹ dist/define.js                      8.55 kB │ gzip: 3.69 kB
+packages/core build: ℹ dist/serialize.js                   7.51 kB │ gzip: 3.31 kB
+packages/core build: ℹ dist/schema.js                      6.70 kB │ gzip: 3.08 kB
+packages/core build: ℹ dist/patch-policy.js                5.87 kB │ gzip: 2.09 kB
+packages/core build: ℹ dist/apply.js                       5.50 kB │ gzip: 2.60 kB
+packages/core build: ℹ dist/pipeline/compile.js            5.29 kB │ gzip: 1.82 kB
+packages/core build: ℹ dist/pipeline/extensions.js         4.68 kB │ gzip: 1.39 kB
+packages/core build: ℹ dist/naming.js                      4.25 kB │ gzip: 2.08 kB
+packages/core build: ℹ dist/formats/vite-delivery.js       4.09 kB │ gzip: 1.41 kB
+packages/core build: ℹ dist/diagnostics/catalog.js         3.62 kB │ gzip: 1.13 kB
+packages/core build: ℹ dist/graph/build.js                 3.34 kB │ gzip: 1.30 kB
+packages/core build: ℹ dist/diagnostics/from-legacy.js     3.31 kB │ gzip: 0.95 kB
+packages/core build: ℹ dist/model/to-definition.js         3.11 kB │ gzip: 1.02 kB
+packages/core build: ℹ dist/aliases/legacy-v0.js           3.01 kB │ gzip: 1.52 kB
+packages/core build: ℹ dist/diagnostics/format.js          2.88 kB │ gzip: 1.05 kB
+packages/core build: ℹ dist/internal/walk.js               2.85 kB │ gzip: 1.45 kB
+packages/core build: ℹ dist/model/from-definition.js       2.69 kB │ gzip: 0.94 kB
+packages/core build: ℹ dist/diagnostics/redact.js          2.61 kB │ gzip: 0.91 kB
+packages/core build: ℹ dist/dtcg/diagnostics.js            2.36 kB │ gzip: 0.82 kB
+packages/core build: ℹ dist/pipeline/fingerprint.js        1.71 kB │ gzip: 0.83 kB
+packages/core build: ℹ dist/model/build.js                 1.48 kB │ gzip: 0.53 kB
+packages/core build: ℹ dist/types.js                       1.33 kB │ gzip: 0.78 kB
+packages/core build: ℹ dist/errors.js                      1.06 kB │ gzip: 0.65 kB
+packages/core build: ℹ dist/diagnostics/aggregate.js       0.44 kB │ gzip: 0.28 kB
+packages/core build: ℹ dist/authoring/normalize-dsl.js     0.37 kB │ gzip: 0.27 kB
+packages/core build: ℹ dist/formats/css.js                 0.35 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/pipeline/types.js              0.33 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/diagnostics/types.js           0.28 kB │ gzip: 0.23 kB
+packages/core build: ℹ dist/transforms/identity.js         0.22 kB │ gzip: 0.17 kB
+packages/core build: ℹ dist/model/ir.js                    0.12 kB │ gzip: 0.12 kB
+packages/core build: ℹ dist/public/compiler.d.ts           3.88 kB │ gzip: 1.04 kB
+packages/core build: ℹ dist/index.d.ts                     3.56 kB │ gzip: 1.01 kB
+packages/core build: ℹ dist/public/tenant.d.ts             1.08 kB │ gzip: 0.37 kB
+packages/core build: ℹ dist/public/authoring.d.ts          0.94 kB │ gzip: 0.37 kB
+packages/core build: ℹ dist/public/dtcg.d.ts               0.60 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/public/runtime.d.ts            0.42 kB │ gzip: 0.20 kB
+packages/core build: ℹ dist/types.d.ts                     5.72 kB │ gzip: 2.29 kB
+packages/core build: ℹ dist/patch.d.ts                     4.68 kB │ gzip: 2.28 kB
+packages/core build: ℹ dist/formats/vite-delivery.d.ts     3.96 kB │ gzip: 1.19 kB
+packages/core build: ℹ dist/pipeline/types.d.ts            3.48 kB │ gzip: 1.12 kB
+packages/core build: ℹ dist/naming.d.ts                    2.90 kB │ gzip: 1.56 kB
+packages/core build: ℹ dist/resolve.d.ts                   2.88 kB │ gzip: 1.52 kB
+packages/core build: ℹ dist/dtcg/from-dtcg.d.ts            2.62 kB │ gzip: 1.41 kB
+packages/core build: ℹ dist/define.d.ts                    2.59 kB │ gzip: 1.29 kB
+packages/core build: ℹ dist/serialize.d.ts                 2.44 kB │ gzip: 1.25 kB
+packages/core build: ℹ dist/dtcg/to-dtcg.d.ts              2.42 kB │ gzip: 1.31 kB
+packages/core build: ℹ dist/apply.d.ts                     2.01 kB │ gzip: 1.00 kB
+packages/core build: ℹ dist/schema.d.ts                    1.94 kB │ gzip: 1.04 kB
+packages/core build: ℹ dist/patch-policy.d.ts              1.84 kB │ gzip: 0.84 kB
+packages/core build: ℹ dist/diagnostics/types.d.ts         1.75 kB │ gzip: 0.64 kB
+packages/core build: ℹ dist/diagnostics/catalog.d.ts       1.71 kB │ gzip: 0.67 kB
+packages/core build: ℹ dist/graph/build.d.ts               1.60 kB │ gzip: 0.71 kB
+packages/core build: ℹ dist/aliases/legacy-v0.d.ts         1.49 kB │ gzip: 0.80 kB
+packages/core build: ℹ dist/model/ir.d.ts                  1.41 kB │ gzip: 0.58 kB
+packages/core build: ℹ dist/dtcg/types.d.ts                1.22 kB │ gzip: 0.76 kB
+packages/core build: ℹ dist/dtcg/diagnostics.d.ts          1.19 kB │ gzip: 0.54 kB
+packages/core build: ℹ dist/errors.d.ts                    1.17 kB │ gzip: 0.64 kB
+packages/core build: ℹ dist/diagnostics/from-legacy.d.ts   1.11 kB │ gzip: 0.33 kB
+packages/core build: ℹ dist/dtcg/color.d.ts                1.09 kB │ gzip: 0.60 kB
+packages/core build: ℹ dist/patch-grammar.d.ts             1.04 kB │ gzip: 0.69 kB
+packages/core build: ℹ dist/pipeline/compile.d.ts          0.54 kB │ gzip: 0.29 kB
+packages/core build: ℹ dist/diagnostics/aggregate.d.ts     0.43 kB │ gzip: 0.27 kB
+packages/core build: ℹ dist/authoring/normalize-dsl.d.ts   0.35 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/diagnostics/format.d.ts        0.33 kB │ gzip: 0.21 kB
+packages/core build: ℹ dist/pipeline/fingerprint.d.ts      0.26 kB │ gzip: 0.17 kB
+packages/core build: ℹ dist/pipeline/extensions.d.ts       0.20 kB │ gzip: 0.15 kB
+packages/core build: ℹ 78 files, total: 258.46 kB
+packages/core build: ✔ Build complete in 1051ms
+packages/core build: Done
+packages/css build$ tsdown && node scripts/build.mjs && node scripts/gen-tokens.mjs
+packages/naive build$ tsdown
+packages/tailwind build$ tsdown
+packages/vue build$ tsdown
+packages/vue build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/tailwind build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/css build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/naive build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/vue build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/vue/tsdown.config.ts 
+packages/vue build: ℹ entry: src/index.ts, src/anti-fouc.ts
+packages/vue build: ℹ tsconfig: tsconfig.json
+packages/tailwind build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/tailwind/tsdown.config.ts 
+packages/vue build: ℹ Build start
+packages/tailwind build: ℹ entry: src/index.ts
+packages/tailwind build: ℹ tsconfig: tsconfig.json
+packages/tailwind build: ℹ Build start
+packages/vue build: ℹ Cleaning 5 files
+packages/tailwind build: ℹ Cleaning 2 files
+packages/naive build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/naive/tsdown.config.ts 
+packages/naive build: ℹ entry: src/index.ts
+packages/naive build: ℹ tsconfig: tsconfig.json
+packages/naive build: ℹ Build start
+packages/naive build: ℹ Cleaning 2 files
+packages/css build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/css/tsdown.config.ts 
+packages/css build: ℹ entry: src/contract.ts, src/theme/default.ts
+packages/css build: ℹ tsconfig: tsconfig.json
+packages/css build: ℹ Build start
+packages/css build: ℹ Cleaning 15 files
+packages/tailwind build: ℹ dist/index.js    7.04 kB │ gzip: 3.18 kB
+packages/tailwind build: ℹ dist/index.d.ts  3.56 kB │ gzip: 1.81 kB
+packages/tailwind build: ℹ 2 files, total: 10.60 kB
+packages/tailwind build: ✔ Build complete in 453ms
+packages/tailwind build: Done
+packages/vue build: ℹ dist/index.js                10.20 kB │ gzip: 4.23 kB
+packages/vue build: ℹ dist/anti-fouc.js             3.89 kB │ gzip: 1.98 kB
+packages/vue build: ℹ dist/theme-name-Dpu8V4EN.js   2.69 kB │ gzip: 1.52 kB
+packages/vue build: ℹ dist/index.d.ts               6.10 kB │ gzip: 2.70 kB
+packages/vue build: ℹ dist/anti-fouc.d.ts           2.16 kB │ gzip: 1.13 kB
+packages/vue build: ℹ 5 files, total: 25.05 kB
+packages/vue build: ✔ Build complete in 530ms
+packages/vue build: Done
+packages/css build: ℹ dist/theme/default.js    18.80 kB │ gzip: 6.99 kB
+packages/css build: ℹ dist/contract.js          4.38 kB │ gzip: 1.08 kB
+packages/css build: ℹ dist/theme/default.d.ts   8.92 kB │ gzip: 3.27 kB
+packages/css build: ℹ dist/contract.d.ts        0.95 kB │ gzip: 0.59 kB
+packages/css build: ℹ 4 files, total: 33.05 kB
+packages/css build: ✔ Build complete in 771ms
+packages/css build: [themeon] dist/tokens.css записан (APCA-гейт пройден, 0 пар).
+packages/css build: Done
+packages/naive build: ℹ dist/index.js    21.29 kB │ gzip: 7.47 kB
+packages/naive build: ℹ dist/index.d.ts   6.43 kB │ gzip: 2.81 kB
+packages/naive build: ℹ 2 files, total: 27.73 kB
+packages/naive build: ✔ Build complete in 1244ms
+packages/naive build: Done
+packages/nuxt build$ nuxt-module-build build
+packages/cli build$ tsdown
+packages/vite build$ tsdown
+packages/vite build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/cli build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/vite build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/vite/tsdown.config.ts 
+packages/vite build: ℹ entry: src/index.ts
+packages/vite build: ℹ tsconfig: tsconfig.json
+packages/vite build: ℹ Build start
+packages/vite build: ℹ Cleaning 2 files
+packages/cli build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/cli/tsdown.config.ts 
+packages/cli build: ℹ entry: src/cli.ts, src/index.ts
+packages/cli build: ℹ tsconfig: tsconfig.json
+packages/cli build: ℹ Build start
+packages/cli build: ℹ Cleaning 20 files
+packages/vite build: ℹ dist/index.js    8.39 kB │ gzip: 3.29 kB
+packages/vite build: ℹ dist/index.d.ts  3.65 kB │ gzip: 1.66 kB
+packages/vite build: ℹ 2 files, total: 12.04 kB
+packages/vite build: ✔ Build complete in 534ms
+packages/vite build: Done
+packages/nuxt build: ℹ Building nuxt
+packages/nuxt build: ℹ Cleaning dist directory: ./dist
+packages/cli build: ℹ Granting execute permission to dist/cli.js
+packages/cli build: ℹ dist/cli.js                         1.39 kB │ gzip: 0.63 kB
+packages/cli build: ℹ dist/index.js                       0.89 kB │ gzip: 0.38 kB
+packages/cli build: ℹ dist/check-Dhex0lzg.js             18.54 kB │ gzip: 6.26 kB
+packages/cli build: ℹ dist/semantic-diff-YTecc8Fc.js     14.20 kB │ gzip: 3.69 kB
+packages/cli build: ℹ dist/init-BYkB_pNu.js               5.27 kB │ gzip: 2.34 kB
+packages/cli build: ℹ dist/doctor-C9zz_5A9.js             5.21 kB │ gzip: 1.93 kB
+packages/cli build: ℹ dist/explain-DJg7Qwjm.js            5.13 kB │ gzip: 2.02 kB
+packages/cli build: ℹ dist/graph-CAkPtvSg.js              4.20 kB │ gzip: 1.74 kB
+packages/cli build: ℹ dist/build-CIA4koSg.js              4.16 kB │ gzip: 1.81 kB
+packages/cli build: ℹ dist/inspect-DAzD8K0K.js            3.95 kB │ gzip: 1.60 kB
+packages/cli build: ℹ dist/migrate-CyltSwMk.js            3.82 kB │ gzip: 1.61 kB
+packages/cli build: ℹ dist/format-P7WWXdF8.js             3.29 kB │ gzip: 1.13 kB
+packages/cli build: ℹ dist/diff-By_lyXhz.js               2.76 kB │ gzip: 1.20 kB
+packages/cli build: ℹ dist/schema-U-NTRmdw.js             2.71 kB │ gzip: 1.33 kB
+packages/cli build: ℹ dist/token-lookup-HMtLDBew.js       2.46 kB │ gzip: 1.06 kB
+packages/cli build: ℹ dist/load-theme-DnMz092D.js         2.23 kB │ gzip: 1.19 kB
+packages/cli build: ℹ dist/constants-CdvqoaGw.js          0.77 kB │ gzip: 0.55 kB
+packages/cli build: ℹ dist/rolldown-runtime-D7D4PA-g.js   0.36 kB │ gzip: 0.26 kB
+packages/cli build: ℹ dist/index.d.ts                     8.55 kB │ gzip: 2.80 kB
+packages/cli build: ℹ dist/cli.d.ts                       0.01 kB │ gzip: 0.03 kB
+packages/cli build: ℹ 20 files, total: 89.90 kB
+packages/cli build: ✔ Build complete in 713ms
+packages/cli build: Done
+packages/nuxt build: ✔ Build succeeded for nuxt
+packages/nuxt build:   dist/runtime (total size: 3.44 kB)
+packages/nuxt build:   └─ dist/runtime/fouc.server.d.ts (1.77 kB)
+packages/nuxt build:   └─ dist/runtime/plugin.d.ts (653 B)
+packages/nuxt build:   └─ dist/runtime/fouc.server.js (658 B)
+packages/nuxt build:   └─ dist/runtime/plugin.js (358 B)
+packages/nuxt build:   dist/module.mjs (total size: 9.48 kB, chunk size: 9.48 kB, exports: default)
+packages/nuxt build: Σ Total dist size (byte size): 15.1 kB
+packages/nuxt build: Done
+=== pnpm lint ===
+$ oxlint
+tests/types/src/harness/run-cell.ts:6:10: warning eslint(no-unused-vars): Identifier 'loadPackManifest' is imported but never used. help: Consider removing this import.
+benchmarks/lib/corpus.mjs:1:23: warning eslint(no-unused-vars): Identifier 'defineTokens' is imported but never used. help: Consider removing this import.
+packages/core/src/model/build.ts:60:30: warning unicorn(no-useless-fallback-in-spread): Empty fallbacks in spreads are unnecessary help: Spreading falsy values in object literals won't add any unexpected properties, so it's unnecessary to add an empty object as fallback.
+tests/types/fixtures/negative-unexported-subpath/src/forbidden.ts:2:15: warning eslint(no-unused-vars): Type 'ThemeonError' is imported but never used. help: Consider removing this import.
+packages/cli/src/query/semantic-diff.ts:8:3: warning eslint(no-unused-vars): Type 'ChangeEvidence' is imported but never used. help: Consider removing this import.
+packages/cli/src/query/semantic-diff.ts:9:3: warning eslint(no-unused-vars): Type 'ChangeSafety' is imported but never used. help: Consider removing this import.
+packages/cli/src/query/graph.ts:13:3: warning eslint(no-unused-vars): Parameter 'order' is declared but never used. Unused parameters should start with a '_'. help: Consider removing this parameter.
+packages/vite/src/manifest.test.ts:17:10: warning eslint(no-unused-vars): Function 'asFn' is declared but never used. help: Consider removing this declaration.
+packages/core/src/patch-policy.ts:84:37: warning eslint(no-control-regex): Unexpected control characters help: Avoid matching control characters in regular expressions. If intentional, consider using a Unicode escape instead.
+packages/core/src/property/generators.ts:4:29: warning eslint(no-unused-vars): Type 'ThemeDefinition' is imported but never used. help: Consider removing this import.
+tests/consumers/src/harness/run-cell.ts:6:10: warning eslint(no-unused-vars): Identifier 'loadPackManifest' is imported but never used. help: Consider removing this import.
+packages/core/src/property/laws.ts:1:10: warning eslint(no-unused-vars): Identifier 'defineTheme' is imported but never used. help: Consider removing this import.
+=== pnpm typecheck ===
+$ pnpm -r typecheck
+Scope: 14 of 15 workspace projects
+packages/colors typecheck$ tsc --noEmit
+packages/core typecheck$ tsc --noEmit
+tests/consumers typecheck$ tsc --noEmit
+tests/types typecheck$ tsc --noEmit
+tests/consumers typecheck: vitest.global-setup.ts(2,57): error TS7016: Could not find a declaration file for module '../../scripts/pack-consumer-tarballs.mjs'. '/home/vostrikov/projects/packages/themeon/scripts/pack-consumer-tarballs.mjs' implicitly has an 'any' type.
+tests/consumers typecheck: Failed
+/home/vostrikov/projects/packages/themeon/tests/consumers:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] tests-consumers@0.0.0 typecheck: `tsc --noEmit`
+Exit status 2
+packages/colors typecheck: Done
+[ELIFECYCLE] Command failed with exit code 2.
+=== pnpm test ===
+$ vitest run
+
+ RUN  v4.1.10 /home/vostrikov/projects/packages/themeon
+
+[error] [themeon] "/home/vostrikov/projects/packages/themeon/packages/cli/src/.tmp-build-e6I30G/bad.config.ts" не экспортирует тему (default/"theme"/"defaultTheme")
+[error] [themeon] "/home/vostrikov/projects/packages/themeon/packages/cli/src/.tmp-schema-GXkaYO/bad.config.ts" не экспортирует тему (default/"theme"/"defaultTheme")
+
+ Test Files  72 passed | 1 skipped (73)
+      Tests  1459 passed | 1 skipped (1460)
+   Start at  15:42:33
+   Duration  1.50s (transform 14.52s, setup 0ms, import 16.77s, tests 6.01s, environment 511ms)
+
+=== pnpm test:int ===
+$ pnpm build && pnpm --filter tests-integration exec vitest run --project int-fast --project int-browser
+$ pnpm -r --filter "./packages/*" build
+Scope: 9 of 15 workspace projects
+packages/colors build$ tsdown
+packages/core build$ tsdown
+packages/core build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/colors build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/colors build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/colors/tsdown.config.ts 
+packages/core build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/core/tsdown.config.ts 
+packages/core build: ℹ entry: src/index.ts, src/public/authoring.ts, src/public/compiler.ts, src/public/runtime.ts, src/public/dtcg.ts, src/public/tenant.ts
+packages/core build: ℹ tsconfig: tsconfig.json
+packages/colors build: ℹ entry: src/index.ts
+packages/colors build: ℹ tsconfig: tsconfig.json
+packages/core build: ℹ Build start
+packages/colors build: ℹ Build start
+packages/colors build: ℹ Cleaning 2 files
+packages/core build: ℹ Cleaning 89 files
+packages/colors build: ℹ dist/index.js    27.03 kB │ gzip: 9.42 kB
+packages/colors build: ℹ dist/index.d.ts  12.11 kB │ gzip: 4.65 kB
+packages/colors build: ℹ 2 files, total: 39.14 kB
+packages/colors build: ✔ Build complete in 358ms
+packages/colors build: Done
+packages/core build: ℹ dist/public/compiler.js             2.32 kB │ gzip: 0.67 kB
+packages/core build: ℹ dist/index.js                       1.95 kB │ gzip: 0.59 kB
+packages/core build: ℹ dist/public/tenant.js               0.55 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/public/authoring.js            0.38 kB │ gzip: 0.20 kB
+packages/core build: ℹ dist/public/dtcg.js                 0.31 kB │ gzip: 0.16 kB
+packages/core build: ℹ dist/public/runtime.js              0.21 kB │ gzip: 0.13 kB
+packages/core build: ℹ dist/dtcg/from-dtcg.js             24.50 kB │ gzip: 8.14 kB
+packages/core build: ℹ dist/dtcg/to-dtcg.js               17.45 kB │ gzip: 6.28 kB
+packages/core build: ℹ dist/patch-grammar.js              16.55 kB │ gzip: 6.36 kB
+packages/core build: ℹ dist/dtcg/color.js                 15.54 kB │ gzip: 6.01 kB
+packages/core build: ℹ dist/patch.js                      13.02 kB │ gzip: 4.88 kB
+packages/core build: ℹ dist/resolve.js                     8.93 kB │ gzip: 3.52 kB
+packages/core build: ℹ dist/define.js                      8.55 kB │ gzip: 3.69 kB
+packages/core build: ℹ dist/serialize.js                   7.51 kB │ gzip: 3.31 kB
+packages/core build: ℹ dist/schema.js                      6.70 kB │ gzip: 3.08 kB
+packages/core build: ℹ dist/patch-policy.js                5.87 kB │ gzip: 2.09 kB
+packages/core build: ℹ dist/apply.js                       5.50 kB │ gzip: 2.60 kB
+packages/core build: ℹ dist/pipeline/compile.js            5.29 kB │ gzip: 1.82 kB
+packages/core build: ℹ dist/pipeline/extensions.js         4.68 kB │ gzip: 1.39 kB
+packages/core build: ℹ dist/naming.js                      4.25 kB │ gzip: 2.08 kB
+packages/core build: ℹ dist/formats/vite-delivery.js       4.09 kB │ gzip: 1.41 kB
+packages/core build: ℹ dist/diagnostics/catalog.js         3.62 kB │ gzip: 1.13 kB
+packages/core build: ℹ dist/graph/build.js                 3.34 kB │ gzip: 1.30 kB
+packages/core build: ℹ dist/diagnostics/from-legacy.js     3.31 kB │ gzip: 0.95 kB
+packages/core build: ℹ dist/model/to-definition.js         3.11 kB │ gzip: 1.02 kB
+packages/core build: ℹ dist/aliases/legacy-v0.js           3.01 kB │ gzip: 1.52 kB
+packages/core build: ℹ dist/diagnostics/format.js          2.88 kB │ gzip: 1.05 kB
+packages/core build: ℹ dist/internal/walk.js               2.85 kB │ gzip: 1.45 kB
+packages/core build: ℹ dist/model/from-definition.js       2.69 kB │ gzip: 0.94 kB
+packages/core build: ℹ dist/diagnostics/redact.js          2.61 kB │ gzip: 0.91 kB
+packages/core build: ℹ dist/dtcg/diagnostics.js            2.36 kB │ gzip: 0.82 kB
+packages/core build: ℹ dist/pipeline/fingerprint.js        1.71 kB │ gzip: 0.83 kB
+packages/core build: ℹ dist/model/build.js                 1.48 kB │ gzip: 0.53 kB
+packages/core build: ℹ dist/types.js                       1.33 kB │ gzip: 0.78 kB
+packages/core build: ℹ dist/errors.js                      1.06 kB │ gzip: 0.65 kB
+packages/core build: ℹ dist/diagnostics/aggregate.js       0.44 kB │ gzip: 0.28 kB
+packages/core build: ℹ dist/authoring/normalize-dsl.js     0.37 kB │ gzip: 0.27 kB
+packages/core build: ℹ dist/formats/css.js                 0.35 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/pipeline/types.js              0.33 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/diagnostics/types.js           0.28 kB │ gzip: 0.23 kB
+packages/core build: ℹ dist/transforms/identity.js         0.22 kB │ gzip: 0.17 kB
+packages/core build: ℹ dist/model/ir.js                    0.12 kB │ gzip: 0.12 kB
+packages/core build: ℹ dist/public/compiler.d.ts           3.88 kB │ gzip: 1.04 kB
+packages/core build: ℹ dist/index.d.ts                     3.56 kB │ gzip: 1.01 kB
+packages/core build: ℹ dist/public/tenant.d.ts             1.08 kB │ gzip: 0.37 kB
+packages/core build: ℹ dist/public/authoring.d.ts          0.94 kB │ gzip: 0.37 kB
+packages/core build: ℹ dist/public/dtcg.d.ts               0.60 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/public/runtime.d.ts            0.42 kB │ gzip: 0.20 kB
+packages/core build: ℹ dist/types.d.ts                     5.72 kB │ gzip: 2.29 kB
+packages/core build: ℹ dist/patch.d.ts                     4.68 kB │ gzip: 2.28 kB
+packages/core build: ℹ dist/formats/vite-delivery.d.ts     3.96 kB │ gzip: 1.19 kB
+packages/core build: ℹ dist/pipeline/types.d.ts            3.48 kB │ gzip: 1.12 kB
+packages/core build: ℹ dist/naming.d.ts                    2.90 kB │ gzip: 1.56 kB
+packages/core build: ℹ dist/resolve.d.ts                   2.88 kB │ gzip: 1.52 kB
+packages/core build: ℹ dist/dtcg/from-dtcg.d.ts            2.62 kB │ gzip: 1.41 kB
+packages/core build: ℹ dist/define.d.ts                    2.59 kB │ gzip: 1.29 kB
+packages/core build: ℹ dist/serialize.d.ts                 2.44 kB │ gzip: 1.25 kB
+packages/core build: ℹ dist/dtcg/to-dtcg.d.ts              2.42 kB │ gzip: 1.31 kB
+packages/core build: ℹ dist/apply.d.ts                     2.01 kB │ gzip: 1.00 kB
+packages/core build: ℹ dist/schema.d.ts                    1.94 kB │ gzip: 1.04 kB
+packages/core build: ℹ dist/patch-policy.d.ts              1.84 kB │ gzip: 0.84 kB
+packages/core build: ℹ dist/diagnostics/types.d.ts         1.75 kB │ gzip: 0.64 kB
+packages/core build: ℹ dist/diagnostics/catalog.d.ts       1.71 kB │ gzip: 0.67 kB
+packages/core build: ℹ dist/graph/build.d.ts               1.60 kB │ gzip: 0.71 kB
+packages/core build: ℹ dist/aliases/legacy-v0.d.ts         1.49 kB │ gzip: 0.80 kB
+packages/core build: ℹ dist/model/ir.d.ts                  1.41 kB │ gzip: 0.58 kB
+packages/core build: ℹ dist/dtcg/types.d.ts                1.22 kB │ gzip: 0.76 kB
+packages/core build: ℹ dist/dtcg/diagnostics.d.ts          1.19 kB │ gzip: 0.54 kB
+packages/core build: ℹ dist/errors.d.ts                    1.17 kB │ gzip: 0.64 kB
+packages/core build: ℹ dist/diagnostics/from-legacy.d.ts   1.11 kB │ gzip: 0.33 kB
+packages/core build: ℹ dist/dtcg/color.d.ts                1.09 kB │ gzip: 0.60 kB
+packages/core build: ℹ dist/patch-grammar.d.ts             1.04 kB │ gzip: 0.69 kB
+packages/core build: ℹ dist/pipeline/compile.d.ts          0.54 kB │ gzip: 0.29 kB
+packages/core build: ℹ dist/diagnostics/aggregate.d.ts     0.43 kB │ gzip: 0.27 kB
+packages/core build: ℹ dist/authoring/normalize-dsl.d.ts   0.35 kB │ gzip: 0.24 kB
+packages/core build: ℹ dist/diagnostics/format.d.ts        0.33 kB │ gzip: 0.21 kB
+packages/core build: ℹ dist/pipeline/fingerprint.d.ts      0.26 kB │ gzip: 0.17 kB
+packages/core build: ℹ dist/pipeline/extensions.d.ts       0.20 kB │ gzip: 0.15 kB
+packages/core build: ℹ 78 files, total: 258.46 kB
+packages/core build: ✔ Build complete in 655ms
+packages/core build: Done
+packages/css build$ tsdown && node scripts/build.mjs && node scripts/gen-tokens.mjs
+packages/naive build$ tsdown
+packages/tailwind build$ tsdown
+packages/vue build$ tsdown
+packages/css build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/naive build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/tailwind build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/vue build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/css build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/css/tsdown.config.ts 
+packages/css build: ℹ entry: src/contract.ts, src/theme/default.ts
+packages/css build: ℹ tsconfig: tsconfig.json
+packages/css build: ℹ Build start
+packages/naive build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/naive/tsdown.config.ts 
+packages/naive build: ℹ entry: src/index.ts
+packages/css build: ℹ Cleaning 15 files
+packages/naive build: ℹ tsconfig: tsconfig.json
+packages/naive build: ℹ Build start
+packages/tailwind build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/tailwind/tsdown.config.ts 
+packages/tailwind build: ℹ entry: src/index.ts
+packages/tailwind build: ℹ tsconfig: tsconfig.json
+packages/naive build: ℹ Cleaning 2 files
+packages/tailwind build: ℹ Build start
+packages/tailwind build: ℹ Cleaning 2 files
+packages/vue build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/vue/tsdown.config.ts 
+packages/vue build: ℹ entry: src/index.ts, src/anti-fouc.ts
+packages/vue build: ℹ tsconfig: tsconfig.json
+packages/vue build: ℹ Build start
+packages/vue build: ℹ Cleaning 5 files
+packages/vue build: ℹ dist/index.js                10.20 kB │ gzip: 4.23 kB
+packages/vue build: ℹ dist/anti-fouc.js             3.89 kB │ gzip: 1.98 kB
+packages/vue build: ℹ dist/theme-name-Dpu8V4EN.js   2.69 kB │ gzip: 1.52 kB
+packages/vue build: ℹ dist/index.d.ts               6.10 kB │ gzip: 2.70 kB
+packages/vue build: ℹ dist/anti-fouc.d.ts           2.16 kB │ gzip: 1.13 kB
+packages/vue build: ℹ 5 files, total: 25.05 kB
+packages/vue build: ✔ Build complete in 440ms
+packages/vue build: Done
+packages/tailwind build: ℹ dist/index.js    7.04 kB │ gzip: 3.18 kB
+packages/tailwind build: ℹ dist/index.d.ts  3.56 kB │ gzip: 1.81 kB
+packages/tailwind build: ℹ 2 files, total: 10.60 kB
+packages/tailwind build: ✔ Build complete in 482ms
+packages/tailwind build: Done
+packages/css build: ℹ dist/theme/default.js    18.80 kB │ gzip: 6.99 kB
+packages/css build: ℹ dist/contract.js          4.38 kB │ gzip: 1.08 kB
+packages/css build: ℹ dist/theme/default.d.ts   8.92 kB │ gzip: 3.27 kB
+packages/css build: ℹ dist/contract.d.ts        0.95 kB │ gzip: 0.59 kB
+packages/css build: ℹ 4 files, total: 33.05 kB
+packages/css build: ✔ Build complete in 552ms
+packages/css build: [themeon] dist/tokens.css записан (APCA-гейт пройден, 0 пар).
+packages/css build: Done
+packages/naive build: ℹ dist/index.js    21.29 kB │ gzip: 7.47 kB
+packages/naive build: ℹ dist/index.d.ts   6.43 kB │ gzip: 2.81 kB
+packages/naive build: ℹ 2 files, total: 27.73 kB
+packages/naive build: ✔ Build complete in 1074ms
+packages/naive build: Done
+packages/cli build$ tsdown
+packages/nuxt build$ nuxt-module-build build
+packages/vite build$ tsdown
+packages/vite build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/cli build: ℹ tsdown v0.22.3 powered by rolldown v1.1.4
+packages/vite build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/vite/tsdown.config.ts 
+packages/cli build: ℹ config file: /home/vostrikov/projects/packages/themeon/packages/cli/tsdown.config.ts 
+packages/vite build: ℹ entry: src/index.ts
+packages/vite build: ℹ tsconfig: tsconfig.json
+packages/vite build: ℹ Build start
+packages/cli build: ℹ entry: src/cli.ts, src/index.ts
+packages/cli build: ℹ tsconfig: tsconfig.json
+packages/cli build: ℹ Build start
+packages/cli build: ℹ Cleaning 20 files
+packages/vite build: ℹ Cleaning 2 files
+packages/nuxt build: ℹ Building nuxt
+packages/nuxt build: ℹ Cleaning dist directory: ./dist
+packages/vite build: ℹ dist/index.js    8.39 kB │ gzip: 3.29 kB
+packages/vite build: ℹ dist/index.d.ts  3.65 kB │ gzip: 1.66 kB
+packages/vite build: ℹ 2 files, total: 12.04 kB
+packages/vite build: ✔ Build complete in 519ms
+packages/vite build: Done
+packages/cli build: ℹ Granting execute permission to dist/cli.js
+packages/cli build: ℹ dist/cli.js                         1.39 kB │ gzip: 0.63 kB
+packages/cli build: ℹ dist/index.js                       0.89 kB │ gzip: 0.38 kB
+packages/cli build: ℹ dist/check-Dhex0lzg.js             18.54 kB │ gzip: 6.26 kB
+packages/cli build: ℹ dist/semantic-diff-YTecc8Fc.js     14.20 kB │ gzip: 3.69 kB
+packages/cli build: ℹ dist/init-BYkB_pNu.js               5.27 kB │ gzip: 2.34 kB
+packages/cli build: ℹ dist/doctor-C9zz_5A9.js             5.21 kB │ gzip: 1.93 kB
+packages/cli build: ℹ dist/explain-DJg7Qwjm.js            5.13 kB │ gzip: 2.02 kB
+packages/cli build: ℹ dist/graph-CAkPtvSg.js              4.20 kB │ gzip: 1.74 kB
+packages/cli build: ℹ dist/build-CIA4koSg.js              4.16 kB │ gzip: 1.81 kB
+packages/cli build: ℹ dist/inspect-DAzD8K0K.js            3.95 kB │ gzip: 1.60 kB
+packages/cli build: ℹ dist/migrate-CyltSwMk.js            3.82 kB │ gzip: 1.61 kB
+packages/cli build: ℹ dist/format-P7WWXdF8.js             3.29 kB │ gzip: 1.13 kB
+packages/cli build: ℹ dist/diff-By_lyXhz.js               2.76 kB │ gzip: 1.20 kB
+packages/cli build: ℹ dist/schema-U-NTRmdw.js             2.71 kB │ gzip: 1.33 kB
+packages/cli build: ℹ dist/token-lookup-HMtLDBew.js       2.46 kB │ gzip: 1.06 kB
+packages/cli build: ℹ dist/load-theme-DnMz092D.js         2.23 kB │ gzip: 1.19 kB
+packages/cli build: ℹ dist/constants-CdvqoaGw.js          0.77 kB │ gzip: 0.55 kB
+packages/cli build: ℹ dist/rolldown-runtime-D7D4PA-g.js   0.36 kB │ gzip: 0.26 kB
+packages/cli build: ℹ dist/index.d.ts                     8.55 kB │ gzip: 2.80 kB
+packages/cli build: ℹ dist/cli.d.ts                       0.01 kB │ gzip: 0.03 kB
+packages/cli build: ℹ 20 files, total: 89.90 kB
+packages/cli build: ✔ Build complete in 669ms
+packages/cli build: Done
+packages/nuxt build: ✔ Build succeeded for nuxt
+packages/nuxt build:   dist/runtime (total size: 3.44 kB)
+packages/nuxt build:   └─ dist/runtime/fouc.server.js (658 B)
+packages/nuxt build:   └─ dist/runtime/plugin.d.ts (653 B)
+packages/nuxt build:   └─ dist/runtime/fouc.server.d.ts (1.77 kB)
+packages/nuxt build:   └─ dist/runtime/plugin.js (358 B)
+packages/nuxt build:   dist/module.mjs (total size: 9.48 kB, chunk size: 9.48 kB, exports: default)
+packages/nuxt build: Σ Total dist size (byte size): 15.1 kB
+packages/nuxt build: Done
+
+ RUN  v4.1.10 /home/vostrikov/projects/packages/themeon/tests/integration
+
+ ❯ |int-browser| src/browser/css-tailwind-recipe.test.ts (2 tests | 1 failed) 363ms
+     × C) канонический order-statement (layers-tailwind.css) — рабочий 281ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |int-browser| src/browser/css-tailwind-recipe.test.ts > @themeon/css — рецепт соседства с Tailwind v4 (README) > C) канонический order-statement (layers-tailwind.css) — рабочий
+AssertionError: expected '36px' to be '40px' // Object.is equality
+
+Expected: "40px"
+Received: "36px"
+
+ ❯ src/browser/css-tailwind-recipe.test.ts:58:31
+     56|     )
+     57|
+     58|     expect(styles.h1FontSize).toBe('40px')
+       |                               ^
+     59|     expect(styles.h1FontWeight).toBe('700')
+     60|     expect(styles.btnBg).not.toBe('rgba(0, 0, 0, 0)')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 18 passed | 1 skipped (20)
+      Tests  1 failed | 65 passed | 1 skipped (67)
+   Start at  15:42:40
+   Duration  1.64s (transform 2.92s, setup 0ms, import 8.37s, tests 5.71s, environment 397ms)
+
+undefined
+/home/vostrikov/projects/packages/themeon/tests/integration:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run --project int-fast --project int-browser
+[ELIFECYCLE] Command failed with exit code 1.
+=== pnpm check:pack ===
+$ pnpm -r --filter "./packages/*" exec publint && pnpm -r --filter "./packages/*" exec attw --pack --profile esm-only --entrypoints .
+Running publint v0.3.21 for @themeon/core...
+Running publint v0.3.21 for @themeon/colors...
+Packing files with `pnpm pack`...
+Packing files with `pnpm pack`...
+Linting...
+All good!
+Linting...
+All good!
+Running publint v0.3.21 for @themeon/tailwind...
+Packing files with `pnpm pack`...
+Running publint v0.3.21 for @themeon/vue...
+Packing files with `pnpm pack`...
+Running publint v0.3.21 for @themeon/css...
+Packing files with `pnpm pack`...
+Running publint v0.3.21 for @themeon/naive...
+Packing files with `pnpm pack`...
+Linting...
+All good!
+Linting...
+All good!
+Linting...
+All good!
+Linting...
+All good!
+Running publint v0.3.21 for @themeon/cli...
+Packing files with `pnpm pack`...
+Running publint v0.3.21 for @themeon/nuxt...
+Running publint v0.3.21 for @themeon/vite...
+Packing files with `pnpm pack`...
+Packing files with `pnpm pack`...
+Linting...
+All good!
+Linting...
+Linting...
+Errors:
+1. pkg.exports["./client"].types is ./client.d.ts but the file is not published. Is it specified in pkg.files?
+All good!
+undefined
+/home/vostrikov/projects/packages/themeon/packages/vite:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: publint
+[ELIFECYCLE] Command failed with exit code 1.
+=== pnpm pack:inspect ===
+$ mkdir -p /tmp/themeon-pack-inspect && rm -f /tmp/themeon-pack-inspect/*.tgz && pnpm -r --filter "./packages/*" pack --pack-destination /tmp/themeon-pack-inspect
+$ nuxt-module-build build
+ℹ Building nuxt
+ℹ Cleaning dist directory: ./dist
+✔ Build succeeded for nuxt
+  dist/runtime (total size: 3.44 kB)
+  └─ dist/runtime/fouc.server.d.ts (1.77 kB)
+  └─ dist/runtime/fouc.server.js (658 B)
+  └─ dist/runtime/plugin.d.ts (653 B)
+  └─ dist/runtime/plugin.js (358 B)
+  dist/module.mjs (total size: 9.48 kB, chunk size: 9.48 kB, exports: default)
+
+Σ Total dist size (byte size): 15.1 kB
+
+package: @themeon/colors@0.0.0
+Tarball Contents
+dist/index.d.ts
+dist/index.js
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-colors-0.0.0.tgz
+
+package: @themeon/core@0.0.0
+Tarball Contents
+dist/aliases/legacy-v0.d.ts
+dist/aliases/legacy-v0.js
+dist/apply.d.ts
+dist/apply.js
+dist/authoring/normalize-dsl.d.ts
+dist/authoring/normalize-dsl.js
+dist/define.d.ts
+dist/define.js
+dist/diagnostics/aggregate.d.ts
+dist/diagnostics/aggregate.js
+dist/diagnostics/catalog.d.ts
+dist/diagnostics/catalog.js
+dist/diagnostics/format.d.ts
+dist/diagnostics/format.js
+dist/diagnostics/from-legacy.d.ts
+dist/diagnostics/from-legacy.js
+dist/diagnostics/redact.js
+dist/diagnostics/types.d.ts
+dist/diagnostics/types.js
+dist/dtcg/color.d.ts
+dist/dtcg/color.js
+dist/dtcg/diagnostics.d.ts
+dist/dtcg/diagnostics.js
+dist/dtcg/from-dtcg.d.ts
+dist/dtcg/from-dtcg.js
+dist/dtcg/to-dtcg.d.ts
+dist/dtcg/to-dtcg.js
+dist/dtcg/types.d.ts
+dist/errors.d.ts
+dist/errors.js
+dist/formats/css.js
+dist/formats/vite-delivery.d.ts
+dist/formats/vite-delivery.js
+dist/graph/build.d.ts
+dist/graph/build.js
+dist/index.d.ts
+dist/index.js
+dist/internal/walk.js
+dist/model/build.js
+dist/model/from-definition.js
+dist/model/ir.d.ts
+dist/model/ir.js
+dist/model/to-definition.js
+dist/naming.d.ts
+dist/naming.js
+dist/patch-grammar.d.ts
+dist/patch-grammar.js
+dist/patch-policy.d.ts
+dist/patch-policy.js
+dist/patch.d.ts
+dist/patch.js
+dist/pipeline/compile.d.ts
+dist/pipeline/compile.js
+dist/pipeline/extensions.d.ts
+dist/pipeline/extensions.js
+dist/pipeline/fingerprint.d.ts
+dist/pipeline/fingerprint.js
+dist/pipeline/types.d.ts
+dist/pipeline/types.js
+dist/public/authoring.d.ts
+dist/public/authoring.js
+dist/public/compiler.d.ts
+dist/public/compiler.js
+dist/public/dtcg.d.ts
+dist/public/dtcg.js
+dist/public/runtime.d.ts
+dist/public/runtime.js
+dist/public/tenant.d.ts
+dist/public/tenant.js
+dist/resolve.d.ts
+dist/resolve.js
+dist/schema.d.ts
+dist/schema.js
+dist/serialize.d.ts
+dist/serialize.js
+dist/transforms/identity.js
+dist/types.d.ts
+dist/types.js
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-core-0.0.0.tgz
+
+package: @themeon/tailwind@0.0.0
+Tarball Contents
+dist/index.d.ts
+dist/index.js
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-tailwind-0.0.0.tgz
+
+package: @themeon/naive@0.0.0
+Tarball Contents
+dist/index.d.ts
+dist/index.js
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-naive-0.0.0.tgz
+
+package: @themeon/vue@0.0.0
+Tarball Contents
+dist/anti-fouc.d.ts
+dist/anti-fouc.js
+dist/index.d.ts
+dist/index.js
+dist/theme-name-Dpu8V4EN.js
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-vue-0.0.0.tgz
+
+package: @themeon/css@0.0.0
+Tarball Contents
+dist/base.css
+dist/blueprints.css
+dist/components.css
+dist/composition.css
+dist/contract.d.ts
+dist/contract.js
+dist/index.css
+dist/layers-tailwind.css
+dist/layers.css
+dist/reset.css
+dist/theme/default.d.ts
+dist/theme/default.js
+dist/tokens.css
+dist/utilities.css
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-css-0.0.0.tgz
+
+package: @themeon/vite@0.0.0
+Tarball Contents
+dist/index.d.ts
+dist/index.js
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-vite-0.0.0.tgz
+
+package: @themeon/cli@0.0.0
+Tarball Contents
+dist/build-CIA4koSg.js
+dist/check-Dhex0lzg.js
+dist/cli.d.ts
+dist/cli.js
+dist/constants-CdvqoaGw.js
+dist/diff-By_lyXhz.js
+dist/doctor-C9zz_5A9.js
+dist/explain-DJg7Qwjm.js
+dist/format-P7WWXdF8.js
+dist/graph-CAkPtvSg.js
+dist/index.d.ts
+dist/index.js
+dist/init-BYkB_pNu.js
+dist/inspect-DAzD8K0K.js
+dist/load-theme-DnMz092D.js
+dist/migrate-CyltSwMk.js
+dist/rolldown-runtime-D7D4PA-g.js
+dist/schema-U-NTRmdw.js
+dist/semantic-diff-YTecc8Fc.js
+dist/token-lookup-HMtLDBew.js
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-cli-0.0.0.tgz
+
+package: @themeon/nuxt@0.0.0
+Tarball Contents
+dist/module.d.mts
+dist/module.json
+dist/module.mjs
+dist/runtime/fouc.server.d.ts
+dist/runtime/fouc.server.js
+dist/runtime/plugin.d.ts
+dist/runtime/plugin.js
+dist/types.d.mts
+LICENSE
+package.json
+README.md
+Tarball Details
+/tmp/themeon-pack-inspect/themeon-nuxt-0.0.0.tgz
+ALL_GREEN

@@ -1,0 +1,65 @@
+{
+  "adapter_attestation": {
+    "canonical_command_sha256": "sha256:676a103d306e2bc7770da860d6f276b428981d17303850cc75b16d336321bc09",
+    "command_id": "task:plan-exec",
+    "package": "task",
+    "version": "0.20.3"
+  },
+  "commit_sha": "8d83e6216423b00c893e1e83bbfb8e0e2825cf6d",
+  "continuity": {
+    "evidence": [
+      "batch:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+      "loaded-inputs:reusable",
+      "cold-start-cost:0",
+      "lifecycle:scope-complete",
+      "checkpoint:artifacts/P0.4/scope-complete.json"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:c11f4d8139062e1f235d5a464d88b6996d44cf32dfd3c5b8f305e64e6ebebed5",
+    "plan": "sha256:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+    "state": "sha256:3bfe5db31826c8e7662759955a5e9f6410d6dad8acfc01828e801e477def808e"
+  },
+  "journal": {
+    "command": "plan-exec",
+    "line": 86,
+    "result": "closed-green",
+    "run_id": "p0.5-exec-2026-09-20",
+    "sha256": "sha256:804a3c841b667a0c16c278f7e8368af803e33a1cefa0f847668aae6dc1426feb"
+  },
+  "next_exact": "exec-items: task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.6",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "rationale": {
+    "open_risks": "Residual `NPM-TRUSTED-PUBLISHER` (D10) remains outside plan scope; no npm publish in this batch.",
+    "remaining": "P0.6; then `plan-close` P0. Re-admit reopened P2/P3 under Routing. Do not re-open GREEN P0.1–P0.3. Do not archive."
+  },
+  "recommendation": "**Next:** exec-items: task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.6\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | B0-HYGIENE |\n| Model class | implementation |\n| Effort | high |\n| Capabilities | plan-exec · measured coverage gate · no npm publish |\n| Context | continue-root |\n| Суть | Finish P0.6 (coverage baseline + verify.yml SSOT), then close phase P0. |\n\n```session-continuity-decision/v1\n{\"evidence\":[\"batch:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c\",\"loaded-inputs:reusable\",\"cold-start-cost:0\",\"lifecycle:scope-complete\",\"checkpoint:artifacts/P0.4/scope-complete.json\"],\"outcome\":\"continue-root\",\"reason\":\"authorized-scope-complete\",\"runnable\":true,\"schema_version\":\"session-continuity-decision/v1\"}\n```\n\n**Native Cursor command:**\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/themeon --model composer-2.5 --force --sandbox disabled --trust --approve-mcps 'task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.6'\n```",
+  "route": {
+    "batch": "B0-HYGIENE",
+    "command": null,
+    "context": "continue-root",
+    "continuity": {
+      "evidence": [
+        "batch:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+        "loaded-inputs:reusable",
+        "cold-start-cost:0",
+        "lifecycle:scope-complete",
+        "checkpoint:artifacts/P0.4/scope-complete.json"
+      ],
+      "outcome": "continue-root",
+      "reason": "authorized-scope-complete",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": null,
+    "thinking": null
+  },
+  "schema_version": "terminal-delivery-receipt/v1",
+  "status": "🟢 Done",
+  "subject": "P0.5"
+}

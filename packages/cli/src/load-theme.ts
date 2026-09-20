@@ -6,8 +6,8 @@
  */
 import { createJiti } from 'jiti'
 import { consola } from 'consola'
-import { ThemeonError } from '@themeon/core'
-import type { ThemeDefinition } from '@themeon/core'
+import { ThemeonError } from '@themeon/core/authoring'
+import type { ThemeDefinition } from '@themeon/core/authoring'
 
 /**
  * Модульный singleton jiti — переиспользуется между вызовами `loadThemeConfig`.

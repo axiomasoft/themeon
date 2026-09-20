@@ -33,15 +33,15 @@ describe('serializeThemeCss — snapshot полного выхода (этало
   :root {
     color-scheme: light;
     --color-forest-600: oklch(0.55 0.13 155);
-    --color-bg-page: oklch(0.99 0 0);
+    --breakpoint-md: 768px;
     --color-action-primary: var(--color-forest-600);
+    --color-bg-page: oklch(0.99 0 0);
     --spacing-4: 1rem;
     --text-2xl: 1.5rem;
     --text-2xl--line-height: 1.33;
-    --breakpoint-md: 768px;
     /* aliases: legacy-v0 (remove after migration) */
-    --bg-page: var(--color-bg-page);
     --action-primary: var(--color-action-primary);
+    --bg-page: var(--color-bg-page);
     --size-2-xl: var(--text-2xl);
   }
   [data-theme="dark"] {

@@ -1,0 +1,95 @@
+{
+  "$schema": "themeon/critical-coverage-baseline/v1",
+  "vitest": "4.1.10",
+  "coverageProvider": "v8",
+  "includes": [
+    "packages/core/src/resolve.ts",
+    "packages/core/src/naming.ts",
+    "packages/core/src/patch.ts",
+    "packages/core/src/patch-grammar.ts",
+    "packages/core/src/patch-policy.ts",
+    "packages/core/src/serialize.ts",
+    "packages/core/src/dtcg/from-dtcg.ts",
+    "packages/colors/src/contrast.ts",
+    "packages/colors/src/wcag22.ts",
+    "packages/cli/src/commands/check.ts",
+    "packages/cli/src/checks/contrast.ts",
+    "packages/cli/src/checks/coverage.ts"
+  ],
+  "auditTargets": {
+    "resolverGraph": {
+      "lines": 95,
+      "branches": 95
+    },
+    "naming": {
+      "lines": 100,
+      "branches": 100
+    },
+    "dtcgConversion": {
+      "lines": 95,
+      "branches": 95
+    },
+    "tenantPatches": {
+      "lines": 95,
+      "branches": 95
+    },
+    "serialization": {
+      "lines": 95,
+      "branches": 90
+    },
+    "cliPresentation": {
+      "lines": 70,
+      "branches": 65
+    }
+  },
+  "files": {
+    "packages/core/src/resolve.ts": {
+      "lines": 96.39,
+      "branches": 85.07
+    },
+    "packages/core/src/naming.ts": {
+      "lines": 100,
+      "branches": 100
+    },
+    "packages/core/src/patch.ts": {
+      "lines": 88.97,
+      "branches": 82
+    },
+    "packages/core/src/patch-grammar.ts": {
+      "lines": 95.45,
+      "branches": 91.89
+    },
+    "packages/core/src/patch-policy.ts": {
+      "lines": 92.3,
+      "branches": 84.84
+    },
+    "packages/core/src/serialize.ts": {
+      "lines": 100,
+      "branches": 94.11
+    },
+    "packages/core/src/dtcg/from-dtcg.ts": {
+      "lines": 78.2,
+      "branches": 67.19
+    },
+    "packages/colors/src/contrast.ts": {
+      "lines": 100,
+      "branches": 84.61
+    },
+    "packages/colors/src/wcag22.ts": {
+      "lines": 79.66,
+      "branches": 53.48
+    },
+    "packages/cli/src/commands/check.ts": {
+      "lines": 28.76,
+      "branches": 8
+    },
+    "packages/cli/src/checks/contrast.ts": {
+      "lines": 73.91,
+      "branches": 62.5
+    },
+    "packages/cli/src/checks/coverage.ts": {
+      "lines": 95.65,
+      "branches": 100
+    }
+  }
+}

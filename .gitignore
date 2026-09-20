@@ -2,7 +2,16 @@ node_modules
 dist
 .nuxt
 coverage
+.stryker-tmp
+mutation/mutation-report.json
+benchmarks/last-report.json
 *.tsbuildinfo
 .tmp-*
+.tmp-consumer-packs
+.tmp-api-packs
+.tmp-types-cells
+tests/consumers/.tmp-cells
+tests/consumers/node_modules
+tests/fixtures/generated/replay/*-[0-9]*.json
 docs/.vitepress/cache/
 docs/.vitepress/dist/
