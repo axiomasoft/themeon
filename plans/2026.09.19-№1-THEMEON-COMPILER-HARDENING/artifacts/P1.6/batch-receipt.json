@@ -1,0 +1,13 @@
+{
+  "schema_version": "batch-receipt/v1",
+  "batch_id": "B1-COMPILER",
+  "membership": [
+    "P1.6"
+  ],
+  "invocation_digest": "63f5ff28b8d368edbdccc0b1fdf57d4bc3e431a5a056dffd7109053e9ed3dd76",
+  "completed_prefix": [],
+  "routing_digest": "7a0b665a8c8e5b8523420a021d145d4f901a9eebe6d22f3a5b33bbb57f8e3722",
+  "spec_digest": "a0fcd5fab6b22c2bad51c92e5a128fe7043c7ab671182b0e263d73d8ab898293",
+  "handoff_digest": null,
+  "stop_disposition": "continue"
+}

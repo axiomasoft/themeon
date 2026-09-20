@@ -1,0 +1,65 @@
+{
+  "adapter_attestation": {
+    "canonical_command_sha256": "sha256:fcec0c67bb951c1d274dc40fed4b2c390f498fa22b22c3f9ae3f02275381b82d",
+    "command_id": "task:plan-run",
+    "package": "task",
+    "version": "0.20.3"
+  },
+  "commit_sha": "09cec81463f8cf9bd905d52b28f46d4542848dfd",
+  "continuity": {
+    "evidence": [
+      "batch:fe00280b0d3138d297e4e1a1b738b829b520efbbeed1610f8235f2dc48f9edee",
+      "loaded-inputs:reusable",
+      "cold-start-cost:0",
+      "lifecycle:scope-complete",
+      "checkpoint:artifacts/P1.6/scope-complete.json"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": "sha256:d90e3e2b566c68326ffa5258037a1a3642062b41779cc807aebf1d1c7577af0a",
+    "handoff": "sha256:61aa018bc8bbb5004511c171975ef76f94799a3c5d43e6285f648a5f02152905",
+    "plan": "sha256:7a0b665a8c8e5b8523420a021d145d4f901a9eebe6d22f3a5b33bbb57f8e3722",
+    "state": "sha256:ff32fcdb6c3cf7a8cd9f7032ddd2bb25222732aef3ef9bf06bcbd4b8ceabe98a"
+  },
+  "journal": {
+    "command": "plan-run",
+    "line": 30,
+    "result": "closed-green",
+    "run_id": "7b99f1b5de1ce8cb494aad199778001ee61ebb3c543e6a0cabec8c8b1c4b3406",
+    "sha256": "sha256:6b60b61c93b0e24c9d32bd0602d9ce20ee1fe1fd470160e7abe6ea8da8d902bb"
+  },
+  "next_exact": "exec-items: task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P2.1",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "rationale": {
+    "open_risks": "CSS emission still layer-then-identity (ref before sys). Not P1.6 scope.",
+    "remaining": "B2-VERIFY P2.1–P2.2 (property suites and mutation). Then B2-PACKAGE, B2-RUNTIME, P3. `NPM-TRUSTED-PUBLISHER` still deferred."
+  },
+  "recommendation": "**Next:** exec-items: task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P2.1\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | B2-VERIFY |\n| Model | composer-2.5 |\n| Model class | implementation |\n| Effort | high |\n| Capabilities | — |\n| Context | continue-root |\n| Суть | Property suites and deterministic generators. |\n\n```session-continuity-decision/v1\n{\"evidence\": [\"batch:fe00280b0d3138d297e4e1a1b738b829b520efbbeed1610f8235f2dc48f9edee\", \"loaded-inputs:reusable\", \"cold-start-cost:0\", \"lifecycle:scope-complete\", \"checkpoint:artifacts/P1.6/scope-complete.json\"], \"outcome\": \"continue-root\", \"reason\": \"authorized-scope-complete\", \"runnable\": true, \"schema_version\": \"session-continuity-decision/v1\"}\n```\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/themeon --model composer-2.5 --force --sandbox disabled --trust --approve-mcps 'task:plan-exec 2026.09.19-№1-THEMEON-COMPILER-HARDENING P2.1'\n```",
+  "route": {
+    "batch": "B2-VERIFY",
+    "command": null,
+    "context": "continue-root",
+    "continuity": {
+      "evidence": [
+        "batch:fe00280b0d3138d297e4e1a1b738b829b520efbbeed1610f8235f2dc48f9edee",
+        "loaded-inputs:reusable",
+        "cold-start-cost:0",
+        "lifecycle:scope-complete",
+        "checkpoint:artifacts/P1.6/scope-complete.json"
+      ],
+      "outcome": "continue-root",
+      "reason": "authorized-scope-complete",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": "composer-2.5",
+    "thinking": null
+  },
+  "schema_version": "terminal-delivery-receipt/v1",
+  "status": "🟢 Done",
+  "subject": "P1.6"
+}

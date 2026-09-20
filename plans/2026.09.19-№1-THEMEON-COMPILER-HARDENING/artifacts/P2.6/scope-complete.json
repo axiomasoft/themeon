@@ -1,0 +1,22 @@
+{
+  "closed_batch": "P2.6",
+  "closed_items": ["P2.6"],
+  "continuity": {
+    "evidence": [
+      "batch:B2-RUNTIME",
+      "conformance:adapter-matrix+fixture",
+      "browser.yml:firefox-webkit-periodic",
+      "decision:D8-testing-kit-internal",
+      "gate-self:conformance-literal-parity",
+      "lifecycle:scope-complete",
+      "checkpoint:artifacts/P2.6/scope-complete.json"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "schema_version": "scope-complete-checkpoint/v1",
+  "successor": "P3"
+}

@@ -1,0 +1,20 @@
+{
+  "closed_batch": "P2.2",
+  "closed_items": ["P2.2"],
+  "continuity": {
+    "evidence": [
+      "batch:B2-VERIFY",
+      "mutation:stryker-10.0.0",
+      "msi-floor:69.5-covered",
+      "lifecycle:scope-complete",
+      "checkpoint:artifacts/P2.2/scope-complete.json"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "schema_version": "scope-complete-checkpoint/v1",
+  "successor": "P2.3"
+}

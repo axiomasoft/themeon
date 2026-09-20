@@ -1,0 +1,37 @@
+{
+  "adapter_attestation": null,
+  "commit_sha": "09cec81463f8cf9bd905d52b28f46d4542848dfd",
+  "continuity": {
+    "evidence": [
+      "persisted-context:whole-plan-independent-audit"
+    ],
+    "outcome": "cold-start-root",
+    "reason": "whole-plan-independent-audit",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:62d27fbd122340f1f422e0321bc8204f9847b53001a899ce7e079e9751696b26",
+    "plan": "sha256:7a0b665a8c8e5b8523420a021d145d4f901a9eebe6d22f3a5b33bbb57f8e3722",
+    "state": null
+  },
+  "journal": null,
+  "next_exact": "audit-design: task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "rationale": {
+    "open_risks": "Local Cursor model listing failed with DNS `EAI_AGAIN`, so exact availability remains a launch preflight; a Cursor Start entitlement that fixes Grok 4.6 at medium effort cannot satisfy the required high route and must use the Composer 2.5 fallback or stop. P0.4 still requires `NPM-TRUSTED-PUBLISHER`. Standards claims remain owned by their implementation items.",
+    "remaining": "Independent whole-plan audit; repair/re-audit until GREEN; only then revalidate the P0.1 bundle and execute P0→P3; reconcile and archive."
+  },
+  "recommendation": "**Next:** audit-design: task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | whole plan P0–P3 |\n| Model | preferred grok-4.6; fallback composer-2.5 |\n| Thinking | high or provider-equivalent; no automatic selector |\n| Capabilities | repository read · plan-audit tooling · no product implementation |\n| Context | cold-start-root: whole-plan-independent-audit |\n| Суть | Independently audit completeness, dependencies, files, validation, owner gates and model routing before any execution. |\n\n**Preferred Cursor command (after `agent --list-models` attests the exact selector):**\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/themeon --model grok-4.6 --mode plan '$ task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design'\n```\n\n**Allowed fallback:** replace only `--model grok-4.6` with `--model composer-2.5`, retain the same audit scope and record the fallback reason in the audit receipt.",
+  "route": {
+    "batch": "whole plan P0–P3",
+    "command": null,
+    "context": "cold-start-root: whole-plan-independent-audit",
+    "model": "preferred grok-4.6; fallback composer-2.5",
+    "thinking": "high or provider-equivalent; no automatic selector"
+  },
+  "schema_version": "handoff-recommendation-receipt/v1",
+  "status": "handoff-persisted",
+  "subject": "design"
+}

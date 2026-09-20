@@ -1,0 +1,20 @@
+{
+  "closed_batch": "B3-CLI",
+  "closed_items": ["P3.1"],
+  "continuity": {
+    "evidence": [
+      "cli:inspect-explain-graph",
+      "cli:query-schema-v1",
+      "core:github-diagnostic-format",
+      "core:compiler-graph-exports",
+      "checkpoint:artifacts/P3.1/scope-complete.json"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "schema_version": "scope-complete-checkpoint/v1",
+  "successor": "P3.2"
+}

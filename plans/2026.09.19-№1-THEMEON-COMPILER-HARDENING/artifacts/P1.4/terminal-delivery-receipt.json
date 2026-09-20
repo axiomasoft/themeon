@@ -1,0 +1,65 @@
+{
+  "adapter_attestation": {
+    "canonical_command_sha256": "sha256:fcec0c67bb951c1d274dc40fed4b2c390f498fa22b22c3f9ae3f02275381b82d",
+    "command_id": "task:plan-run",
+    "package": "task",
+    "version": "0.20.3"
+  },
+  "commit_sha": "09cec81463f8cf9bd905d52b28f46d4542848dfd",
+  "continuity": {
+    "evidence": [
+      "batch:84eb2cf093dd52af94abe6dc08b65da5e51ed3852225f0a471a2437fc0b624f4",
+      "loaded-inputs:reusable",
+      "cold-start-cost:0",
+      "lifecycle:scope-complete",
+      "checkpoint:artifacts/P1.4/scope-complete.json"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:21a68abdf218ed3db0ae5ab06fb8f522c984bffc1060b773c16032b4153b2bbf",
+    "plan": "sha256:7a0b665a8c8e5b8523420a021d145d4f901a9eebe6d22f3a5b33bbb57f8e3722",
+    "state": "sha256:acfc24896dd30bbe82773a463e485de1f8de39767681f9350e5c4f889ad5958c"
+  },
+  "journal": {
+    "command": "plan-run",
+    "line": 26,
+    "result": "closed-green",
+    "run_id": "74dbcedd546adf8bed19409759d4f0c3d779ac7b7c8260212c56890718b015f1",
+    "sha256": "sha256:3ceb9cc0330ed620db5176376663d4d1fa60e8588a891164e7e221bca4f1fb6d"
+  },
+  "next_exact": "run-items: task:plan-run 2026.09.19-№1-THEMEON-COMPILER-HARDENING P1.5",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "rationale": {
+    "open_risks": "CSS emission still layer-then-identity (ref before sys); P1.5 must consume diagnostics without coupling the pipeline to presentation.",
+    "remaining": "B1-COMPILER remainder P1.5–P1.6 (staged compiler/fingerprint/extensions, additive subpaths). Then P2/P3. `NPM-TRUSTED-PUBLISHER` still deferred."
+  },
+  "recommendation": "**Next:** run-items: task:plan-run 2026.09.19-№1-THEMEON-COMPILER-HARDENING P1.5\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | B1-COMPILER |\n| Model | grok-4.6 |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | — |\n| Context | continue-root |\n| Суть | Staged compiler, fingerprint, scoped extensions. Keep root exports. |\n\n```session-continuity-decision/v1\n{\"evidence\": [\"batch:84eb2cf093dd52af94abe6dc08b65da5e51ed3852225f0a471a2437fc0b624f4\", \"loaded-inputs:reusable\", \"cold-start-cost:0\", \"lifecycle:scope-complete\", \"checkpoint:artifacts/P1.4/scope-complete.json\"], \"outcome\": \"continue-root\", \"reason\": \"authorized-scope-complete\", \"runnable\": true, \"schema_version\": \"session-continuity-decision/v1\"}\n```\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/themeon --model grok-4.6 --force --sandbox disabled --trust --approve-mcps 'task:plan-run 2026.09.19-№1-THEMEON-COMPILER-HARDENING P1.5'\n```",
+  "route": {
+    "batch": "B1-COMPILER",
+    "command": null,
+    "context": "continue-root",
+    "continuity": {
+      "evidence": [
+        "batch:84eb2cf093dd52af94abe6dc08b65da5e51ed3852225f0a471a2437fc0b624f4",
+        "loaded-inputs:reusable",
+        "cold-start-cost:0",
+        "lifecycle:scope-complete",
+        "checkpoint:artifacts/P1.4/scope-complete.json"
+      ],
+      "outcome": "continue-root",
+      "reason": "authorized-scope-complete",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": "grok-4.6",
+    "thinking": null
+  },
+  "schema_version": "terminal-delivery-receipt/v1",
+  "status": "🟢 Done",
+  "subject": "P1.4"
+}

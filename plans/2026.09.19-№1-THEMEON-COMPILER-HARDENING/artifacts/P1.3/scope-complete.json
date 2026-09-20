@@ -1,0 +1,25 @@
+{
+  "schema_version": "scope-complete-checkpoint/v1",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "closed_batch": "B1-MODEL",
+  "closed_items": [
+    "P1.1",
+    "P1.2",
+    "P1.3"
+  ],
+  "successor": "P1.4–P1.6",
+  "run_id": "f8e685cfbff5c7e36cf44af5ffe64800989a9d01323c332e16c6ef597432df28",
+  "continuity": {
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "evidence": [
+      "batch:84eb2cf093dd52af94abe6dc08b65da5e51ed3852225f0a471a2437fc0b624f4",
+      "loaded-inputs:reusable",
+      "cold-start-cost:0",
+      "lifecycle:scope-complete",
+      "checkpoint:artifacts/P1.3/scope-complete.json"
+    ],
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  }
+}

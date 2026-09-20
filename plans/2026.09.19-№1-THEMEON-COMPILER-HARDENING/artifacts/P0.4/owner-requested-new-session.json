@@ -1,0 +1,40 @@
+{
+  "schema_version": "owner-requested-new-session/v1",
+  "closed_item": "P0.4",
+  "successor": "P0.5-P0.6",
+  "work_estimate": {
+    "route_attested": true,
+    "capabilities_attested": true,
+    "capabilities_sufficient": true,
+    "context_attested": true,
+    "context_health": "insufficient",
+    "batch_receipt_valid": true,
+    "remaining_batch_digest": "0779779a24a56f95afc7f8d3bdb4aeee31056235593557f9bf6311be606fe8d0",
+    "loaded_inputs_reusable": false,
+    "cold_start_cost": 1,
+    "lifecycle": "owner-requested-new-session",
+    "isolated_review": false,
+    "reviewer_task": null,
+    "checkpoint": "artifacts/P0.4/owner-requested-new-session.json",
+    "external_pause": null,
+    "schema_version": "session-work-estimate/v1"
+  },
+  "continuity": {
+    "outcome": "cold-start-root",
+    "reason": "owner-requested-new-session",
+    "evidence": [
+      "batch:0779779a24a56f95afc7f8d3bdb4aeee31056235593557f9bf6311be606fe8d0",
+      "loaded-inputs:not-reusable",
+      "cold-start-cost:1",
+      "checkpoint:artifacts/P0.4/owner-requested-new-session.json"
+    ],
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "owner_instruction": "GitHub environment and npm trusted publisher are not needed now; code and CI complete; continue to next items in a new session.",
+  "deferred": {
+    "gate": "NPM-TRUSTED-PUBLISHER",
+    "token_fallback_present": true,
+    "no_publish": true
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "adapter_attestation": null,
+  "commit_sha": "09cec81463f8cf9bd905d52b28f46d4542848dfd",
+  "continuity": {
+    "evidence": [
+      "batch:de83e87e4351ee71e8b526a9840164f348b6e2421c205e47a58912acb9c492cd",
+      "loaded-inputs:not-reusable",
+      "cold-start-cost:2",
+      "reviewer:task:plan-audit"
+    ],
+    "outcome": "isolated-child-return",
+    "reason": "independent-review",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:6fe6a81670215396ad72b1e8609fa6ad7c5fac22c79cfdbb053f783be9d7bfee",
+    "plan": "sha256:d6bbd30a25cad6069d633560e623406542fdc8110ffe3d203262fb72d337c176",
+    "state": null
+  },
+  "journal": null,
+  "next_exact": "design-finish: task:plan-design 2026.09.19-№1-THEMEON-COMPILER-HARDENING finish",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "rationale": {
+    "open_risks": "Existing implementation may still be valid; lifecycle still proves only P0.1–P0.3 and P1. A GREEN receipt is impossible until the candidate is committed and P0.4 is executable without granting residual npm/GitHub configure scope.",
+    "remaining": "Design-finish repairs F2–F4, then git-commit the plan candidate, then a fresh independent `task:plan-audit design`. After GREEN, re-admit P0.4 under compiled Routing as `🟠` (D10). Do not archive. Do not execute items from this audit root."
+  },
+  "recommendation": "**Next:** design-finish: task:plan-design 2026.09.19-№1-THEMEON-COMPILER-HARDENING finish\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | n/a |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | plan design · repair F2–F4 · freeze committed candidate · no product expansion |\n| Context | isolated-child-return |\n| Суть | Repair P0.4 Authority, phase-index status, successor prose; commit; do not execute items. |\n\n```session-continuity-decision/v1\n{\"evidence\":[\"batch:de83e87e4351ee71e8b526a9840164f348b6e2421c205e47a58912acb9c492cd\",\"loaded-inputs:not-reusable\",\"cold-start-cost:2\",\"reviewer:task:plan-audit\"],\"outcome\":\"isolated-child-return\",\"reason\":\"independent-review\",\"runnable\":true,\"schema_version\":\"session-continuity-decision/v1\"}\n```\n\n**Native Cursor command:**\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/themeon --model grok-4.6 --force --sandbox disabled --trust --approve-mcps 'task:plan-design 2026.09.19-№1-THEMEON-COMPILER-HARDENING finish'\n\nРЕЖИМ: ремедиация\nВХОД: findings/design-audit-2026-09-20-post-finish.md → Findings F1–F4\nСКОУП: 1) P0.4 Authority → routine; residual NPM-TRUSTED-PUBLISHER only on roadmap/owner-gates; rebuild bundles/P0.4.json 2) align phases/P0–P3 index status with generated states (P2.4 stays Not started) 3) plan.md §3 and roadmap.md admit P0.4 after GREEN, not P0.1 4) regenerate decision views 5) owner git-commit the plan directory 6) request fresh task:plan-audit design\nНЕ ТРОГАТЬ: product code; historical journal command/result; GREEN P0.1–P0.3 and P1 terminals; D8/D9; Routing table membership\n```",
+  "route": {
+    "batch": "n/a",
+    "command": null,
+    "context": "isolated-child-return",
+    "continuity": {
+      "evidence": [
+        "batch:de83e87e4351ee71e8b526a9840164f348b6e2421c205e47a58912acb9c492cd",
+        "loaded-inputs:not-reusable",
+        "cold-start-cost:2",
+        "reviewer:task:plan-audit"
+      ],
+      "outcome": "isolated-child-return",
+      "reason": "independent-review",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": null,
+    "thinking": null
+  },
+  "schema_version": "handoff-recommendation-receipt/v1",
+  "status": "handoff-persisted",
+  "subject": "design"
+}

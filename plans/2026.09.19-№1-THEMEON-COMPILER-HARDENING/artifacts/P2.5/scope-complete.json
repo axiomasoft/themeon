@@ -1,0 +1,21 @@
+{
+  "closed_batch": "P2.5",
+  "closed_items": ["P2.5"],
+  "continuity": {
+    "evidence": [
+      "batch:B2-RUNTIME",
+      "benchmarks:corpus+harness",
+      "gate-self:performance-baseline",
+      "performance.yml:periodic-lane",
+      "lifecycle:scope-complete",
+      "checkpoint:artifacts/P2.5/scope-complete.json"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "schema_version": "scope-complete-checkpoint/v1",
+  "successor": "P2.6"
+}

@@ -1,0 +1,24 @@
+{
+  "external_pause": {
+    "continuation": "run-items: task:plan-run 2026.09.19-№1-THEMEON-COMPILER-HARDENING P0.4",
+    "fingerprint": "26d60498aba04ece7b94be06677f1ae2eef0694dd5f8ddf57d04d58bb24e639b",
+    "observed_at": "2026-09-19T19:49:43Z",
+    "predicate_satisfied": false,
+    "reason": "Owner must configure npm trusted publisher and GitHub protected environment release; token fallback stays until the grant.",
+    "resume_at": "2026-09-19T19:50:43Z",
+    "runnable_after": "GitHub environment release has required reviewers and main-only deployment; each @themeon package trusted publisher is axiomasoft/themeon workflow release.yml environment release.",
+    "started_at": "2026-09-19T19:49:43Z"
+  },
+  "observation": {
+    "gate": "NPM-TRUSTED-PUBLISHER",
+    "github_environments": [
+      "github-pages"
+    ],
+    "npm_trusted_publisher": "unobserved",
+    "publish_main_only": true,
+    "publish_oidc": true,
+    "release_environment": null,
+    "token_fallback_present": true
+  },
+  "schema_version": "external-pause/v1"
+}
