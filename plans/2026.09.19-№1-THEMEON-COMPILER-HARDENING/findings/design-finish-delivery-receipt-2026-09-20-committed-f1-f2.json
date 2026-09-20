@@ -1,0 +1,52 @@
+{
+  "adapter_attestation": null,
+  "commit_sha": "5307e927f81f67418f9c60ec7f9c9715429d42f2",
+  "continuity": {
+    "evidence": [
+      "batch:53c5adf255a9bc6ca3e45f2d5ef48c946a30c127a6b1d279b6b051ebcb526cdb",
+      "loaded-inputs:not-reusable",
+      "cold-start-cost:2",
+      "checkpoint:findings/design-finish-2026-09-20-committed-f1-f2.md"
+    ],
+    "outcome": "cold-start-root",
+    "reason": "design-root-terminal",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:4fbffa60b0b153da1f0ce8188116ba5b494e26ed35a6c18c8c708a5bec724c2c",
+    "plan": "sha256:0999082d064c57f8293369f0223cc3b55e24c8691c87bd9fd7958be1aed3273c",
+    "state": null
+  },
+  "journal": null,
+  "next_exact": "audit-design: task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "rationale": {
+    "open_risks": "Existing implementation may still be valid; lifecycle still proves only P0.1–P0.3 and P1. A GREEN receipt still requires this candidate committed. Launching P0.4 must not grant residual npm/GitHub configure scope.",
+    "remaining": "Independent `task:plan-audit design` of this committed candidate. After GREEN, re-admit P0.4 under compiled Routing as `🟠` (D10). Do not archive. Do not execute items from this design root."
+  },
+  "recommendation": "**Next:** audit-design: task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | n/a |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | plan audit · independent whole-plan design review · no product expansion |\n| Context | cold-start-root: design-root-terminal |\n| Суть | Independent design audit of the committed-audit F1–F2 repair (P3.6 bundle rebuilt after status; P0.4 Routing why D10). Do not execute items. |\n\n```session-continuity-decision/v1\n{\"evidence\":[\"batch:53c5adf255a9bc6ca3e45f2d5ef48c946a30c127a6b1d279b6b051ebcb526cdb\",\"loaded-inputs:not-reusable\",\"cold-start-cost:2\",\"checkpoint:findings/design-finish-2026-09-20-committed-f1-f2.md\"],\"outcome\":\"cold-start-root\",\"reason\":\"design-root-terminal\",\"runnable\":true,\"schema_version\":\"session-continuity-decision/v1\"}\n```\n\n**Native Cursor command:**\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/themeon --model grok-4.6 --force --sandbox disabled --trust --approve-mcps 'task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design'\n```",
+  "route": {
+    "batch": "n/a",
+    "command": null,
+    "context": "cold-start-root: design-root-terminal",
+    "continuity": {
+      "evidence": [
+        "batch:53c5adf255a9bc6ca3e45f2d5ef48c946a30c127a6b1d279b6b051ebcb526cdb",
+        "loaded-inputs:not-reusable",
+        "cold-start-cost:2",
+        "checkpoint:findings/design-finish-2026-09-20-committed-f1-f2.md"
+      ],
+      "outcome": "cold-start-root",
+      "reason": "design-root-terminal",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": null,
+    "thinking": null
+  },
+  "schema_version": "handoff-recommendation-receipt/v1",
+  "status": "handoff-persisted",
+  "subject": "design"
+}
