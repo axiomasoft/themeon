@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-09-20
-inputs_sha256: a6f6c9ea6c8168516d27f0e71d56f001d5f3830ef318da99da9b994ad1ff759f
+inputs_sha256: f90fc2d7a3a55ccb4c9712bae6c03c2cf029251c20a8f95000fd838379411d9e
 generated_by: task plan-views status
 -->
 
@@ -154,6 +154,10 @@ generated_by: task plan-views status
 | 2026-09-20 | plan-auditor/grok-4.6/high | plan-audit · audit-red · Whole-plan design audit RED: uncommitted candidate; P0.4 Authority still gates successor; phase indexes stale; plan.md still opens P0.1. Evidence: findings/design-audit-2026-09-20-post-finish.md. |
 | 2026-09-20 | plan-designer/grok-4.6/high | plan-design · in-progress · START design-finish remediation of post-finish RED F1–F4. Authority routine; indexes; successor P0.4. No product. |
 | 2026-09-20 | plan-designer/grok-4.6/high | plan-design · no-op · Design-finish F1–F4: P0.4 Authority routine; indexes=generated status; successor P0.4; lint 0. Next audit-design after git-commit. |
+| 2026-09-20 | plan-auditor/grok-4.6/high | plan-audit · in-progress · START whole-plan design audit of committed F1–F4 candidate. Read-only over product. |
+| 2026-09-20 | plan-auditor/grok-4.6/high | plan-audit · audit-red · Whole-plan design audit RED: frozen P3.6 bundle not byte-fresh vs status.md; plan-lint 1 error. Prior F1–F4 closed. Evidence: findings/design-audit-2026-09-20-committed.md. |
+| 2026-09-20 | plan-designer/grok-4.6/high | plan-design · in-progress · START design-finish of committed-audit F1–F2. Rebuild P3.6 bundle after status; Routing why D10. No product. |
+| 2026-09-20 | plan-designer/grok-4.6/high | plan-design · no-op · Design-finish committed-audit F1–F2: P3.6 bundle rebuilt after status; P0.4 Routing why D10. Next audit-design after git-commit. |
 
 ## Owner Gates
 

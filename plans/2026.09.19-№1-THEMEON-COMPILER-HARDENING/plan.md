@@ -66,7 +66,7 @@ Routing покрывает все items P0–P3. Конкретная модел
 | B0-STANDARDS | P0.1 | implementation/high | plan-exec | full | recommended: Composer 2.5 preferred; Grok 4.6 fallback. Shared standards evidence and fixture setup with P0.2. |
 | B0-STANDARDS | P0.2 | implementation/high | plan-exec | full | recommended: Composer 2.5 preferred; Grok 4.6 fallback. Reuses P0.1 evidence/diagnostic context while retaining separate acceptance. |
 | solo | P0.3 | frontier/high | plan-run | full | Grok 4.6 preferred; Composer 2.5 fallback. Security/adversarial boundary. |
-| solo | P0.4 | frontier/high | plan-run | full | Grok 4.6 preferred; Composer 2.5 fallback; external owner gate remains mandatory. |
+| solo | P0.4 | frontier/high | plan-run | full | Grok 4.6 preferred; Composer 2.5 fallback; residual NPM-TRUSTED-PUBLISHER is roadmap-only (D10). |
 | B0-HYGIENE | P0.5 | implementation/high | plan-exec | light | recommended: Composer 2.5 preferred; Grok 4.6 fallback. Shared manifest context. |
 | B0-HYGIENE | P0.6 | implementation/high | plan-exec | light | recommended: Composer 2.5 preferred; Grok 4.6 fallback. Shared CI context. |
 | B1-MODEL | P1.1 | frontier/high | plan-run | full | recommended: Grok 4.6 preferred; Composer 2.5 fallback. Architecture context continues into IR and graph. |

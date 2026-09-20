@@ -1,0 +1,52 @@
+{
+  "adapter_attestation": null,
+  "commit_sha": "1cc3ae556e8bee752a9afa12a89a295be50f1b80",
+  "continuity": {
+    "evidence": [
+      "batch:de83e87e4351ee71e8b526a9840164f348b6e2421c205e47a58912acb9c492cd",
+      "loaded-inputs:not-reusable",
+      "cold-start-cost:2",
+      "reviewer:task:plan-audit"
+    ],
+    "outcome": "isolated-child-return",
+    "reason": "independent-review",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:23c2e84db49ceab0300c6f1905f866688d3939dc156acd8774ed0eea1cffc966",
+    "plan": "sha256:ea40506422f6034e35b31c54011a151e796ec15fc39fe8a99930e83b1331932c",
+    "state": null
+  },
+  "journal": null,
+  "next_exact": "design-finish: task:plan-design 2026.09.19-№1-THEMEON-COMPILER-HARDENING finish",
+  "plan_id": "2026.09.19-№1-THEMEON-COMPILER-HARDENING",
+  "rationale": {
+    "open_risks": "Existing implementation may still be valid; lifecycle still proves only P0.1–P0.3 and P1. A GREEN receipt is impossible until `plan-lint` is 0 on the committed candidate. Launching P0.4 must not grant residual npm/GitHub configure scope.",
+    "remaining": "Design-finish rebuilds P3.6 bundle, git-commits, then a fresh independent `task:plan-audit design`. After GREEN, re-admit P0.4 under compiled Routing as `🟠` (D10). Do not archive. Do not execute items from this audit root."
+  },
+  "recommendation": "**Next:** design-finish: task:plan-design 2026.09.19-№1-THEMEON-COMPILER-HARDENING finish\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | n/a |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | plan design · rebuild stale P3.6 bundle · freeze lint-clean candidate · no product expansion |\n| Context | isolated-child-return |\n| Суть | Rebuild `bundles/P3.6.json` so plan-lint is 0 on the frozen tree; commit; do not execute items. |\n\n```session-continuity-decision/v1\n{\"evidence\":[\"batch:de83e87e4351ee71e8b526a9840164f348b6e2421c205e47a58912acb9c492cd\",\"loaded-inputs:not-reusable\",\"cold-start-cost:2\",\"reviewer:task:plan-audit\"],\"outcome\":\"isolated-child-return\",\"reason\":\"independent-review\",\"runnable\":true,\"schema_version\":\"session-continuity-decision/v1\"}\n```\n\n**Native Cursor command:**\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/themeon --model grok-4.6 --force --sandbox disabled --trust --approve-mcps 'task:plan-design 2026.09.19-№1-THEMEON-COMPILER-HARDENING finish'\n\nРЕЖИМ: ремедиация\nВХОД: findings/design-audit-2026-09-20-committed.md → Findings F1 (Major), F2 (Minor)\nСКОУП: 1) rebuild bundles/P3.6.json via plan-views.py bundle --item P3.6 (do not hand-edit) 2) confirm plan-lint 0 errors 3) optionally drop Routing P0.4 why-column “external owner gate remains mandatory” 4) owner git-commit the generated bundle (and optional routing prose) 5) request fresh task:plan-audit design\nНЕ ТРОГАТЬ: product code; historical journal command/result; GREEN P0.1–P0.3 and P1 terminals; D8/D9/D10 machine Authority; Routing table membership; P2.4 Not started\n```",
+  "route": {
+    "batch": "n/a",
+    "command": null,
+    "context": "isolated-child-return",
+    "continuity": {
+      "evidence": [
+        "batch:de83e87e4351ee71e8b526a9840164f348b6e2421c205e47a58912acb9c492cd",
+        "loaded-inputs:not-reusable",
+        "cold-start-cost:2",
+        "reviewer:task:plan-audit"
+      ],
+      "outcome": "isolated-child-return",
+      "reason": "independent-review",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": null,
+    "thinking": null
+  },
+  "schema_version": "handoff-recommendation-receipt/v1",
+  "status": "handoff-persisted",
+  "subject": "design"
+}

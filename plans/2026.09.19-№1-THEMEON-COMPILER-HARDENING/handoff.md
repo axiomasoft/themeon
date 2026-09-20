@@ -9,10 +9,10 @@
 | Effort | high |
 | Capabilities | plan audit · independent whole-plan design review · no product expansion |
 | Context | cold-start-root: design-root-terminal |
-| Суть | Independent design audit of the F1–F4 repair candidate (P0.4 Authority routine, phase indexes aligned, successor P0.4). Do not execute items. |
+| Суть | Independent design audit of the committed-audit F1–F2 repair (P3.6 bundle rebuilt after status; P0.4 Routing why D10). Do not execute items. |
 
 ```session-continuity-decision/v1
-{"evidence":["batch:de83e87e4351ee71e8b526a9840164f348b6e2421c205e47a58912acb9c492cd","loaded-inputs:not-reusable","cold-start-cost:2","checkpoint:findings/design-finish-2026-09-20-f2-f4.md"],"outcome":"cold-start-root","reason":"design-root-terminal","runnable":true,"schema_version":"session-continuity-decision/v1"}
+{"evidence":["batch:53c5adf255a9bc6ca3e45f2d5ef48c946a30c127a6b1d279b6b051ebcb526cdb","loaded-inputs:not-reusable","cold-start-cost:2","checkpoint:findings/design-finish-2026-09-20-committed-f1-f2.md"],"outcome":"cold-start-root","reason":"design-root-terminal","runnable":true,"schema_version":"session-continuity-decision/v1"}
 ```
 
 **Native Cursor command:**
@@ -21,13 +21,13 @@
 agent --workspace /home/vostrikov/projects/packages/themeon --model grok-4.6 --force --sandbox disabled --trust --approve-mcps 'task:plan-audit 2026.09.19-№1-THEMEON-COMPILER-HARDENING design'
 ```
 
-**Done:** Design-finish remediation of post-finish RED F1–F4. P0.4 `Authority` is `routine`; residual `NPM-TRUSTED-PUBLISHER` is roadmap-only (D10). Phase indexes match generated status (P2.4 `⬜`). `plan.md` §3 and `roadmap.md` admit P0.4 after GREEN. Decision views regenerated. `plan-lint` 0 errors / 1 recovered phase-order warning. Routing table membership unchanged.
+**Done:** Design-finish of committed-audit F1–F2. `bundles/P3.6.json` rebuilt after journal/status. `plan.md` P0.4 why-column residualizes NPM-TRUSTED-PUBLISHER to D10/roadmap. `plan-lint` 0 errors / 1 recovered phase-order warning. Routing membership unchanged.
 
 **Remaining:** Independent `task:plan-audit design` of this committed candidate. After GREEN, re-admit P0.4 under compiled Routing as `🟠` (D10). Do not archive. Do not execute items from this design root.
 
-**Sources of truth:** `plan.md`; `phases/P0/P0.4.md`; `roadmap.md`; `decisions/D10-trusted-publisher-deferral.md`; `decisions/D12-lifecycle-evidence-recovery.md`; `findings/design-finish-2026-09-20-f2-f4.md`; `bundles/P0.4.json`; `journal.jsonl`.
+**Sources of truth:** `plan.md`; `bundles/P3.6.json`; `status.md`; `phases/P0/P0.4.md`; `roadmap.md`; `decisions/D10-trusted-publisher-deferral.md`; `findings/design-finish-2026-09-20-committed-f1-f2.md`.
 
-**Open risks:** Existing implementation may still be valid; lifecycle still proves only P0.1–P0.3 and P1. A GREEN receipt still requires a committed candidate. Launching P0.4 must not grant residual npm/GitHub configure scope.
+**Open risks:** Existing implementation may still be valid; lifecycle still proves only P0.1–P0.3 and P1. A GREEN receipt still requires this candidate committed. Launching P0.4 must not grant residual npm/GitHub configure scope.
 
 **Workarounds/Deferred/Open questions:**
 - workarounds: D11 friction exceptions remain valid (hash-matched)
