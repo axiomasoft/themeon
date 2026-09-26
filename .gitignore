@@ -19,3 +19,6 @@ tests/consumers/node_modules
 tests/fixtures/generated/replay/*-[0-9]*.json
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+.mcp.json
+.cursor/mcp.json
+.codex/config.toml
