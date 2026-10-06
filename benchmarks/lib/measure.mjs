@@ -30,6 +30,8 @@ export async function timeAsync(fn) {
 
 export function warmMedianSync(fn, iterations, batchSize = 1) {
   const samples = []
+  // Short runtime operations need a batch of untimed calls to reach steady JIT behavior.
+  if (batchSize > 1) for (let n = 0; n < batchSize; n++) fn()
   for (let i = 0; i < iterations; i++) {
     samples.push(timeSync(() => {
       for (let n = 0; n < batchSize; n++) fn()

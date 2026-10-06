@@ -25,7 +25,7 @@ Deep linear alias chains at 1 000+ depth are exercised in graph/property unit 
 | `node benchmarks/compare.mjs <built-reference-directory>` | Three interleaved runs per revision; writes candidate and reference reports |
 | `node scripts/check-performance-baseline.mjs --reference .tmp-performance-reference.json` | Same-runner regression gate with pinned correctness checks |
 
-Warm samples default to **7** iterations (`THEMEON_BENCH_WARM_ITERATIONS`). Setup (corpus build, one cold compile) is outside timed regions. Runtime apply uses batches of 100 operations to reduce timer noise. Vite loads are awaited sequentially, so their timing includes delivery and compilation rather than Promise creation.
+Warm samples default to **7** iterations (`THEMEON_BENCH_WARM_ITERATIONS`). Setup (corpus build, one cold compile) is outside timed regions. Runtime apply uses an untimed warmup batch followed by batches of 1000 operations to reduce JIT and timer noise. Vite loads are awaited sequentially, so their timing includes delivery and compilation rather than Promise creation.
 
 ## Gate
 

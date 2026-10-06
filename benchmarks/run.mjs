@@ -49,7 +49,7 @@ function measureApplyRuntime(theme) {
   const vars = themeVars(resolved)
   return warmMedianSync(() => {
     applyTheme(el, vars)
-  }, warmIterations, 100)
+  }, warmIterations, 1000)
 }
 
 function measureDtcgRoundTrip(theme) {
