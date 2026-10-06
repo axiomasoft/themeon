@@ -37,3 +37,9 @@ export function warmMedianSync(fn, iterations, batchSize = 1) {
   }
   return median(samples)
 }
+
+export async function warmMedianAsync(fn, iterations) {
+  const samples = []
+  for (let i = 0; i < iterations; i++) samples.push((await timeAsync(fn)).ms)
+  return median(samples)
+}

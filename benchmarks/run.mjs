@@ -14,7 +14,7 @@ import { fromDTCG, toDTCG } from '@themeon/core/dtcg'
 import { applyTheme, themeVars } from '@themeon/core/runtime'
 import { themeon } from '@themeon/vite'
 import { corpusCatalog } from './lib/corpus.mjs'
-import { warmMedianSync, timeSync } from './lib/measure.mjs'
+import { warmMedianSync, warmMedianAsync, timeSync } from './lib/measure.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const warmIterations = Number(process.env.THEMEON_BENCH_WARM_ITERATIONS ?? '7')
@@ -65,9 +65,7 @@ async function measureVitePluginLoad(theme) {
   if (typeof load !== 'function') throw new Error('themeon plugin missing load hook')
   const id = '\0virtual:themeon.css'
   await load.call({ error() {} }, id)
-  return warmMedianSync(() => {
-    load.call({ error() {} }, id)
-  }, warmIterations, 1000)
+  return warmMedianAsync(() => load.call({ error() {} }, id), warmIterations)
 }
 
 function memoryDeltaMb(fn) {

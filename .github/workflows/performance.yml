@@ -33,7 +33,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Gate self-check and build candidate
-        run: node --test scripts/performance-baseline-self-check.test.mjs && pnpm build
+        run: node --test scripts/performance-baseline-self-check.test.mjs benchmarks/lib/measure.test.mjs && pnpm build
 
       - name: Build fixed reference with the same benchmark harness
         run: |

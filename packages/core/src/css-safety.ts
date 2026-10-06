@@ -109,9 +109,12 @@ export function assertSafeDeclarationValue(value: string, label: string): void {
 
   let quote: '"' | "'" | null = null
   const closers: string[] = []
+  // Most token values contain neither url() nor escapes. They need only the structural scan.
+  // Escapes take the full name-token path because CSS can spell `url` as `u\72l`.
+  const mayContainUrl = /url|\\/i.test(value)
   for (let i = 0; i < value.length; i++) {
     const ch = value[i]!
-    if (quote === null && /[\w\-\\\u0080-\uFFFF]/.test(ch)) {
+    if (mayContainUrl && quote === null && /[\w\-\\\u0080-\uFFFF]/.test(ch)) {
       const { name, end } = consumeName(value, i)
       if (end > i) {
         if (name.toLowerCase() === 'url' && value[end] === '(') {

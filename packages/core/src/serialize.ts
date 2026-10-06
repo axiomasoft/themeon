@@ -131,20 +131,32 @@ export function serializeThemeCss(resolved: ResolvedTheme, opts: SerializeCssOpt
   for (const name of Object.keys(resolved.breakpoints)) assertSafeCssToken(name, 'breakpoint name')
   // ResolvedTheme is a public structural type, and compiler transforms can replace its data.
   // Validate at the output boundary as well as in the resolver.
+  const checkedNames = new Set<string>()
+  const checkedValues = new Set<string>()
+  function checkName(name: string): void {
+    if (checkedNames.has(name)) return
+    assertSafeCustomPropertyName(name, 'CSS variable name')
+    checkedNames.add(name)
+  }
+  function checkValue(value: string, label: string): void {
+    if (checkedValues.has(value)) return
+    assertSafeDeclarationValue(value, label)
+    checkedValues.add(value)
+  }
   for (const token of [...resolved.tokens, ...Object.values(resolved.themes).flat()]) {
-    assertSafeCustomPropertyName(token.varName, 'CSS variable name')
-    assertSafeDeclarationValue(token.value, `Value of '${token.varName}'`)
+    checkName(token.varName)
+    checkValue(token.value, `Value of '${token.varName}'`)
   }
   for (const [name, value] of Object.entries(resolved.vars)) {
-    assertSafeCustomPropertyName(name, 'CSS variable name')
-    assertSafeDeclarationValue(value, `Value of '${name}'`)
+    checkName(name)
+    checkValue(value, `Value of '${name}'`)
   }
   for (const { alias, target } of resolved.aliases) {
-    assertSafeCustomPropertyName(alias, 'CSS alias')
-    assertSafeCustomPropertyName(target, 'CSS alias target')
+    checkName(alias)
+    checkName(target)
   }
   for (const [name, breakpoint] of Object.entries(resolved.breakpoints)) {
-    assertSafeDeclarationValue(breakpoint.value, `Breakpoint '${name}'`)
+    checkValue(breakpoint.value, `Breakpoint '${name}'`)
   }
   for (const [name, scheme] of Object.entries(resolved.schemes)) {
     assertSafeColorScheme(scheme, `Color scheme of '${name}'`)

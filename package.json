@@ -28,7 +28,7 @@
     "check:pack": "pnpm -r --filter \"./packages/*\" exec publint && pnpm -r --filter \"./packages/*\" exec attw --pack --profile esm-only --entrypoints .",
     "verify": "pnpm build && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm check:manifests && pnpm test:int && pnpm check:pack",
     "bench": "node benchmarks/run.mjs",
-    "check:perf": "node --test scripts/performance-baseline-self-check.test.mjs && pnpm build && node benchmarks/run.mjs && node scripts/check-performance-baseline.mjs",
+    "check:perf": "node --test scripts/performance-baseline-self-check.test.mjs benchmarks/lib/measure.test.mjs && pnpm build && node benchmarks/run.mjs && node scripts/check-performance-baseline.mjs",
     "test:perf": "pnpm check:perf",
     "pack:inspect": "mkdir -p /tmp/themeon-pack-inspect && rm -f /tmp/themeon-pack-inspect/*.tgz && pnpm -r --filter \"./packages/*\" pack --pack-destination /tmp/themeon-pack-inspect",
     "docs:dev": "vitepress dev docs",
