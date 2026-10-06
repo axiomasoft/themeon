@@ -124,8 +124,39 @@ function inferTokenType(group: string, value: TokenLeafInput, path: readonly str
   return inferByValue(value, path)
 }
 
+/** Короткое описание отвергнутого значения для сообщения об ошибке (без дампа payload). */
+function describeInvalidLeaf(value: unknown): string {
+  if (value === null) return 'null'
+  if (typeof value === 'number') return String(value) // NaN / Infinity
+  if (typeof value === 'object') return 'an object that is neither a Token nor { size, lineHeight? }'
+  return typeof value === 'string' ? JSON.stringify(value) : typeof value
+}
+
+/**
+ * Fail-loud guard for a token leaf (base value or theme patch value).
+ *
+ * The walker treats every non-object as a leaf, so without this check `undefined` (typically a
+ * reference to a palette step that does not exist: `palette.forest[650]`), `null`, booleans and
+ * non-finite numbers flowed through and were emitted as literal `--x: undefined;` / `NaN` CSS.
+ */
+function assertValidLeaf(value: unknown, path: readonly string[], context: string): asserts value is TokenLeafInput {
+  const valid =
+    typeof value === 'string' ||
+    (typeof value === 'number' && Number.isFinite(value)) ||
+    isToken(value) ||
+    (typeof value === 'object' && value !== null && isTextStyleValue(value as TokenLeafInput))
+  if (valid) return
+  throw new ThemeonError(
+    'BAD_VALUE',
+    `${context} '${path.join('.')}' has invalid value ${describeInvalidLeaf(value)}: expected a string, ` +
+      'a finite number, a text style { size, lineHeight? } or a Token reference' +
+      (value === undefined ? ' (is it a reference to a token that does not exist?)' : ''),
+  )
+}
+
 /** Собирает один замороженный branded Token. Ссылка (Token в value) остаётся ссылкой. */
 function makeToken(group: string, path: string[], value: TokenLeafInput): Token {
+  assertValidLeaf(value, path, 'Token')
   const frozenPath = Object.freeze([...path]) as readonly string[]
   // TextStyleValue заморозить (авторский объект), Token уже заморожен, примитивы — no-op.
   const frozenValue = isTextStyleValue(value) ? Object.freeze({ ...value }) : value
@@ -262,7 +293,8 @@ function validatePatchPaths(
   base: Record<string, unknown>,
   themeName: string,
 ): void {
-  for (const { path } of walkTree(patch)) {
+  for (const { path, value } of walkTree(patch)) {
+    assertValidLeaf(value, path, `Theme "${themeName}" value`)
     let node: unknown = base
     for (const key of path) {
       // Object.hasOwn — `in` пропускает ключи-имена прототип-членов (toString, constructor)

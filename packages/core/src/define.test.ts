@@ -277,3 +277,41 @@ describe('walkTree / isLeaf — единственный обход', () => {
     expect(isLeaf({ page: '#fff' })).toBe(false)
   })
 })
+
+describe('fail-loud: невалидные листья (undefined/null/boolean/NaN) отвергаются', () => {
+  const cases: ReadonlyArray<readonly [string, unknown]> = [
+    ['undefined', undefined],
+    ['null', null],
+    ['boolean', true],
+    ['NaN', Number.NaN],
+    ['Infinity', Number.POSITIVE_INFINITY],
+    ['function', () => 'red'],
+  ]
+
+  test.each(cases)('defineTokens: %s → BAD_VALUE с путём', (_label, bad) => {
+    const tree = { a: bad } as unknown as Record<string, string>
+    expect(() => defineTokens('color', tree)).toThrow(ThemeonError)
+    try {
+      defineTokens('color', tree)
+    } catch (e) {
+      expect((e as ThemeonError).code).toBe('BAD_VALUE')
+      expect((e as ThemeonError).message).toContain("'color.a'")
+    }
+  })
+
+  test('ссылка на несуществующий шаг палитры (undefined) подсказывает причину', () => {
+    const palette = defineTokens('color', { forest: { 600: '#0a0' } })
+    const missing = (palette.forest as Record<string, Token | undefined>)['650']
+    expect(() => defineTheme({ base: { color: { brand: missing as unknown as Token } } })).toThrow(
+      /does not exist/,
+    )
+  })
+
+  test.each(cases)('патч темы: %s → BAD_VALUE (раньше эмитился `--x: undefined;`)', (_label, bad) => {
+    const config = {
+      base: { color: { a: 'red' } },
+      themes: { dark: { color: { a: bad } } },
+    } as unknown as Parameters<typeof defineTheme>[0]
+    expect(() => defineTheme(config)).toThrow(/Theme "dark" value 'color\.a' has invalid value/)
+  })
+})
