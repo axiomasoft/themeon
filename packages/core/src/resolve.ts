@@ -30,7 +30,6 @@ import type {
   TextStyleValue,
   ThemeDefinition,
   Token,
-  TokenTreeInput,
   TokenType,
 } from './types'
 
@@ -216,7 +215,7 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
   // ── 1. Сбор sys-токенов; порядок — канонический id, не Object.entries (P1.3) ──
   const sysTokens: Token[] = []
   const baseTypeByPath = new Map<string, TokenType>()
-  for (const { value } of walkTree(def.sys as unknown as TokenTreeInput)) {
+  for (const { value } of walkTree(def.sys)) {
     if (isToken(value)) {
       sysTokens.push(value)
       baseTypeByPath.set(pathKey(value.path), value.type)
@@ -280,7 +279,7 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
     // Theme names end up in `[data-theme="…"]` selectors and in the runtime attribute.
     assertSafeAttributeValue(themeName, 'Theme name')
     const list: ResolvedToken[] = []
-    const patchLeaves = [...walkTree(patch as unknown as TokenTreeInput)].sort((a, b) =>
+    const patchLeaves = [...walkTree(patch)].sort((a, b) =>
       comparePath(a.path, b.path),
     )
     for (const { path, value } of patchLeaves) {

@@ -32,7 +32,7 @@ import { parseColor } from './color'
 import { diagnosticsFromWarnings } from './diagnostics'
 import type { DTCGDiagnostic } from './diagnostics'
 import type { DTCGDocument, DTCGToken } from './types'
-import type { TextStyleValue, ThemeDefinition, Token, TokenTreeInput, TokenType } from '../types'
+import type { TextStyleValue, ThemeDefinition, Token, TokenType } from '../types'
 
 /** Опции эмита DTCG. */
 export interface ToDTCGOptions {
@@ -336,7 +336,7 @@ function pickResolverDefaultKey(themeNames: readonly string[]): string {
  */
 export function toDTCG(def: ThemeDefinition, opts: ToDTCGOptions = {}): DTCGExport {
   const splitThemes = opts.splitThemes ?? true
-  const sysTree = def.sys as unknown as TokenTreeInput
+  const sysTree = def.sys
   const warnings: string[] = []
   const pathMap = new Map<string, string>()
 
@@ -372,7 +372,7 @@ export function toDTCG(def: ThemeDefinition, opts: ToDTCGOptions = {}): DTCGExpo
     for (const [name, patch] of Object.entries(def.themes)) {
       const themeDoc: DTCGDocument = {}
       const themeBridge: Bridge = {}
-      for (const { path, value } of walkTree(patch as unknown as TokenTreeInput)) {
+      for (const { path, value } of walkTree(patch)) {
         const dtcgPath = toDTCGPath(path, pathMap)
         if (isToken(value)) {
           const targetPath = toDTCGPath(value.path, pathMap)

@@ -24,7 +24,7 @@ function groupTree(tokens: readonly IrToken[]): TokenTreeInput {
 
 function flatten(def: ThemeDefinition): Map<string, Token> {
   const map = new Map<string, Token>()
-  for (const { value } of walkTree(def.sys as unknown as TokenTreeInput)) {
+  for (const { value } of walkTree(def.sys)) {
     if (isToken(value)) map.set(canonicalId(value.path), value)
   }
   return map
@@ -51,7 +51,7 @@ export function toThemeDefinition(doc: IrDocument): ThemeDefinition {
   const tokenById = new Map<string, Token>()
   for (const [group, list] of paletteByGroup) {
     const wrapped = defineTokens(group, groupTree(list))
-    for (const { value } of walkTree(wrapped as unknown as TokenTreeInput)) {
+    for (const { value } of walkTree(wrapped)) {
       if (isToken(value)) tokenById.set(canonicalId(value.path), value)
     }
   }

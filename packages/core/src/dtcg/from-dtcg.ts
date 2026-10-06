@@ -47,7 +47,7 @@ import { diagnosticsFromWarnings, isLossyDtcgDiagnostic } from './diagnostics'
 import type { DTCGDiagnostic } from './diagnostics'
 import { setByPath } from './to-dtcg'
 import type { DTCGColorValue, DTCGDimensionValue, DTCGDocument } from './types'
-import type { SysPatch, SysTreeInput, TextStyleValue, ThemeDefinition, Token, TokenTreeInput } from '../types'
+import type { SysPatch, SysTreeInput, TextStyleValue, ThemeDefinition, Token } from '../types'
 
 /** Опции импорта DTCG. */
 export interface FromDTCGOptions {
@@ -303,7 +303,7 @@ function buildTree(
 /** Плоская карта «dotted-путь → Token» из sys-дерева определения (цели для алиасов). */
 function flattenTokens(def: ThemeDefinition): Map<string, Token> {
   const map = new Map<string, Token>()
-  for (const { value } of walkTree(def.sys as unknown as TokenTreeInput)) {
+  for (const { value } of walkTree(def.sys)) {
     if (isToken(value)) map.set(value.path.join('.'), value)
   }
   return map

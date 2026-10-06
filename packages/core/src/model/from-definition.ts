@@ -1,6 +1,6 @@
 import { walkTree } from '../internal/walk'
 import { isToken } from '../types'
-import type { TextStyleValue, ThemeDefinition, Token, TokenTreeInput, TokenType } from '../types'
+import type { TextStyleValue, ThemeDefinition, Token, TokenType } from '../types'
 import { irDocument, irToken } from './build'
 import { canonicalId } from './ir'
 import type { IrDocument, IrSource, IrToken, IrValue } from './ir'
@@ -94,7 +94,7 @@ export function irFromDefinition(def: ThemeDefinition, source: IrSource): IrDocu
   const typeByPath = new Map<string, TokenType>()
   const visiting = new Set<string>()
 
-  for (const { value } of walkTree(def.sys as unknown as TokenTreeInput)) {
+  for (const { value } of walkTree(def.sys)) {
     if (!isToken(value)) continue
     addToken(value, source, tokens, visiting)
     const id = canonicalId(value.path)
@@ -105,7 +105,7 @@ export function irFromDefinition(def: ThemeDefinition, source: IrSource): IrDocu
   const themes: Record<string, readonly IrToken[]> = {}
   for (const [name, patch] of Object.entries(def.themes)) {
     const list: IrToken[] = []
-    for (const { path, value } of walkTree(patch as unknown as TokenTreeInput)) {
+    for (const { path, value } of walkTree(patch)) {
       const type = typeByPath.get(canonicalId(path)) ?? (isToken(value) ? value.type : 'dimension')
       const token = patchToken(path, value, type, source)
       if (isToken(value)) addToken(value, source, tokens, visiting)

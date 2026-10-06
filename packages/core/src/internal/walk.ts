@@ -9,7 +9,14 @@
  */
 
 import { isToken } from '../types'
-import type { TokenLeafInput, TokenTreeInput } from '../types'
+import type { TokenLeafInput } from '../types'
+
+/**
+ * Structural input of the walker: any (readonly) object tree. Authoring trees
+ * (`TokenTreeInput`), wrapped trees (`Tokenized<T>`) and theme patches (`SysPatch<T>`) are all
+ * assignable, so callers no longer need `as unknown as TokenTreeInput` double casts.
+ */
+export type TokenTreeLike = { readonly [key: string]: unknown }
 
 /** Одна запись обхода: путь от корня переданного дерева + сырой лист. */
 export interface WalkEntry {
@@ -46,14 +53,21 @@ export function isLeaf(v: unknown): v is TokenLeafInput {
  * численно — детерминизм сохраняется в любом случае). Спускается только в подгруппы,
  * листья отдаёт как есть.
  */
-export function* walkTree(tree: TokenTreeInput, basePath: string[] = []): Generator<WalkEntry> {
+export function* walkTree(
+  tree: TokenTreeLike,
+  basePath: readonly string[] = [],
+): Generator<WalkEntry, void, undefined> {
   for (const [key, value] of Object.entries(tree)) {
     const path = [...basePath, key]
     if (isLeaf(value)) {
       yield { path, value }
-    } else {
-      // value — подгруппа (проверено isLeaf); сузить тип для рекурсии.
-      yield* walkTree(value as TokenTreeInput, path)
+    } else if (isSubtree(value)) {
+      yield* walkTree(value, path)
     }
   }
+}
+
+/** Non-leaf branch of {@link isLeaf}: a non-null object that is not a Token or text style. */
+function isSubtree(v: unknown): v is TokenTreeLike {
+  return typeof v === 'object' && v !== null
 }
