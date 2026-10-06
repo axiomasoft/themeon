@@ -66,9 +66,27 @@ function isTextStyleValue(v: TokenLeafInput): v is TextStyleValue {
   )
 }
 
-/** Строка похожа на цвет: hex или именованная цветовая функция. */
+/** CSS `<number>` literal (sign, fraction, exponent) — the numeric part of a dimension/duration. */
+const CSS_NUMBER = String.raw`[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?`
+
+/** CSS length/percentage units (CSS Values 4) recognised by the unknown-group heuristic. */
+const LENGTH_UNITS =
+  'px|rem|em|ex|ch|cap|ic|lh|rlh|vw|vh|vi|vb|vmin|vmax|svw|svh|lvw|lvh|dvw|dvh|' +
+  'cqw|cqh|cqi|cqb|cqmin|cqmax|cm|mm|q|in|pt|pc|%'
+
+/** Whole-string `<number><length-unit>` — `'16px'`, `'-0.5rem'`, `'50%'`; NOT `'system'`. */
+const DIMENSION_RE = new RegExp(`^${CSS_NUMBER}(?:${LENGTH_UNITS})$`, 'i')
+
+/** Whole-string `<number><time-unit>` — `'200ms'`, `'2s'`; NOT `'Arial, sans'`. */
+const DURATION_RE = new RegExp(`^${CSS_NUMBER}m?s$`, 'i')
+
+/** Hex colour (3/4/6/8 digits) or a CSS colour function call. */
+const COLOR_RE =
+  /^(?:#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})|(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\()/i
+
+/** Строка похожа на цвет: hex или цветовая функция CSS Color 4/5. */
 function looksLikeColor(s: string): boolean {
-  return /^(#|rgb|hsl|oklch|oklab|color\()/.test(s.trim())
+  return COLOR_RE.test(s)
 }
 
 /**
@@ -79,10 +97,12 @@ function inferByValue(value: TokenLeafInput, path: readonly string[]): TokenType
   if (isTextStyleValue(value)) return 'text'
   if (typeof value === 'number') return 'number'
   if (typeof value === 'string') {
-    if (looksLikeColor(value)) return 'color'
-    // единицы длины → dimension; единицы времени → duration (пересечений нет).
-    if (/(px|rem|em|%|vh|vw|ch|ex)$/.test(value)) return 'dimension'
-    if (/(ms|s)$/.test(value)) return 'duration'
+    const trimmed = value.trim()
+    if (looksLikeColor(trimmed)) return 'color'
+    // Only a whole numeric literal with a unit counts: a suffix match classified
+    // 'Helvetica, Arial, sans' as duration and 'system' as dimension.
+    if (DIMENSION_RE.test(trimmed)) return 'dimension'
+    if (DURATION_RE.test(trimmed)) return 'duration'
   }
   console.warn(
     `[themeon] cannot infer token type for ${path.join('.')}, defaulting to dimension`,

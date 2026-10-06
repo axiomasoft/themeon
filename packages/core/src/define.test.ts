@@ -97,6 +97,58 @@ describe('defineTokens — инференс типа для неизвестно
     expect((t.b as Token).type).toBe('duration')
   })
 
+  test('единицы распознаются только у числового литерала целиком', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const t = defineTokens('custom', {
+      neg: '-0.5rem',
+      frac: '.25em',
+      exp: '1e2px',
+      cq: '10cqi',
+      upper: '2S',
+      spaced: '  16px  ',
+    })
+    expect((t.neg as Token).type).toBe('dimension')
+    expect((t.frac as Token).type).toBe('dimension')
+    expect((t.exp as Token).type).toBe('dimension')
+    expect((t.cq as Token).type).toBe('dimension')
+    expect((t.upper as Token).type).toBe('duration')
+    expect((t.spaced as Token).type).toBe('dimension')
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  test('слова, оканчивающиеся на единицу, не становятся dimension/duration (регрессия)', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // Раньше суффиксный regex давал: 'sans' → duration, 'system' → dimension, 'items' → duration.
+    const t = defineTokens('custom', {
+      family: 'Helvetica, Arial, sans',
+      stack: 'system',
+      word: 'items',
+      calc: 'calc(100% - 1rem)',
+    })
+    for (const key of ['family', 'stack', 'word', 'calc'] as const) {
+      expect((t[key] as Token).type).toBe('dimension') // документированный fallback + warn
+    }
+    expect(warn).toHaveBeenCalledTimes(4)
+  })
+
+  test('цвет: hex 3/4/6/8 и функции CSS Color 4/5; "#hashtag" — не цвет', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const t = defineTokens('custom', {
+      h4: '#fffa',
+      h8: '#ffffffaa',
+      hwb: 'hwb(120 0% 0%)',
+      lab: 'lab(50% 40 59)',
+      mix: 'color-mix(in oklch, red, blue)',
+      ld: 'light-dark(#fff, #000)',
+      tag: '#hashtag',
+    })
+    for (const key of ['h4', 'h8', 'hwb', 'lab', 'mix', 'ld'] as const) {
+      expect((t[key] as Token).type).toBe('color')
+    }
+    expect((t.tag as Token).type).toBe('dimension')
+    expect(warn).toHaveBeenCalledOnce()
+  })
+
   test('ссылка в неизвестной группе наследует тип цели', () => {
     const palette = defineTokens('color', { forest: { 600: '#0a0' } })
     const t = defineTokens('custom', { a: palette.forest[600] })
