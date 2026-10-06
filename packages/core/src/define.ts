@@ -243,7 +243,7 @@ function freezeDeep(obj: object): void {
  * palette.forest[600].value // 'oklch(0.55 0.13 155)'
  * ```
  */
-export function defineTokens<const G extends GroupName, const T extends TokenTreeInput>(
+export function defineTokens<const T extends TokenTreeInput, const G extends GroupName = GroupName>(
   group: G,
   tree: T,
 ): Tokenized<T, GroupTokenType<G>> {
@@ -290,7 +290,14 @@ export interface ThemeConfig<TSys extends SysTreeInput, TTheme extends string = 
  * theme.schemes.dark // 'dark' (convention P-D16)
  * ```
  */
+/** Preserve the existing explicit `defineTheme<MySys>(...)` call with a wide theme contract. */
+export function defineTheme<const TSys extends SysTreeInput = never>(
+  config: ThemeConfig<NoInfer<TSys>>,
+): ThemeDefinition<NoInfer<TSys>>
 export function defineTheme<const TSys extends SysTreeInput, const TTheme extends string = never>(
+  config: ThemeConfig<TSys, TTheme>,
+): ThemeDefinition<TSys, TTheme>
+export function defineTheme<const TSys extends SysTreeInput, const TTheme extends string = string>(
   config: ThemeConfig<TSys, TTheme>,
 ): ThemeDefinition<TSys, TTheme> {
   // 1) обернуть base по группам (Token-листья не переоборачиваются — ссылка остаётся ссылкой).

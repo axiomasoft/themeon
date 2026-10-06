@@ -10,6 +10,13 @@ import { useTheme } from '@themeon/vue'
 const palette = defineTokens('color', { brand: { 600: 'oklch(0.55 0.13 155)' } })
 export const brand: Token<'color'> = palette.brand[600]
 
+// The pre-existing single explicit generic remains supported.
+export const explicitPalette = defineTokens<{ brand: string }>('color', { brand: '#fff' })
+export const explicitTheme = defineTheme<{ color: { bg: string } }>({
+  base: { color: { bg: '#fff' } }, themes: { dark: { color: { bg: '#000' } } },
+})
+export const explicitDarkVars = themeVars(resolveTheme(explicitTheme), 'dark')
+
 export const theme = defineTheme({
   base: { color: { action: palette.brand[600], bg: '#fff' }, space: { 4: '1rem' } },
   themes: { dark: { color: { bg: '#000' } }, sepia: { color: { bg: '#f4ecd8' } } },

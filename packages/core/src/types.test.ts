@@ -115,6 +115,12 @@ describe('точные типы токенов (группа → TokenType)', ()
     expectTypeOf<Token<'color'>>().toExtend<Token>()
     expectTypeOf<Token>().not.toExtend<Token<'color'>>()
   })
+
+  test('existing explicit tree generic remains the first parameter', () => {
+    const palette = defineTokens<{ brand: string }>('color', { brand: '#fff' })
+    expectTypeOf(palette.brand).toEqualTypeOf<Token>()
+    expect(palette.brand.type).toBe('color')
+  })
 })
 
 describe('типизированные имена тем (defineTheme → resolveTheme → themeVars)', () => {
@@ -137,6 +143,8 @@ describe('типизированные имена тем (defineTheme → resolv
     defineTheme({ base, themes: { dark: {} }, schemes: { base: 'light', dark: 'dark' } })
     // @ts-expect-error — 'drak' не объявлена в themes
     defineTheme({ base, themes: { dark: {} }, schemes: { drak: 'dark' } })
+    // @ts-expect-error — without named themes, only 'base' has a scheme
+    defineTheme({ base, schemes: { drak: 'dark' } })
   })
 
   test('контекстная типизация патча сохраняется: неизвестный ключ — ошибка', () => {
@@ -150,5 +158,13 @@ describe('типизированные имена тем (defineTheme → resolv
     const def = defineTheme({ base, themes: { dark: {} } })
     expectTypeOf(def).toExtend<ThemeDefinition>()
     expectTypeOf(resolveTheme(def)).toExtend<ResolvedTheme>()
+  })
+
+  test('existing explicit sys generic keeps named patches accessible', () => {
+    const def = defineTheme<{ color: { bg: string } }>({ base, themes: { dark: { color: { bg: '#000' } } } })
+    expectTypeOf<keyof typeof def.themes>().toEqualTypeOf<string>()
+    const resolved = resolveTheme(def)
+    expectTypeOf(resolved).toEqualTypeOf<ResolvedTheme>()
+    expect(themeVars(resolved, 'dark')['--color-bg']).toBe('#000')
   })
 })

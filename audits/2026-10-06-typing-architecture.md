@@ -245,6 +245,7 @@ API-отчёты (`etc/api/*.api.md`) регенерированы в тех к�
 | Неполное распознавание цветов | `#12345`, `#abcd-not-color` и `rgb(1) trailing()` ошибочно считались цветами. Проверяется весь hex-литерал и внешняя граница цветовой функции. |
 | Невалидный composite leaf | `text.lineHeight: true/null/NaN/Infinity` проходил проверку листа. Теперь это `BAD_VALUE` как в base, так и в theme patch. |
 | Несостоятельный тип динамической группы | При `group: string` числовой лист типизировался как `Token<'number'>`, хотя группа во время выполнения могла быть `color`. Для динамической группы тип остаётся широким `Token`. |
+| Нарушение совместимости явных generic-вызовов | Сохранены старые `defineTokens<MyTree>(...)` и `defineTheme<MySys>(...)`. Без явного generic вывод остаётся точным; legacy-вызовы используют широкий контракт тем. Это дополнительно проверяется в минимальном TS consumer fixture. |
 | Опечатка в начальной Vue-теме | `ThemeonRegister` ограничивал `set()`, но пропускал `default: 'blue'`. Теперь `default` тоже принимает зарегистрированное предпочтение, `system` или пустую строку для fallback. |
 | Неполный CI | Добавлены проверки API, архитектурной документации и packed type matrix в reusable Verify; CodeQL получил требуемое `actions: read`. Исправлен неверный SHA upload-artifact в Mutation и Performance; Mutation сначала собирает пакеты. |
 | Сбой Nuxt e2e в чистом CI | Помощник запускает Nuxt напрямую через Node с явными host, development environment и single-process mode. Запросы ограничены по времени, процесс завершается при ошибке старта; тесты проходят на GitHub runner. |
@@ -252,7 +253,7 @@ API-отчёты (`etc/api/*.api.md`) регенерированы в тех к�
 
 ### Проверки и доказательства
 
-- Unit/coverage: **1587 passed, 1 skipped**, все 12 исходных critical coverage floors сохранены и пройдены.
+- Unit/coverage: **1589 passed, 1 skipped**, все 12 исходных critical coverage floors сохранены и пройдены.
 - Packed types: 6 consumer fixtures и self-check; минимальная версия **TypeScript 5.4.5** проверяется с `skipLibCheck: false` и `exactOptionalPropertyTypes`. Требование TS ≥ 5.4 записано в README.
 - Быстрые интеграционные тесты: 41 passed. Nuxt e2e: 3 passed в CI. Build, lint, typecheck, API/architecture/manifests и package contract проходят.
 - [CI на Node 22/24, Chromium, Nuxt e2e и CodeQL](https://github.com/ax1oma/themeon-mirror/actions/runs/37498897401) — green на `bc17395`.
