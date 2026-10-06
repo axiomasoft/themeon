@@ -81,6 +81,7 @@ export const TENANT_PATCH_KEY_PATTERN =
 export const TENANT_PATCH_KEY_RE = new RegExp(TENANT_PATCH_KEY_PATTERN)
 
 /** C0 + DEL + C1 + common bidi/format controls used in homoglyph / override attacks. */
+// oxlint-disable-next-line no-control-regex -- matching control characters is the point
 export const UNICODE_CONTROL_RE = /[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2066-\u2069]/
 
 /**

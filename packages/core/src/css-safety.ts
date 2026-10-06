@@ -23,6 +23,7 @@ import { ThemeonError } from './errors'
 const CUSTOM_PROPERTY_NAME_RE = /^--[\w\-\u00A0-\u{10FFFF}]+$/u
 
 /** C0/C1 control characters (TAB allowed) — never legitimate in a token value. */
+// oxlint-disable-next-line no-control-regex -- matching control characters is the point
 const CONTROL_RE = /[\u0000-\u0008\u000A-\u001F\u007F-\u009F]/
 
 function unsafe(label: string, reason: string, value: string): never {
