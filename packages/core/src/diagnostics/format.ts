@@ -63,15 +63,23 @@ function githubAnnotationLevel(severity: Diagnostic['severity']): 'error' | 'war
   return 'notice'
 }
 
+function escapeGithubData(value: string): string {
+  return value.replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A')
+}
+
+function escapeGithubProperty(value: string): string {
+  return escapeGithubData(value).replaceAll(':', '%3A').replaceAll(',', '%2C')
+}
+
 /** GitHub Actions workflow command format (file/line annotations). */
 function renderGithub(diagnostics: readonly Diagnostic[]): string {
   return diagnostics
     .map((d) => {
       const parts: string[] = []
-      if (d.source?.file) parts.push(`file=${d.source.file}`)
+      if (d.source?.file) parts.push(`file=${escapeGithubProperty(d.source.file)}`)
       if (d.source?.line !== undefined) parts.push(`line=${d.source.line}`)
       if (d.source?.column !== undefined) parts.push(`col=${d.source.column}`)
-      const title = `${d.code}: ${d.message}`
+      const title = escapeGithubData(`${d.code}: ${d.message}`)
       const suffix = parts.length > 0 ? ` ${parts.join(',')}` : ''
       return `::${githubAnnotationLevel(d.severity)}${suffix}::${title}`
     })

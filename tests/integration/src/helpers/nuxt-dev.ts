@@ -2,7 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
 import { createServer } from 'node:net'
 import { join } from 'node:path'
 
-const NUXT_BIN = join(import.meta.dirname, '..', '..', 'node_modules', '.bin', 'nuxt')
+const NUXT_BIN = join(import.meta.dirname, '..', '..', 'node_modules', 'nuxt', 'bin', 'nuxt.mjs')
 
 export interface NuxtDevHandle {
   url: string
@@ -61,7 +61,7 @@ async function pollOk(proc: ChildProcessWithoutNullStreams, url: string, timeout
       if (ok) return
       lastError = new Error(`статус ${res.status}`)
     } catch (err) {
-      lastError = err
+      lastError = err instanceof Error && err.cause ? err.cause : err
     }
     await new Promise((resolve) => setTimeout(resolve, 200))
   }
@@ -90,9 +90,14 @@ export async function spawnNuxtDev(fixtureDir: string): Promise<NuxtDevHandle> {
   const port = await pickFreePort()
   const url = `http://127.0.0.1:${port}/`
 
-  const proc = spawn(NUXT_BIN, ['dev', '--port', String(port)], {
+  const proc = spawn(process.execPath, [NUXT_BIN, 'dev', '--host', '127.0.0.1', '--port', String(port), '--no-fork'], {
     cwd: fixtureDir,
-    env: { ...process.env, NUXT_IGNORE_LOCK: '1' },
+    env: {
+      ...process.env,
+      NODE_ENV: 'development',
+      NUXT_IGNORE_LOCK: '1',
+      NUXT_TELEMETRY_DISABLED: '1',
+    },
   }) as ChildProcessWithoutNullStreams
 
   try {

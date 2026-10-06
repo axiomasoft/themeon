@@ -22,6 +22,25 @@ function sampleTheme() {
   })
 }
 
+describe('dimension and text theme isolation', () => {
+  test.each(['radius', 'breakpoint'] as const)('%s references still require units', (group) => {
+    const numeric = defineTokens(group, { bad: 4 })
+    const def = defineTheme({ base: { [group]: { use: numeric.bad } } })
+    expect(() => resolveTheme(def)).toThrow(/must be a string with units/)
+  })
+
+  test('theme text overrides cannot overwrite the base size or line height', () => {
+    const def = defineTheme({
+      base: { text: { body: { size: '1rem', lineHeight: 1.5 } } },
+      themes: { dark: { text: { body: { size: '2rem', lineHeight: 2 } } } },
+    })
+    const resolved = resolveTheme(def)
+    expect(resolved.vars['--text-body']).toBe('1rem')
+    expect(resolved.vars['--text-body--line-height']).toBe('1.5')
+    expect(resolved.themes.dark.map(({ value }) => value)).toEqual(['2rem', '2'])
+  })
+})
+
 describe('resolveTheme — пример вход→выход (P1.4 Code Guidance)', () => {
   test('refLayer referenced: порядок токенов, var-chain, companion, тема', () => {
     const r = resolveTheme(sampleTheme(), { refLayer: 'referenced' })

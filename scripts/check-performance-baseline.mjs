@@ -45,6 +45,13 @@ for (const key of performanceBenchmarkIncludes) {
 }
 
 for (const [corpus, expected] of Object.entries(baseline.correctness ?? {})) {
+  if (reference !== undefined) {
+    const referenceOutput = reference.correctness?.[corpus]
+    if (referenceOutput?.fingerprint !== expected.fingerprint ||
+      (expected.cssSha256 && referenceOutput?.cssSha256 !== expected.cssSha256)) {
+      fail(`${corpus} reference correctness mismatch (incomparable workload)`)
+    }
+  }
   const observed = report.correctness?.[corpus]
   if (!observed) {
     fail(`missing correctness block for ${corpus}`)

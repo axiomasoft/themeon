@@ -37,7 +37,7 @@ Informational fields in the report (large cold compile, heap delta, CSS byte siz
 
 ## CI lane
 
-`.github/workflows/performance.yml` runs on **workflow_dispatch** and **weekly schedule** (Tuesday 05:00 UTC), not on every PR `verify` lane. Job budget: **20 minutes** (observed ~5 s locally on CI-class Ubuntu after build). The JSON report is uploaded as a workflow artifact.
+`.github/workflows/performance.yml` runs on **workflow_dispatch** and **weekly schedule** (Tuesday 05:00 UTC), not on every PR `verify` lane. Job budget: **20 minutes**, including both builds and three interleaved benchmark runs per revision. Both JSON reports are uploaded as workflow artifacts.
 
 ## Ratchet
 
