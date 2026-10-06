@@ -226,3 +226,57 @@ API-отчёты (`etc/api/*.api.md`) регенерированы в тех к�
 - TypeScript: `exactOptionalPropertyTypes` https://www.typescriptlang.org/tsconfig/#exactOptionalPropertyTypes ; `NoInfer` (5.4) https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-4.html ; `const` type parameters (5.0) https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-0.html
 - Register pattern: https://tanstack.com/router/latest/docs/framework/react/guide/type-safety
 - oxlint config: https://oxc.rs/docs/guide/usage/linter/config.html
+
+---
+
+## 9. Повторное ревью и дополнительные исправления (2026-10-06)
+
+Повторно проверены 15 коммитов Grok до `51d6a79`. Изменения проверялись в отдельном worktree;
+локальные настройки владельца в рабочей копии `main` не включались в коммиты ревью.
+
+### Найденные дефекты
+
+| Дефект | Доказательство и исправление |
+|:--|:--|
+| Обход CSS-гарда через восстановление после некорректного `url()` | `url(a" ); color:red; } body { display:none } /* ")` проходил гард. Lightning CSS с восстановлением ошибок извлекал отдельное правило `body`. Теперь проверяются правила unquoted URL, включая экранированные имена `u\\72l`; опасный ввод отклоняется. |
+| Инъекция через `schemes` | JS-конфигурация с `schemes.base = 'light; } body { display:none } :root {'` попадала в CSS. Resolver и serializer проверяют, что схема равна `light` или `dark`. |
+| Обход проверки через публичный `ResolvedTheme` и compiler transforms | Serializer ранее доверял изменённым `vars`, токенам, алиасам и breakpoint values. Теперь данные проверяются перед выводом. Безопасные повторяющиеся строки проверяются один раз в пределах вызова; общего кэша нет. |
+| Подделка GitHub Actions workflow-команд | GitHub-форматтер выводил сообщения и имена файлов без экранирования. Теперь `%`, CR/LF, а в свойствах также `:` и `,`, экранируются по формату Actions. Добавлены проверки на поддельную вторую команду, column, hint и related locations. |
+| Неполное распознавание цветов | `#12345`, `#abcd-not-color` и `rgb(1) trailing()` ошибочно считались цветами. Проверяется весь hex-литерал и внешняя граница цветовой функции. |
+| Невалидный composite leaf | `text.lineHeight: true/null/NaN/Infinity` проходил проверку листа. Теперь это `BAD_VALUE` как в base, так и в theme patch. |
+| Несостоятельный тип динамической группы | При `group: string` числовой лист типизировался как `Token<'number'>`, хотя группа во время выполнения могла быть `color`. Для динамической группы тип остаётся широким `Token`. |
+| Опечатка в начальной Vue-теме | `ThemeonRegister` ограничивал `set()`, но пропускал `default: 'blue'`. Теперь `default` тоже принимает зарегистрированное предпочтение, `system` или пустую строку для fallback. |
+| Неполный CI | Добавлены проверки API, архитектурной документации и packed type matrix в reusable Verify; CodeQL получил требуемое `actions: read`. Исправлен неверный SHA upload-artifact в Mutation и Performance; Mutation сначала собирает пакеты. |
+| Сбой Nuxt e2e в чистом CI | Помощник запускает Nuxt напрямую через Node с явными host, development environment и single-process mode. Запросы ограничены по времени, процесс завершается при ошибке старта; тесты проходят на GitHub runner. |
+| Неверный замер Vite и непереносимые perf-пороги | Vite load возвращает Promise; прежний замер его не ожидал. Теперь замеры последовательные и awaited. CI сравнивает кандидат и фиксированный `4604eda5cf59c49cd6041300e9d43100d07d0778` на одном runner, одним harness, по трём чередующимся прогонам. Бюджет +30% сохранён; проверяются также одинаковые окружения и correctness обоих выводов. |
+
+### Проверки и доказательства
+
+- Unit/coverage: **1587 passed, 1 skipped**, все 12 исходных critical coverage floors сохранены и пройдены.
+- Packed types: 6 consumer fixtures и self-check; минимальная версия **TypeScript 5.4.5** проверяется с `skipLibCheck: false` и `exactOptionalPropertyTypes`. Требование TS ≥ 5.4 записано в README.
+- Быстрые интеграционные тесты: 41 passed. Nuxt e2e: 3 passed в CI. Build, lint, typecheck, API/architecture/manifests и package contract проходят.
+- [CI на Node 22/24, Chromium, Nuxt e2e и CodeQL](https://github.com/ax1oma/themeon-mirror/actions/runs/37498897401) — green на `bc17395`.
+- [Browser: Firefox и WebKit](https://github.com/ax1oma/themeon-mirror/actions/runs/37495567901) — green. Браузерный код после этого прогона не изменялся.
+- [Mutation](https://github.com/ax1oma/themeon-mirror/actions/runs/37498356396) — green: covered MSI **73.03%** при исходном пороге 69.5%; resolver **84.21%** при пороге 82%; formatter **90.30%** при пороге 78%. Пороги не снижались.
+- [Performance](https://github.com/ax1oma/themeon-mirror/actions/runs/37500861887) — green на `884e1b9`, 8 сценариев в пределах +30% против эталона на том же runner.
+- Fingerprint small-corpus: `6c5f23f45f918c89`; CSS SHA-256: `57c8c501624d132dde024cbb596ba95d82ec3dfa420f51bfce3c74b077015743` — исходные значения сохранены.
+
+Зеркало `ax1oma/themeon-mirror` приватное. Только для него пропускаются Scorecard и Dependency
+Review, требующие недоступных разрешений/лицензии; CodeQL выполняет анализ без SARIF upload.
+В основном публичном репозитории эти проверки сохранены. Публикация npm-пакетов и GitHub Pages
+ограничена основным репозиторием, поэтому зеркальные прогоны проверяют build/pack без публикации.
+
+Локальный `check:perf` без reference-report по-прежнему сравнивает исторические абсолютные
+миллисекунды; переносимый regression gate находится в Performance workflow. Полный повторный
+скан истории на секреты и отдельная consumer runtime matrix в этом ревью не выполнялись.
+
+### Решения по вопросам ревью
+
+1. `BAD_VALUE` и `UNSAFE_CSS_TOKEN` оставлены немедленными ошибками. Предупреждение оставляло бы
+   возможность вывести опасный или некорректный CSS; изменения отмечены в changesets.
+2. Строгие имена тем сохранены. Для имён из внешнего ввода можно использовать широкий
+   `ResolvedTheme<string>`; runtime-проверка неизвестного имени остаётся.
+3. TS ≥ 5.4 принят и проверен на упакованных типах. Vue registry должен соответствовать
+   runtime-настройкам `themes` и `system`, что отмечено в документации.
+4. `CLAUDE.md`, `.serena/project.yml` и `.swissknife.json` оставлены. Локальные изменения
+   владельца в этих настройках сохраняются отдельно от изменений библиотеки.
