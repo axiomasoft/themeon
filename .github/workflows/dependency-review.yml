@@ -7,6 +7,8 @@ permissions: {}
 
 jobs:
   dependency-review:
+    # Dependency Review requires GitHub Code Security in the private CI mirror.
+    if: github.repository != 'ax1oma/themeon-mirror'
     runs-on: ubuntu-latest
     permissions:
       contents: read

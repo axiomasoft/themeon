@@ -49,6 +49,7 @@ jobs:
           path: docs/.vitepress/dist
 
   deploy:
+    if: github.repository == 'axiomasoft/themeon'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

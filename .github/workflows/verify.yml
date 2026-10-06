@@ -58,6 +58,12 @@ jobs:
       - name: Package manifest hygiene
         run: pnpm check:manifests
 
+      - name: Public API and architecture contracts
+        run: pnpm check:api && pnpm check:docs-architecture
+
+      - name: Packed TypeScript compatibility (including TypeScript 5.4)
+        run: pnpm test:types
+
       - name: Cache Playwright browsers
         if: inputs.run-integration
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
