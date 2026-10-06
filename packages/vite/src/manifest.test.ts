@@ -14,10 +14,6 @@ function makeTheme() {
   })
 }
 
-type AnyFn = (...args: unknown[]) => unknown
-function asFn(hook: unknown): AnyFn {
-  return hook as AnyFn
-}
 function callWith(hook: unknown, thisArg: unknown, ...args: unknown[]): unknown {
   return (hook as (...a: unknown[]) => unknown).apply(thisArg, args)
 }

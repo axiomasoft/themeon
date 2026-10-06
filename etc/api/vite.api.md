@@ -16,13 +16,13 @@ import { ThemeDefinition } from "@themeon/core/authoring";
 /** Disk artifacts for PHP/Laravel consumers (P3.3). */
 interface ThemeonArtifactsOptions {
   /** Output directory relative to Vite root. Default `.themeon`. */
-  dir?: string;
+  dir?: string | undefined;
   /** Manifest filename inside `dir`. Default `manifest.json`. */
-  manifestFile?: string;
+  manifestFile?: string | undefined;
   /** CSP artifact filename inside `dir`. Default `csp.json`. */
-  cspFile?: string;
+  cspFile?: string | undefined;
   /** Trailing debounce for watch/HMR artifact writes. Default `50` ms. */
-  debounceMs?: number;
+  debounceMs?: number | undefined;
 }
 interface ThemeonViteOptions {
   /**
@@ -34,13 +34,13 @@ interface ThemeonViteOptions {
    * Абсолютные/нормализуемые пути файлов, изменение которых триггерит HMR виртуального модуля.
    * Без этой опции HMR не активен — тема живёт целиком в конфиге и меняется через рестарт Vite.
    */
-  tokensFiles?: string[];
+  tokensFiles?: string[] | undefined;
   /** Опции резолвера ядра (`resolveTheme`), проброс как есть. */
-  resolve?: ResolveOptions;
+  resolve?: ResolveOptions | undefined;
   /** Опции сериализатора ядра (`serializeThemeCss`), проброс как есть. */
-  serialize?: SerializeCssOptions;
+  serialize?: SerializeCssOptions | undefined;
   /** Id виртуального модуля. Default `'virtual:themeon.css'`. */
-  virtualId?: string;
+  virtualId?: string | undefined;
   /**
    * CSS-first канал для проектов без JS-энтри (напр. Laravel Blade): плагин пишет CSS темы в
    * реальный файл на диске и алиасит `virtualId` на него (`resolve.alias`) — документированный
@@ -51,17 +51,17 @@ interface ThemeonViteOptions {
    */
   cssImport?: boolean | {
     file?: string;
-  };
+  } | undefined;
   /**
    * Вставить анти-FOUC скрипт (`themeInitScript`, единый генератор P3.2) в `index.html` через
    * `transformIndexHtml`. `true` — с дефолтными опциями скрипта, объект — проброс опций.
    */
-  injectFouc?: boolean | ThemeInitScriptOptions;
+  injectFouc?: boolean | ThemeInitScriptOptions | undefined;
   /**
    * Emit PHP-readable `manifest.json` (+ optional `csp.json` when `injectFouc` is set) under
    * `.themeon/`. Defaults to `true` when `cssImport` is enabled; otherwise `false`.
    */
-  artifacts?: boolean | ThemeonArtifactsOptions;
+  artifacts?: boolean | ThemeonArtifactsOptions | undefined;
 }
 //#endregion
 //#region src/index.d.ts

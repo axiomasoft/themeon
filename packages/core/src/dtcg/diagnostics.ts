@@ -39,12 +39,12 @@ export class DTCGReportSink {
 
   warn(code: DTCGDiagnosticCode, message: string, path?: readonly string[]): void {
     this.warnings.push(message)
-    this.diagnostics.push({ code, severity: 'warning', message, path })
+    this.diagnostics.push({ code, severity: 'warning', message, ...(path !== undefined ? { path } : {}) })
   }
 
   info(code: DTCGDiagnosticCode, message: string, path?: readonly string[]): void {
     this.warnings.push(message)
-    this.diagnostics.push({ code, severity: 'info', message, path })
+    this.diagnostics.push({ code, severity: 'info', message, ...(path !== undefined ? { path } : {}) })
   }
 }
 

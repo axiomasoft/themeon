@@ -200,7 +200,6 @@ function typographyToText(
 
 /** Рекурсивно спускается по DTCG-документу, собирая листья; `$type` наследуется по группам. */
 function walkDTCG(
-  root: DTCGDocument,
   node: Record<string, unknown>,
   path: string[],
   inheritedType: string | undefined,
@@ -234,16 +233,15 @@ function walkDTCG(
           `token "${here.join('.') || '(root)'}" has "$value" alongside child key(s) ${extraKeys.join(', ')} — a token MUST NOT also be a group (spec §6.1)`,
         )
       }
-      handleToken(root, here, typeof c.$type === 'string' ? c.$type : inheritedType, c, entries, warnings)
+      handleToken(here, typeof c.$type === 'string' ? c.$type : inheritedType, c, entries, warnings)
     } else {
-      walkDTCG(root, c, here, typeof c.$type === 'string' ? c.$type : inheritedType, entries, warnings)
+      walkDTCG(c, here, typeof c.$type === 'string' ? c.$type : inheritedType, entries, warnings)
     }
   }
 }
 
 /** Обрабатывает узел-токен: алиас (curly/`$ref`) или конкретное значение. */
 function handleToken(
-  root: DTCGDocument,
   path: string[],
   type: string | undefined,
   node: Record<string, unknown>,
@@ -601,7 +599,7 @@ export function fromDTCG(files: DTCGDocument | Record<string, DTCGDocument>, opt
   // level of aliasing).
   const baseEntries: LeafEntry[] = []
   const baseRootType = typeof (baseDoc as Record<string, unknown>).$type === 'string' ? ((baseDoc as Record<string, unknown>).$type as string) : undefined
-  walkDTCG(baseDoc, baseDoc, [], baseRootType, baseEntries, warnings)
+  walkDTCG(baseDoc, [], baseRootType, baseEntries, warnings)
   const basePathSet = new Set(baseEntries.map((e) => e.path.join('.')))
   let tokenByPath = new Map<string, Token>()
   let prevSize = -1
@@ -623,7 +621,7 @@ export function fromDTCG(files: DTCGDocument | Record<string, DTCGDocument>, opt
   for (const [name, doc] of Object.entries(themeDocs)) {
     const tEntries: LeafEntry[] = []
     const themeRootType = typeof (doc as Record<string, unknown>).$type === 'string' ? ((doc as Record<string, unknown>).$type as string) : undefined
-    walkDTCG(doc, doc, [], themeRootType, tEntries, warnings)
+    walkDTCG(doc, [], themeRootType, tEntries, warnings)
     const kept = tEntries.filter((e) => {
       if (basePathSet.has(e.path.join('.'))) return true
       warnings.push(`theme "${name}" patches unknown base path "${e.path.join('.')}", skipped`)

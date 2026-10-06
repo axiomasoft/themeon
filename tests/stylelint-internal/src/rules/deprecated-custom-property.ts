@@ -28,7 +28,7 @@ function manifestFromOptions(options: { manifestPath?: string }): LoadedManifest
   return loadManifestFile(path)
 }
 
-const ruleFunction: stylelint.Rule = (primary, secondaryOptions) => {
+const ruleFunction: stylelint.Rule = (_primary, secondaryOptions) => {
   const options = (secondaryOptions ?? {}) as { manifestPath?: string }
   const manifest = manifestFromOptions(options)
   if (manifest === null) return () => undefined

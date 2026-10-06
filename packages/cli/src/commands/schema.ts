@@ -19,7 +19,7 @@ import { loadThemeConfig } from '../load-theme'
 export interface SchemaOptions {
   cwd: string
   config: string
-  out?: string
+  out?: string | undefined
 }
 
 export interface SchemaResult {

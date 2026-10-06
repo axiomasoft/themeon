@@ -44,7 +44,7 @@ export interface WriteArtifactsInput {
   readonly paths: ArtifactPaths
   readonly compiled: CompileResult
   readonly virtualModuleId: string
-  readonly fouc?: boolean | ThemeInitScriptOptions
+  readonly fouc?: boolean | ThemeInitScriptOptions | undefined
 }
 
 export function writeDeliveryArtifacts(input: WriteArtifactsInput): void {

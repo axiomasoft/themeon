@@ -38,7 +38,7 @@ import type {
 /** Опции резолвера: naming (prefix) + легаси-алиасы + транспорт ref-слоя. */
 export interface ResolveOptions extends NamingOptions {
   /** Легаси-алиасы: `'legacy-v0'` | своя функция-правило | `undefined` (без алиасов). */
-  aliases?: AliasesOption
+  aliases?: AliasesOption | undefined
   /**
    * Транспорт ref-слоя (P-D13):
    *  - `'referenced'` (деф.) — эмитить только ref-переменные, на которые sys ссылается
@@ -51,7 +51,7 @@ export interface ResolveOptions extends NamingOptions {
    * он видит их только как цели ссылок. Поэтому `'all'` = «все достижимые из sys ref-токены»:
    * палитра, на которую никто не ссылается, в CSS не попадает — это фича token-coverage, не бага.
    */
-  refLayer?: 'referenced' | 'all' | 'inline'
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined
 }
 
 /** Ключ идентичности пути (сегменты могут содержать '.', поэтому не join('.') — JSON.stringify). */

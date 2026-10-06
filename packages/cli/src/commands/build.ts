@@ -19,10 +19,10 @@ export interface BuildOptions {
   cwd: string
   config: string
   out: string
-  tailwind?: string
-  refLayer?: 'referenced' | 'all' | 'inline'
-  aliases?: string
-  tailwindLayers?: boolean
+  tailwind?: string | undefined
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined
+  aliases?: string | undefined
+  tailwindLayers?: boolean | undefined
 }
 
 export interface BuildResult {
@@ -77,7 +77,7 @@ export async function runBuild(opts: BuildOptions): Promise<BuildResult> {
     consola.success(`themeon build → ${relative(opts.cwd, bridgePath)} (Tailwind bridge)`)
   }
 
-  return { outPath, bridgePath }
+  return bridgePath !== undefined ? { outPath, bridgePath } : { outPath }
 }
 
 export const buildCommand = defineCommand({

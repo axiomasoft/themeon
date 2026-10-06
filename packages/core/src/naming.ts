@@ -13,7 +13,7 @@ import type { CssVarName, CssVarRef, Token } from './types'
 /** Опции именования переменных. */
 export interface NamingOptions {
   /** Префикс после '--': prefix 'to' → '--to-color-primary'. Деф. ''. */
-  prefix?: string
+  prefix?: string | undefined
 }
 
 /**

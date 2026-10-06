@@ -22,19 +22,19 @@ import { asThemeName } from './theme-name'
 
 export interface ThemeInitScriptOptions {
   /** `localStorage` key. Default `'themeon-theme'` — must match `useTheme()`. */
-  storageKey?: string
+  storageKey?: string | undefined
   /** DOM attribute driving the switch. Default `'data-theme'` (D6) — must match `useTheme()`. */
-  attribute?: string
+  attribute?: string | undefined
   /** Theme name used when the OS prefers dark. Default `'dark'`. */
-  darkTheme?: string
+  darkTheme?: string | undefined
   /** Theme name used when the OS prefers light. Default `'light'`. */
-  lightTheme?: string
+  lightTheme?: string | undefined
   /**
    * Preference used when nothing is persisted — a theme name, or `'system'` to follow the OS.
    * Default `'system'`. Empty/whitespace-only means "not set" (P3.7). Same meaning as
    * `UseThemeOptions.default`: both channels must resolve it identically or the first paint flashes.
    */
-  default?: string
+  default?: string | undefined
   /**
    * Known theme names — same meaning as `UseThemeOptions.themes`. When set, a persisted theme
    * outside the set is rejected and the fallback applies, exactly like `init()`. When unset the set
@@ -42,7 +42,7 @@ export interface ThemeInitScriptOptions {
    * must validate persistence by the SAME rules, otherwise a stale theme name (`'sepia'` after it
    * was removed) gets painted by the script and repainted by `init()` — a visible flash.
    */
-  themes?: readonly string[]
+  themes?: readonly string[] | undefined
 }
 
 /**

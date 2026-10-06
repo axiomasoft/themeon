@@ -33,7 +33,7 @@ export function createThemeLoader(
   const jiti = createJiti(pathToFileURL(themePath).href, {
     moduleCache: false,
     fsCache: false,
-    alias,
+    ...(alias !== undefined ? { alias } : {}),
     // Канон — СЫРОЙ namespace, без jiti-интеропа: с дефолтным `interopDefault:true` jiti
     // синтезирует `mod.default` как self-reference на ВЕСЬ namespace, когда реального default
     // export нет (Proxy `get`-ловушка), — тогда файл без default/theme/defaultTheme молча

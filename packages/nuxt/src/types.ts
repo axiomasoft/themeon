@@ -5,25 +5,25 @@
  */
 export interface ModuleOptions {
   /** Подключать статический CSS-фундамент пакета (`tokens.css`+`index.css`). Default `true`. */
-  css?: boolean
+  css?: boolean | undefined
   /** Ключ localStorage для персиста активной темы. Default `'themeon-theme'` (`@themeon/vue`). */
-  storageKey?: string
+  storageKey?: string | undefined
   /** Тема по умолчанию, когда нет сохранённой и не хотим системную. */
-  default?: string
+  default?: string | undefined
   /** Известные имена тем. Default `['light', 'dark']`. */
-  themes?: readonly string[]
+  themes?: readonly string[] | undefined
   /** DOM-атрибут переключения. Default `'data-theme'` (D6). */
-  attribute?: string
+  attribute?: string | undefined
   /** Вставлять сгенерированный анти-FOUC head-скрипт (`@themeon/vue/anti-fouc`). Default `true`. */
-  fouc?: boolean
+  fouc?: boolean | undefined
   /**
    * Путь к модулю пользовательской темы (`defineTheme`, default-export ИЛИ именованный
    * `theme`/`defaultTheme`). Если задан — заменяет статический `@themeon/css/tokens.css`
    * сгенерированным (`addTemplate`, P3.4).
    */
-  theme?: string
+  theme?: string | undefined
   /** Директория для dev-watcher (P8.4). Default — `dirname(theme)`; не может быть rootDir. */
-  tokensDir?: string
+  tokensDir?: string | undefined
 }
 
 /**

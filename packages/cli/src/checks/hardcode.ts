@@ -13,7 +13,7 @@ import type { Finding, SourceFile } from './types'
 
 export interface HardcodeOptions {
   /** Разрешённые px-значения (не флагаются). Default `[0, 1]` (нулевые/однопиксельные бордеры). */
-  allowPx?: readonly number[]
+  allowPx?: readonly number[] | undefined
 }
 
 const DEFAULT_ALLOW_PX: readonly number[] = [0, 1]

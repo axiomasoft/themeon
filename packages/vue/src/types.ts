@@ -20,7 +20,7 @@ export interface UseThemeOptions {
    * Known theme names; `toggle()` cycles the first two by default. Default `['light','dark']`.
    * `'system'` is a reserved *preference* (follow the OS), not a theme — do not list it here.
    */
-  themes?: readonly string[]
+  themes?: readonly string[] | undefined
   /**
    * Preference used when nothing is persisted. Either a theme name or `'system'` (follow the OS).
    * Default `'system'`.
@@ -30,23 +30,23 @@ export interface UseThemeOptions {
    * unset `runtimeConfig` value to `''` — and treating it as a theme name would kill the
    * `prefers-color-scheme` fallback.
    */
-  default?: string
+  default?: string | undefined
   /** Ключ localStorage; `null` отключает персист. Default `'themeon-theme'`. */
-  storageKey?: string | null
+  storageKey?: string | null | undefined
   /** DOM-атрибут переключения. Default `'data-theme'` (D6). */
-  attribute?: string
+  attribute?: string | undefined
   /** Отображение системного предпочтения → имя темы. Default `{ dark:'dark', light:'light' }`. */
-  system?: { dark: string; light: string }
+  system?: { dark: string; light: string } | undefined
   /** Глушить transition на кадр смены. Default `true`. */
-  disableTransition?: boolean
+  disableTransition?: boolean | undefined
   /** Runtime var-патчи для тем, которых НЕТ в статическом `tokens.css` (тенант/динамика, P6). */
-  runtimeVars?: Readonly<Record<string, Record<string, string>>>
+  runtimeVars?: Readonly<Record<string, Record<string, string>>> | undefined
   /** Seam: целевой элемент. Default `() => document.documentElement`. */
   target?: () => (ElementLike & {
     setAttribute(n: string, v: string): void
   }) | null
   /** Seam: хранилище. Default `() => localStorage`. */
-  storage?: () => StorageLike | null
+  storage?: (() => StorageLike | null) | undefined
   /** Seam: медиа-квери. Default `(q) => matchMedia(q)`. */
   media?: (query: string) => {
     matches: boolean

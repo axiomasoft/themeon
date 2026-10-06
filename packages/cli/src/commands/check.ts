@@ -38,19 +38,19 @@ export interface CheckResult {
 export interface CheckOptions {
   cwd: string
   config: string
-  src?: readonly string[]
+  src?: readonly string[] | undefined
   /** Фактический выход `themeon build --out`, исключается из скана (default `tokens.css`, как у `build`). */
-  out?: string
+  out?: string | undefined
   /** Фактический выход `themeon build --tailwind`, исключается из скана, если передан. */
-  tailwind?: string
+  tailwind?: string | undefined
   /** Доп. glob-паттерны, исключённые из скана (Major #23 defense-in-depth #1). */
-  ignore?: readonly string[]
-  coverage?: boolean
-  contrast?: boolean
-  hardcode?: boolean
-  allowPx?: readonly number[]
+  ignore?: readonly string[] | undefined
+  coverage?: boolean | undefined
+  contrast?: boolean | undefined
+  hardcode?: boolean | undefined
+  allowPx?: readonly number[] | undefined
   /** `--`-префиксы project-owned/third-party переменных, исключённые из coverage dead-ref (P4.5 code-review MED). */
-  coverageIgnorePrefixes?: readonly string[]
+  coverageIgnorePrefixes?: readonly string[] | undefined
   /**
    * Путь к JSON-файлу tenant-патча (P6.3, H3 И2) — переключает `runCheck` на fail-closed
    * APCA-гейт публикации ВМЕСТО сканирования coverage/hardcode: base-тема + провалидированный
@@ -58,7 +58,7 @@ export interface CheckOptions {
    * `checkThemeContrast` (`@themeon/colors`). Любая ошибка на пути (нечитаемый/невалидный JSON,
    * throw валидации значения, throw парсинга цвета, `pass===false`) — `error`-finding, `ok:false`.
    */
-  tenant?: string
+  tenant?: string | undefined
 }
 
 const DEFAULT_SRC_PATTERNS: readonly string[] = ['**/*.css', '**/*.vue']

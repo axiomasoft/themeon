@@ -77,7 +77,7 @@ interface ContrastOptions {
    * молча подставить белый значило бы считать контраст против несуществующего фона).
    * Игнорируется при непрозрачном bg.
    */
-  readonly base?: string;
+  readonly base?: string | undefined;
 }
 /**
  * Знаковый APCA Lc (fg поверх bg). Отрицательный — light-on-dark; сравнивать по |Lc|.
@@ -91,9 +91,9 @@ interface ContrastPair {
   readonly bg: string;
   readonly usage: ContrastUsage;
   /** Человекочитаемая метка пары для отчёта: 'text on bg.page'. */
-  readonly label?: string;
+  readonly label?: string | undefined;
   /** Подложка под полупрозрачный bg — прокидывается в `contrastAPCA`. */
-  readonly base?: string;
+  readonly base?: string | undefined;
 }
 interface ContrastReport {
   readonly pair: ContrastPair;

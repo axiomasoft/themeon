@@ -1,4 +1,3 @@
-import { defineTheme } from '../define'
 import { fromDTCG } from '../dtcg/from-dtcg'
 import { toDTCG } from '../dtcg/to-dtcg'
 import { formatVarName } from '../naming'

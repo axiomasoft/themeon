@@ -71,7 +71,7 @@ export function diagnosticFromGraphIssue(issue: GraphIssue): Diagnostic {
       severity: 'error',
       message: `Missing token reference: ${issue.ref.join('.')}`,
       path: issue.ref,
-      related: fromPath !== undefined ? [{ path: fromPath, message: 'referrer' }] : undefined,
+      ...(fromPath !== undefined ? { related: [{ path: fromPath, message: 'referrer' }] } : {}),
       provenance: { stage: 'graph', producer: 'buildGraph' },
     })
   }

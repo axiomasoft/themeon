@@ -74,11 +74,11 @@ export interface DeriveInput {
   /** Направление шкалы темы: light → hover темнее base (Radix step 10), dark → светлее. */
   appearance: 'light' | 'dark'
   /** Явная роль `<base>-hover` темы, если задана — побеждает деривацию (Rule 4). */
-  hover?: string
+  hover?: string | undefined
   /** Явная роль `<base>-pressed` темы, если задана — побеждает деривацию (Rule 4). */
-  pressed?: string
+  pressed?: string | undefined
   /** Явная роль `<base>-suppl` темы, если задана — побеждает деривацию (Rule 4). */
-  suppl?: string
+  suppl?: string | undefined
 }
 
 /**

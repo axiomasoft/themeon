@@ -27,7 +27,11 @@ export async function viteBuild(
     logLevel: 'silent',
     configFile: false,
     plugins: options.plugins ?? [],
-    build: { write: false, minify: false, rollupOptions: options.rollupOptions },
+    build: {
+      write: false,
+      minify: false,
+      ...(options.rollupOptions !== undefined ? { rollupOptions: options.rollupOptions } : {}),
+    },
   })) as { output: RollupLikeOutputItem[] }
 
   const css = out.output

@@ -15,8 +15,8 @@ export interface GraphOptions {
   cwd: string
   config: string
   format: CliOutputFormat
-  refLayer?: 'referenced' | 'all' | 'inline'
-  aliases?: string
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined
+  aliases?: string | undefined
 }
 
 const KNOWN_REF_LAYERS = ['referenced', 'all', 'inline']

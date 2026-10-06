@@ -29,10 +29,10 @@ interface BuildOptions {
   cwd: string;
   config: string;
   out: string;
-  tailwind?: string;
-  refLayer?: 'referenced' | 'all' | 'inline';
-  aliases?: string;
-  tailwindLayers?: boolean;
+  tailwind?: string | undefined;
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined;
+  aliases?: string | undefined;
+  tailwindLayers?: boolean | undefined;
 }
 interface BuildResult {
   outPath: string;
@@ -72,19 +72,19 @@ interface CheckResult {
 interface CheckOptions {
   cwd: string;
   config: string;
-  src?: readonly string[];
+  src?: readonly string[] | undefined;
   /** Фактический выход `themeon build --out`, исключается из скана (default `tokens.css`, как у `build`). */
-  out?: string;
+  out?: string | undefined;
   /** Фактический выход `themeon build --tailwind`, исключается из скана, если передан. */
-  tailwind?: string;
+  tailwind?: string | undefined;
   /** Доп. glob-паттерны, исключённые из скана (Major #23 defense-in-depth #1). */
-  ignore?: readonly string[];
-  coverage?: boolean;
-  contrast?: boolean;
-  hardcode?: boolean;
-  allowPx?: readonly number[];
+  ignore?: readonly string[] | undefined;
+  coverage?: boolean | undefined;
+  contrast?: boolean | undefined;
+  hardcode?: boolean | undefined;
+  allowPx?: readonly number[] | undefined;
   /** `--`-префиксы project-owned/third-party переменных, исключённые из coverage dead-ref (P4.5 code-review MED). */
-  coverageIgnorePrefixes?: readonly string[];
+  coverageIgnorePrefixes?: readonly string[] | undefined;
   /**
    * Путь к JSON-файлу tenant-патча (P6.3, H3 И2) — переключает `runCheck` на fail-closed
    * APCA-гейт публикации ВМЕСТО сканирования coverage/hardcode: base-тема + провалидированный
@@ -92,7 +92,7 @@ interface CheckOptions {
    * `checkThemeContrast` (`@themeon/colors`). Любая ошибка на пути (нечитаемый/невалидный JSON,
    * throw валидации значения, throw парсинга цвета, `pass===false`) — `error`-finding, `ok:false`.
    */
-  tenant?: string;
+  tenant?: string | undefined;
 }
 /**
  * Loads `opts.config`, resolves it through the core resolver, scans `opts.src` (default
@@ -109,7 +109,7 @@ declare function runCheck(opts: CheckOptions): Promise<CheckResult>;
 interface SchemaOptions {
   cwd: string;
   config: string;
-  out?: string;
+  out?: string | undefined;
 }
 interface SchemaResult {
   schema: JsonSchema;
@@ -126,8 +126,8 @@ interface InspectOptions {
   cwd: string;
   config: string;
   format: CliOutputFormat;
-  refLayer?: 'referenced' | 'all' | 'inline';
-  aliases?: string;
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined;
+  aliases?: string | undefined;
 }
 declare function runInspect(opts: InspectOptions): Promise<{
   exitCode: number;
@@ -140,8 +140,8 @@ interface ExplainOptions {
   config: string;
   token: string;
   format: CliOutputFormat;
-  refLayer?: 'referenced' | 'all' | 'inline';
-  aliases?: string;
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined;
+  aliases?: string | undefined;
 }
 declare function runExplain(opts: ExplainOptions): Promise<{
   exitCode: number;
@@ -153,8 +153,8 @@ interface GraphOptions {
   cwd: string;
   config: string;
   format: CliOutputFormat;
-  refLayer?: 'referenced' | 'all' | 'inline';
-  aliases?: string;
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined;
+  aliases?: string | undefined;
 }
 declare function runGraph(opts: GraphOptions): Promise<{
   exitCode: number;
@@ -167,8 +167,8 @@ interface DiffOptions {
   oldConfig: string;
   newConfig: string;
   format: CliOutputFormat;
-  refLayer?: 'referenced' | 'all' | 'inline';
-  aliases?: string;
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined;
+  aliases?: string | undefined;
 }
 declare function runDiff(opts: DiffOptions): Promise<{
   exitCode: number;
@@ -179,10 +179,10 @@ declare function runDiff(opts: DiffOptions): Promise<{
 interface DoctorOptions {
   cwd: string;
   config: string;
-  baseline?: string;
+  baseline?: string | undefined;
   format: CliOutputFormat;
-  refLayer?: 'referenced' | 'all' | 'inline';
-  aliases?: string;
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined;
+  aliases?: string | undefined;
 }
 declare function runDoctor(opts: DoctorOptions): Promise<{
   exitCode: number;
@@ -195,8 +195,8 @@ interface MigrateOptions {
   fromConfig: string;
   toConfig: string;
   format: CliOutputFormat;
-  refLayer?: 'referenced' | 'all' | 'inline';
-  aliases?: string;
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined;
+  aliases?: string | undefined;
 }
 declare function runMigrate(opts: MigrateOptions): Promise<{
   exitCode: number;
@@ -215,7 +215,7 @@ declare function loadThemeConfig(absPath: string): Promise<ThemeDefinition>;
 //#region src/checks/coverage.d.ts
 interface CoverageOptions {
   /** `--`-префиксы (напр. `--reka-`, `--tw-`), исключённые из dead-ref error (не ThemeOn-токены). */
-  ignorePrefixes?: readonly string[];
+  ignorePrefixes?: readonly string[] | undefined;
 }
 declare function checkCoverage(resolved: ResolvedTheme, sources: readonly SourceFile[], opts?: CoverageOptions): Finding[];
 //#endregion
@@ -225,7 +225,7 @@ declare function checkContrastPairs(resolved: ResolvedTheme): Finding[];
 //#region src/checks/hardcode.d.ts
 interface HardcodeOptions {
   /** Разрешённые px-значения (не флагаются). Default `[0, 1]` (нулевые/однопиксельные бордеры). */
-  allowPx?: readonly number[];
+  allowPx?: readonly number[] | undefined;
 }
 declare function checkHardcode(sources: readonly SourceFile[], opts?: HardcodeOptions): Finding[];
 //#endregion

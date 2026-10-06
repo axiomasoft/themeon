@@ -49,14 +49,14 @@ export interface CompilerExtension {
 }
 
 export interface CompilerOptions {
-  readonly resolve?: ResolveOptions
-  readonly serialize?: SerializeCssOptions
+  readonly resolve?: ResolveOptions | undefined
+  readonly serialize?: SerializeCssOptions | undefined
   /**
    * Cache contribution for a custom `resolve.aliases` function.
    * Built-in `'legacy-v0'` needs no extra key.
    */
-  readonly aliasesCacheKey?: string
-  readonly extensions?: readonly CompilerExtension[]
+  readonly aliasesCacheKey?: string | undefined
+  readonly extensions?: readonly CompilerExtension[] | undefined
 }
 
 export interface DeclaredExtension {

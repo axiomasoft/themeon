@@ -5,8 +5,6 @@ import { requireCompile } from './context'
 import { pathLabel } from './token-lookup'
 import type {
   ChangeConfidence,
-  ChangeEvidence,
-  ChangeSafety,
   DiffPayload,
   DiffSummary,
   MigrationHint,
@@ -299,7 +297,7 @@ function classifyResolvedDelta(
             confidence: 'high',
             safety: 'non-breaking',
             path: pathParts,
-            theme,
+            ...(theme !== undefined ? { theme } : {}),
             before: { varName: before.varName, value: before.value },
             after: { varName: after.varName, value: after.value },
             evidence: [{ kind: 'resolved-output', detail: 'Theme override output changed' }],
@@ -334,8 +332,8 @@ export function migrationHintsFromChanges(changes: readonly SemanticChange[]): M
         action: 'replace-reference',
         message: `Review rename ${String(change.before)} → ${String(change.after)} (dry-run; update references manually)`,
         evidence: change.evidence,
-        fromPath: change.path,
-        toPath: typeof change.after === 'string' ? change.after.split('.') : undefined,
+        ...(change.path !== undefined ? { fromPath: change.path } : {}),
+        ...(typeof change.after === 'string' ? { toPath: change.after.split('.') } : {}),
       })
     } else if (change.class === 'token.removed') {
       hints.push({
@@ -343,7 +341,7 @@ export function migrationHintsFromChanges(changes: readonly SemanticChange[]): M
         action: 'update-consumer',
         message: `Token ${change.path ? pathLabel(change.path) : '(unknown)'} was removed; update or drop consumers`,
         evidence: change.evidence,
-        fromPath: change.path,
+        ...(change.path !== undefined ? { fromPath: change.path } : {}),
       })
     } else if (change.class === 'css.variable.changed') {
       hints.push({
@@ -351,7 +349,7 @@ export function migrationHintsFromChanges(changes: readonly SemanticChange[]): M
         action: 'replace-reference',
         message: `CSS variable ${String(change.before)} → ${String(change.after)} for ${change.path ? pathLabel(change.path) : 'token'}`,
         evidence: change.evidence,
-        fromPath: change.path,
+        ...(change.path !== undefined ? { fromPath: change.path } : {}),
       })
     } else if (change.safety === 'breaking') {
       hints.push({
@@ -359,7 +357,7 @@ export function migrationHintsFromChanges(changes: readonly SemanticChange[]): M
         action: 'review',
         message: `Breaking ${change.class} at ${change.path ? pathLabel(change.path) : 'theme'} — review before release`,
         evidence: change.evidence,
-        fromPath: change.path,
+        ...(change.path !== undefined ? { fromPath: change.path } : {}),
       })
     }
   }

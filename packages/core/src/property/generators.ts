@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 
 import { defineTheme, defineTokens } from '../define'
-import type { SysTreeInput, ThemeDefinition, TokenTreeInput } from '../types'
+import type { SysTreeInput, TokenTreeInput } from '../types'
 import { MAX_THEME_LEAVES } from './config'
 
 const segment = fc.stringMatching(/^[a-z][a-z0-9]{0,5}$/)

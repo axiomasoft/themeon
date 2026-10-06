@@ -35,7 +35,7 @@ function lineAt(content: string, index: number): number {
 
 export interface CoverageOptions {
   /** `--`-префиксы (напр. `--reka-`, `--tw-`), исключённые из dead-ref error (не ThemeOn-токены). */
-  ignorePrefixes?: readonly string[]
+  ignorePrefixes?: readonly string[] | undefined
 }
 
 export function checkCoverage(

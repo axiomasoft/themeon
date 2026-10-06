@@ -13,10 +13,10 @@ import type { CliOutputFormat } from '../query'
 export interface DoctorOptions {
   cwd: string
   config: string
-  baseline?: string
+  baseline?: string | undefined
   format: CliOutputFormat
-  refLayer?: 'referenced' | 'all' | 'inline'
-  aliases?: string
+  refLayer?: 'referenced' | 'all' | 'inline' | undefined
+  aliases?: string | undefined
 }
 
 const KNOWN_REF_LAYERS = ['referenced', 'all', 'inline']

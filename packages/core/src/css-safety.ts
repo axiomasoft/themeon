@@ -80,8 +80,7 @@ export function assertSafeDeclarationValue(value: string, label: string): void {
         break
       case '{':
       case '}':
-        unsafe(label, 'must not contain "{" or "}" outside a string', value)
-        break
+        return unsafe(label, 'must not contain "{" or "}" outside a string', value)
       case ';':
         if (closers.length === 0) unsafe(label, 'must not contain a top-level ";"', value)
         break

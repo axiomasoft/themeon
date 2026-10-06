@@ -93,7 +93,8 @@ describe('diagnostic schema (P1.4)', () => {
   test('formatters omit location when path is missing or empty', () => {
     const message = 'Circular token reference: color.a → color.b → color.a'
     for (const path of [undefined, [] as string[]]) {
-      const bare = aggregateDiagnostics([sample({ path })])
+      const { path: _defaultPath, ...withoutPath } = sample()
+      const bare = aggregateDiagnostics([path === undefined ? withoutPath : { ...withoutPath, path }])
       expect(formatDiagnostics(bare, 'pretty')).toBe(`error THEMEON_REF_CYCLE\n  ${message}`)
       expect(formatDiagnostics(bare, 'plain')).toBe(`error THEMEON_REF_CYCLE ${message}`)
     }

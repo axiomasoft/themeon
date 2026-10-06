@@ -33,7 +33,7 @@ interface UseThemeOptions {
    * Known theme names; `toggle()` cycles the first two by default. Default `['light','dark']`.
    * `'system'` is a reserved *preference* (follow the OS), not a theme — do not list it here.
    */
-  themes?: readonly string[];
+  themes?: readonly string[] | undefined;
   /**
    * Preference used when nothing is persisted. Either a theme name or `'system'` (follow the OS).
    * Default `'system'`.
@@ -43,26 +43,26 @@ interface UseThemeOptions {
    * unset `runtimeConfig` value to `''` — and treating it as a theme name would kill the
    * `prefers-color-scheme` fallback.
    */
-  default?: string;
+  default?: string | undefined;
   /** Ключ localStorage; `null` отключает персист. Default `'themeon-theme'`. */
-  storageKey?: string | null;
+  storageKey?: string | null | undefined;
   /** DOM-атрибут переключения. Default `'data-theme'` (D6). */
-  attribute?: string;
+  attribute?: string | undefined;
   /** Отображение системного предпочтения → имя темы. Default `{ dark:'dark', light:'light' }`. */
   system?: {
     dark: string;
     light: string;
-  };
+  } | undefined;
   /** Глушить transition на кадр смены. Default `true`. */
-  disableTransition?: boolean;
+  disableTransition?: boolean | undefined;
   /** Runtime var-патчи для тем, которых НЕТ в статическом `tokens.css` (тенант/динамика, P6). */
-  runtimeVars?: Readonly<Record<string, Record<string, string>>>;
+  runtimeVars?: Readonly<Record<string, Record<string, string>>> | undefined;
   /** Seam: целевой элемент. Default `() => document.documentElement`. */
   target?: () => (ElementLike & {
     setAttribute(n: string, v: string): void;
   }) | null;
   /** Seam: хранилище. Default `() => localStorage`. */
-  storage?: () => StorageLike | null;
+  storage?: (() => StorageLike | null) | undefined;
   /** Seam: медиа-квери. Default `(q) => matchMedia(q)`. */
   media?: (query: string) => {
     matches: boolean;
@@ -135,19 +135,19 @@ export { SYSTEM_PREFERENCE, type StorageLike, type SystemPreference, THEME_INJEC
 //#region src/anti-fouc.d.ts
 interface ThemeInitScriptOptions {
   /** `localStorage` key. Default `'themeon-theme'` — must match `useTheme()`. */
-  storageKey?: string;
+  storageKey?: string | undefined;
   /** DOM attribute driving the switch. Default `'data-theme'` (D6) — must match `useTheme()`. */
-  attribute?: string;
+  attribute?: string | undefined;
   /** Theme name used when the OS prefers dark. Default `'dark'`. */
-  darkTheme?: string;
+  darkTheme?: string | undefined;
   /** Theme name used when the OS prefers light. Default `'light'`. */
-  lightTheme?: string;
+  lightTheme?: string | undefined;
   /**
    * Preference used when nothing is persisted — a theme name, or `'system'` to follow the OS.
    * Default `'system'`. Empty/whitespace-only means "not set" (P3.7). Same meaning as
    * `UseThemeOptions.default`: both channels must resolve it identically or the first paint flashes.
    */
-  default?: string;
+  default?: string | undefined;
   /**
    * Known theme names — same meaning as `UseThemeOptions.themes`. When set, a persisted theme
    * outside the set is rejected and the fallback applies, exactly like `init()`. When unset the set
@@ -155,7 +155,7 @@ interface ThemeInitScriptOptions {
    * must validate persistence by the SAME rules, otherwise a stale theme name (`'sepia'` after it
    * was removed) gets painted by the script and repainted by `init()` — a visible flash.
    */
-  themes?: readonly string[];
+  themes?: readonly string[] | undefined;
 }
 /**
  * Генерирует тело анти-FOUC IIFE (без `<script>`-тегов — обёртку ставит потребитель:

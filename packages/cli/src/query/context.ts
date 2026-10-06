@@ -13,8 +13,8 @@ import { loadThemeConfig } from '../load-theme'
 export interface QueryContextOptions {
   readonly cwd: string
   readonly config: string
-  readonly refLayer?: 'referenced' | 'all' | 'inline'
-  readonly aliases?: AliasesOption
+  readonly refLayer?: 'referenced' | 'all' | 'inline' | undefined
+  readonly aliases?: AliasesOption | undefined
 }
 
 export interface QueryContext {

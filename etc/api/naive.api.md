@@ -25,11 +25,11 @@ interface DeriveInput {
   /** Направление шкалы темы: light → hover темнее base (Radix step 10), dark → светлее. */
   appearance: 'light' | 'dark';
   /** Явная роль `<base>-hover` темы, если задана — побеждает деривацию (Rule 4). */
-  hover?: string;
+  hover?: string | undefined;
   /** Явная роль `<base>-pressed` темы, если задана — побеждает деривацию (Rule 4). */
-  pressed?: string;
+  pressed?: string | undefined;
   /** Явная роль `<base>-suppl` темы, если задана — побеждает деривацию (Rule 4). */
-  suppl?: string;
+  suppl?: string | undefined;
 }
 /**
  * Деривит hover/pressed/suppl согласованно со шкалой темы (P8.9, findings/
@@ -61,12 +61,12 @@ declare function mergeOverrides(...layers: (GlobalThemeOverrides | undefined)[])
 //#region src/types.d.ts
 interface ToNativeOptions {
   /** Theme key in resolved.themes to overlay onto the base; omitted → base (:root) values. */
-  theme?: string;
+  theme?: string | undefined;
   /**
    * Light/dark branch selector for the accent/ink override tables. Defaults to
    * `resolved.schemes[opts.theme]`, falling back to `'light'` when unresolved (P8.8).
    */
-  appearance?: 'light' | 'dark';
+  appearance?: 'light' | 'dark' | undefined;
   /**
    * What to do when a colour role resolves to a value `colorjs.io`/seemly cannot parse
    * (`var()`, `color-mix()`, `light-dark()`, relative-color syntax, `currentColor`,
@@ -74,9 +74,9 @@ interface ToNativeOptions {
    * `'skip'` drops the role (Naive keeps its stock value) — same tolerance as a partial
    * theme (D3).
    */
-  onInvalidColor?: 'throw' | 'skip';
+  onInvalidColor?: 'throw' | 'skip' | undefined;
   /** Extra per-component / peers overrides, deep-merged over the generated `common`. */
-  overrides?: GlobalThemeOverrides;
+  overrides?: GlobalThemeOverrides | undefined;
 }
 /** Map of breakpoint name → overrides patch applied when that breakpoint is active. */
 type BreakpointOverrides = Readonly<Record<string, GlobalThemeOverrides>>;

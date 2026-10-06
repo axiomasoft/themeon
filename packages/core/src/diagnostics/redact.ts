@@ -16,13 +16,11 @@ export function redactUnsafeText(text: string): string {
   return text.replace(URL_FN, `url(${REDACTED})`).replace(SCHEME, REDACTED).replace(QUOTED, REDACTED)
 }
 
-function freezePath(path: readonly string[] | undefined): readonly string[] | undefined {
-  if (path === undefined) return undefined
+function freezePath(path: readonly string[]): readonly string[] {
   return Object.freeze(path.map((segment) => String(segment)))
 }
 
-function freezeSource(source: SourceLocation | undefined): SourceLocation | undefined {
-  if (source === undefined) return undefined
+function freezeSource(source: SourceLocation): SourceLocation {
   const next: SourceLocation = {
     ...(source.file !== undefined ? { file: source.file } : {}),
     ...(source.line !== undefined ? { line: source.line } : {}),
@@ -32,11 +30,7 @@ function freezeSource(source: SourceLocation | undefined): SourceLocation | unde
   return Object.freeze(next)
 }
 
-function freezeRelated(
-  related: readonly RelatedLocation[] | undefined,
-  sensitive: boolean,
-): readonly RelatedLocation[] | undefined {
-  if (related === undefined) return undefined
+function freezeRelated(related: readonly RelatedLocation[], sensitive: boolean): readonly RelatedLocation[] {
   return Object.freeze(
     related.map((item) =>
       Object.freeze({
