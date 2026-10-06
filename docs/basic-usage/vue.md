@@ -31,3 +31,23 @@ const { theme, isDark, set, toggle } = useTheme()
 ```
 
 Full API & options → [`packages/vue/README.md` on GitHub](https://github.com/axioma-studio/themeon/tree/main/packages/vue#readme).
+
+## Typed theme names (opt-in)
+
+By default theme names are plain strings. To make `useTheme().set()`, `toggle()` and `$theme`
+accept only the themes you actually have, augment `ThemeonRegister` once, ideally deriving the
+union from the theme definition:
+
+```ts
+// themeon.d.ts
+import type { theme } from './theme/theme.config'
+
+declare module '@themeon/vue' {
+  interface ThemeonRegister {
+    theme: 'light' | keyof (typeof theme)['themes']
+  }
+}
+```
+
+`'system'` (follow the OS) is always accepted as a preference. The registry is a compile-time
+contract only: persisted values are still validated at runtime against `themes`.

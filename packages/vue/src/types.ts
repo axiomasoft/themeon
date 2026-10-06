@@ -15,12 +15,40 @@ export interface StorageLike {
 /** Разрешённое системное предпочтение цветовой схемы. */
 export type SystemPreference = 'dark' | 'light'
 
+/**
+ * App-wide registry for theme names (opt-in, the vue-router/Pinia augmentation pattern). Without
+ * augmentation every theme name is a plain `string`, exactly as before. Augment it once and
+ * `useTheme()` / `$theme` only accept the declared names:
+ *
+ * ```ts
+ * // themeon.d.ts
+ * declare module '@themeon/vue' {
+ *   interface ThemeonRegister {
+ *     theme: 'light' | 'dark' | 'sepia'
+ *   }
+ * }
+ * ```
+ *
+ * With `@themeon/core` the union can be derived from the definition itself:
+ * `theme: 'light' | keyof (typeof theme)['themes']`.
+ */
+export interface ThemeonRegister {}
+
+/** Resolves a registry shape to its theme-name union (`string` when not registered). */
+export type ThemeNameOf<TRegister> = TRegister extends { theme: infer TName extends string } ? TName : string
+
+/** A theme name: the registered union, or `string` without {@link ThemeonRegister} augmentation. */
+export type ThemeName = ThemeNameOf<ThemeonRegister>
+
+/** What the user picked: a theme name or the reserved `'system'` (follow the OS). */
+export type ThemePreference = ThemeName | 'system'
+
 export interface UseThemeOptions {
   /**
    * Known theme names; `toggle()` cycles the first two by default. Default `['light','dark']`.
    * `'system'` is a reserved *preference* (follow the OS), not a theme — do not list it here.
    */
-  themes?: readonly string[] | undefined
+  themes?: readonly ThemeName[] | undefined
   /**
    * Preference used when nothing is persisted. Either a theme name or `'system'` (follow the OS).
    * Default `'system'`.
@@ -36,7 +64,7 @@ export interface UseThemeOptions {
   /** DOM-атрибут переключения. Default `'data-theme'` (D6). */
   attribute?: string | undefined
   /** Отображение системного предпочтения → имя темы. Default `{ dark:'dark', light:'light' }`. */
-  system?: { dark: string; light: string } | undefined
+  system?: { dark: ThemeName; light: ThemeName } | undefined
   /** Глушить transition на кадр смены. Default `true`. */
   disableTransition?: boolean | undefined
   /** Runtime var-патчи для тем, которых НЕТ в статическом `tokens.css` (тенант/динамика, P6). */
@@ -64,9 +92,9 @@ export interface UseThemeReturn {
    * back to "follow the OS"). Same split as VueUse `useColorMode` (`store`/`state`) and next-themes
    * (`theme`/`resolvedTheme`).
    */
-  readonly preference: Readonly<Ref<string>>
+  readonly preference: Readonly<Ref<ThemePreference>>
   /** The *resolved* theme actually applied to the DOM (`'system'` already resolved via `system`). */
-  readonly theme: Readonly<Ref<string>>
+  readonly theme: Readonly<Ref<ThemeName>>
   /** The OS preference (`prefers-color-scheme`), tracked live. */
   readonly system: Readonly<Ref<SystemPreference>>
   /** Whether the resolved `theme` is the dark one. */
@@ -79,9 +107,9 @@ export interface UseThemeReturn {
    * storage, leaving the current theme in place (an empty string is not a theme, see
    * `UseThemeOptions.default`). An unknown theme (when `themes` is set) warns but is still applied.
    */
-  set(preference: string): void
+  set(preference: ThemePreference): void
   /** Cycles between two themes (by default the first two of `themes`), based on the resolved theme. */
-  toggle(a?: string, b?: string): void
+  toggle(a?: ThemeName, b?: ThemeName): void
   /** Client-only: reads persistence + `prefers-color-scheme`, resolves and applies the theme. */
   init(): void
 }

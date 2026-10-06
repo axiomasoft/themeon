@@ -37,6 +37,15 @@
       }
     },
     {
+      "id": "positive-typed-themes",
+      "kind": "positive",
+      "fixture": "positive-typed-themes",
+      "dependencies": {
+        "@themeon/core": "workspace-placeholder",
+        "@themeon/vue": "workspace-placeholder"
+      }
+    },
+    {
       "id": "negative-unexported-subpath",
       "kind": "negative",
       "fixture": "negative-unexported-subpath",
