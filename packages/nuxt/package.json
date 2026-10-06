@@ -37,9 +37,9 @@
     }
   },
   "scripts": {
-    "build": "nuxt-module-build build",
+    "build": "nuxt-module-build prepare && nuxt-module-build build",
     "dev:prepare": "nuxt-module-build prepare",
-    "prepack": "nuxt-module-build build",
+    "prepack": "nuxt-module-build prepare && nuxt-module-build build",
     "typecheck": "nuxt-module-build prepare && tsc --noEmit",
     "test": "vitest run --root ../.. --project @themeon/nuxt"
   },
