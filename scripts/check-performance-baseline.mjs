@@ -10,6 +10,8 @@ const reportPath = join(root, 'benchmarks', 'last-report.json')
 
 const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
 const report = JSON.parse(readFileSync(reportPath, 'utf8'))
+const referenceFlag = process.argv.indexOf('--reference')
+const reference = referenceFlag < 0 ? undefined : JSON.parse(readFileSync(process.argv[referenceFlag + 1], 'utf8'))
 
 const budget = baseline.regressionBudgetRatio ?? 0.3
 let failed = false
@@ -19,14 +21,20 @@ function fail(msg) {
   failed = true
 }
 
+if (reference !== undefined) {
+  for (const field of ['nodeVersion', 'platform', 'arch', 'warmIterations']) {
+    if (reference[field] !== report[field]) fail(`reference ${field} differs from the candidate report`)
+  }
+}
+
 for (const key of performanceBenchmarkIncludes) {
-  const floor = baseline.scenarios[key]?.medianMs
-  if (typeof floor !== 'number') {
+  const floor = (reference ?? baseline).scenarios[key]?.medianMs
+  if (typeof floor !== 'number' || !Number.isFinite(floor) || floor <= 0) {
     fail(`missing baseline floor for ${key}`)
     continue
   }
   const observed = report.scenarios[key]?.medianMs
-  if (typeof observed !== 'number') {
+  if (typeof observed !== 'number' || !Number.isFinite(observed) || observed < 0) {
     fail(`missing observed ${key} in report`)
     continue
   }
@@ -53,5 +61,5 @@ for (const [corpus, expected] of Object.entries(baseline.correctness ?? {})) {
 if (failed) process.exit(1)
 
 console.log(
-  `check-performance-baseline: ${performanceBenchmarkIncludes.length} scenarios within +${budget * 100}% budget; correctness fingerprints match`,
+  `check-performance-baseline: ${performanceBenchmarkIncludes.length} scenarios within +${budget * 100}% budget against ${reference ? 'same-runner reference' : 'recorded baseline'}; correctness fingerprints match`,
 )

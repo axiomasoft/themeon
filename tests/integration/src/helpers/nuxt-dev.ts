@@ -55,8 +55,10 @@ async function pollOk(proc: ChildProcessWithoutNullStreams, url: string, timeout
       throw new Error(`nuxt dev завершился раньше времени (код ${proc.exitCode}), вывод:\n${buf}`)
     }
     try {
-      const res = await fetch(url)
-      if (res.ok) return
+      const res = await fetch(url, { signal: AbortSignal.timeout(Math.min(5_000, deadline - Date.now())) })
+      const ok = res.ok
+      await res.body?.cancel()
+      if (ok) return
       lastError = new Error(`статус ${res.status}`)
     } catch (err) {
       lastError = err
@@ -64,6 +66,18 @@ async function pollOk(proc: ChildProcessWithoutNullStreams, url: string, timeout
     await new Promise((resolve) => setTimeout(resolve, 200))
   }
   throw new Error(`GET ${url} не ответил 200 за ${timeoutMs}ms: ${String(lastError)}, вывод:\n${buf}`)
+}
+
+function stopProcess(proc: ChildProcessWithoutNullStreams): Promise<void> {
+  if (proc.exitCode !== null || proc.signalCode !== null) return Promise.resolve()
+  return new Promise((resolve) => {
+    const forceKill = setTimeout(() => proc.kill('SIGKILL'), 5_000)
+    proc.once('close', () => {
+      clearTimeout(forceKill)
+      resolve()
+    })
+    proc.kill('SIGTERM')
+  })
 }
 
 /**
@@ -81,15 +95,17 @@ export async function spawnNuxtDev(fixtureDir: string): Promise<NuxtDevHandle> {
     env: { ...process.env, NUXT_IGNORE_LOCK: '1' },
   }) as ChildProcessWithoutNullStreams
 
-  await pollOk(proc, url, 45_000)
+  try {
+    // Leave time for shutdown and diagnostic reporting before the test's 45-second limit.
+    await pollOk(proc, url, 30_000)
+  } catch (error) {
+    await stopProcess(proc)
+    throw error
+  }
 
   return {
     url,
     tokensCssPath: join(fixtureDir, '.nuxt', 'themeon-tokens.css'),
-    stop: () =>
-      new Promise((resolve) => {
-        proc.once('close', () => resolve())
-        proc.kill()
-      }),
+    stop: () => stopProcess(proc),
   }
 }

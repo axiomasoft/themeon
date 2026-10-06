@@ -1,6 +1,7 @@
 {
   "$schema": "themeon/performance-baseline/v1",
   "regressionBudgetRatio": 0.3,
+  "referenceCommit": "4604eda5cf59c49cd6041300e9d43100d07d0778",
   "samplePolicy": {
     "warmIterations": 7,
     "gateAggregation": "median"

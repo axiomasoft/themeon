@@ -49,7 +49,7 @@ function measureApplyRuntime(theme) {
   const vars = themeVars(resolved)
   return warmMedianSync(() => {
     applyTheme(el, vars)
-  }, warmIterations)
+  }, warmIterations, 100)
 }
 
 function measureDtcgRoundTrip(theme) {
@@ -67,7 +67,7 @@ async function measureVitePluginLoad(theme) {
   await load.call({ error() {} }, id)
   return warmMedianSync(() => {
     load.call({ error() {} }, id)
-  }, warmIterations)
+  }, warmIterations, 1000)
 }
 
 function memoryDeltaMb(fn) {

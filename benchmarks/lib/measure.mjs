@@ -28,10 +28,12 @@ export async function timeAsync(fn) {
   return { result, ms: benchInjectMs(performance.now() - start) }
 }
 
-export function warmMedianSync(fn, iterations) {
+export function warmMedianSync(fn, iterations, batchSize = 1) {
   const samples = []
   for (let i = 0; i < iterations; i++) {
-    samples.push(timeSync(fn).ms)
+    samples.push(timeSync(() => {
+      for (let n = 0; n < batchSize; n++) fn()
+    }).ms / batchSize)
   }
   return median(samples)
 }

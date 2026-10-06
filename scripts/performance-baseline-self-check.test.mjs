@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, rmSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
 import test from 'node:test'
@@ -37,5 +37,30 @@ test('gate fails when a scenario floor is lowered below measured report', () => 
     assert.match(check.stderr ?? check.stdout, /check-performance-baseline/)
   } finally {
     writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`)
+  }
+})
+
+test('same-runner gate detects regressions and incompatible reference environments', () => {
+  const report = JSON.parse(readFileSync(join(root, 'benchmarks/last-report.json'), 'utf8'))
+  const reference = structuredClone(report)
+  const referencePath = join(root, '.tmp-performance-self-reference.json')
+  function check() {
+    writeFileSync(referencePath, JSON.stringify(reference))
+    return spawnSync(process.execPath, [join(root, 'scripts/check-performance-baseline.mjs'), '--reference', referencePath], {
+      cwd: root, encoding: 'utf8',
+    })
+  }
+  try {
+    for (const key of performanceBenchmarkIncludes) reference.scenarios[key].medianMs *= 2
+    assert.equal(check().status, 0, 'a faster candidate should pass the same-runner gate')
+    reference.scenarios[performanceBenchmarkIncludes[0]].medianMs = 0.001
+    assert.notEqual(check().status, 0, 'a real regression must fail')
+    reference.scenarios[performanceBenchmarkIncludes[0]].medianMs = report.scenarios[performanceBenchmarkIncludes[0]].medianMs * 2
+    reference.nodeVersion = 'different-node-version'
+    const incompatible = check()
+    assert.notEqual(incompatible.status, 0)
+    assert.match(incompatible.stderr, /reference nodeVersion differs/)
+  } finally {
+    rmSync(referencePath, { force: true })
   }
 })
