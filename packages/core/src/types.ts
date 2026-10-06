@@ -58,9 +58,58 @@ export function isToken(v: unknown): v is Token {
   return (v as Record<symbol, unknown>)[TOKEN_BRAND] === true
 }
 
-/** Дерево после оборачивания листьев. */
-export type Tokenized<T> = {
-  readonly [K in keyof T]: T[K] extends TokenLeafInput ? Token : Tokenized<T[K]>
+/**
+ * Type-level mirror of the runtime group → {@link TokenType} table (`GROUP_TYPE_MAP` in
+ * `define.ts`, kept in sync by a `satisfies` check there). A token in a well-known group gets the
+ * group's type regardless of its value — exactly what `defineTokens` does at runtime.
+ */
+export interface WellKnownGroupTypes {
+  color: 'color'
+  space: 'dimension'
+  radius: 'dimension'
+  text: 'text'
+  font: 'fontFamily'
+  fontWeight: 'fontWeight'
+  tracking: 'dimension'
+  leading: 'number'
+  shadow: 'shadow'
+  gradient: 'gradient'
+  z: 'number'
+  ease: 'cubicBezier'
+  duration: 'duration'
+  breakpoint: 'dimension'
+}
+
+/**
+ * Token type a group forces on its leaves, or `undefined` when the group is not well-known and
+ * the type is inferred per leaf ({@link InferLeafTokenType}).
+ */
+export type GroupTokenType<G extends string> = G extends keyof WellKnownGroupTypes
+  ? WellKnownGroupTypes[G]
+  : undefined
+
+/**
+ * Static counterpart of the runtime value heuristic for groups outside the table: a reference
+ * keeps its target's type, a text style is `text`, a number is `number`. Strings are classified
+ * by a runtime regex, so statically they stay the full {@link TokenType} union.
+ */
+export type InferLeafTokenType<V> =
+  V extends Token<infer R> ? R : V extends TextStyleValue ? 'text' : V extends number ? 'number' : TokenType
+
+/**
+ * Дерево после оборачивания листьев. `TType` — тип, навязанный группой (well-known группа);
+ * `undefined` — выводить тип каждого листа по значению. Default keeps the historical shape:
+ * a string leaf is a plain `Token`.
+ */
+export type Tokenized<T, TType extends TokenType | undefined = undefined> = {
+  readonly [K in keyof T]: T[K] extends TokenLeafInput
+    ? Token<TType extends TokenType ? TType : InferLeafTokenType<T[K]>>
+    : Tokenized<T[K], TType>
+}
+
+/** A wrapped sys tree: every root group is {@link Tokenized} with its group's token type. */
+export type TokenizedSys<TSys> = {
+  readonly [G in keyof TSys]: Tokenized<TSys[G], G extends string ? GroupTokenType<G> : undefined>
 }
 
 /** Well-known sys-группы (master §4.2). Каждая опциональна; расширение — доп. ключами. */
@@ -89,7 +138,7 @@ export type SysPatch<T> = {
 
 /** Определение темы (выход defineTheme — P1.2). */
 export interface ThemeDefinition<TSys extends SysTreeInput = SysTreeInput> {
-  readonly sys: Tokenized<TSys>
+  readonly sys: TokenizedSys<TSys>
   /** Сырые патчи тем; резолвятся в resolveTheme (P1.4). */
   readonly themes: Readonly<Record<string, SysPatch<TSys>>>
   /** color-scheme per тема; конвенция: тема 'dark' → 'dark' автоматически (P-D16). */

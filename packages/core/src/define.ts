@@ -14,6 +14,7 @@ import { walkTree } from './internal/walk'
 import { RESERVED_PATCH_KEY_SET } from './patch-policy'
 import type {
   AutoComplete,
+  GroupTokenType,
   SysPatch,
   SysTreeInput,
   TextStyleValue,
@@ -23,6 +24,8 @@ import type {
   TokenTreeInput,
   TokenType,
   Tokenized,
+  TokenizedSys,
+  WellKnownGroupTypes,
   WellKnownSys,
 } from './types'
 
@@ -35,7 +38,7 @@ export type GroupName = AutoComplete<keyof WellKnownSys & string>
  * префиксов — отдельная сущность в naming.ts, P1.3). Для неизвестной группы работает
  * эвристика inferByValue.
  */
-const GROUP_TYPE_MAP: Readonly<Record<string, TokenType>> = {
+const GROUP_TYPE_MAP = {
   color: 'color',
   space: 'dimension',
   radius: 'dimension',
@@ -50,7 +53,19 @@ const GROUP_TYPE_MAP: Readonly<Record<string, TokenType>> = {
   ease: 'cubicBezier',
   duration: 'duration',
   breakpoint: 'dimension',
-}
+} as const satisfies WellKnownGroupTypes
+
+/** Compile-time guard: the table covers exactly the well-known sys groups. */
+type _GroupTableCoversWellKnownSys = [keyof WellKnownSys] extends [keyof WellKnownGroupTypes]
+  ? [keyof WellKnownGroupTypes] extends [keyof WellKnownSys]
+    ? true
+    : never
+  : never
+const _groupTableCoversWellKnownSys: _GroupTableCoversWellKnownSys = true
+void _groupTableCoversWellKnownSys
+
+/** Runtime lookup view of {@link GROUP_TYPE_MAP} (arbitrary group names are allowed). */
+const GROUP_TYPES: Readonly<Record<string, TokenType>> = GROUP_TYPE_MAP
 
 /** Единственные ключи, допустимые в TextStyleValue (types.ts) — держим в синхроне с walk.ts. */
 const TEXT_STYLE_KEYS = new Set(['size', 'lineHeight'])
@@ -119,7 +134,7 @@ function inferByValue(value: TokenLeafInput, path: readonly string[]): TokenType
 function inferTokenType(group: string, value: TokenLeafInput, path: readonly string[]): TokenType {
   // Object.hasOwn (не `in`/индексация) — иначе группа с именем прототип-члена
   // (`toString`, `constructor`, ...) читает функцию из Object.prototype как "known".
-  if (Object.hasOwn(GROUP_TYPE_MAP, group)) return GROUP_TYPE_MAP[group]!
+  if (Object.hasOwn(GROUP_TYPES, group)) return GROUP_TYPES[group]!
   if (isToken(value)) return value.type
   return inferByValue(value, path)
 }
@@ -213,17 +228,17 @@ function freezeDeep(obj: object): void {
  * palette.forest[600].value // 'oklch(0.55 0.13 155)'
  * ```
  */
-export function defineTokens<const T extends TokenTreeInput>(
-  group: GroupName,
+export function defineTokens<const G extends GroupName, const T extends TokenTreeInput>(
+  group: G,
   tree: T,
-): Tokenized<T> {
+): Tokenized<T, GroupTokenType<G>> {
   const root: Record<string, unknown> = {}
   for (const { path, value } of walkTree(tree)) {
     const token = makeToken(group, [group, ...path], value)
     assignByPath(root, path, token)
   }
   freezeDeep(root)
-  return root as unknown as Tokenized<T>
+  return root as unknown as Tokenized<T, GroupTokenType<G>>
 }
 
 /** Configuration for {@link defineTheme}. */
@@ -277,7 +292,7 @@ export function defineTheme<const TSys extends SysTreeInput>(
   if ('dark' in themes && !('dark' in schemes)) schemes.dark = 'dark'
 
   return Object.freeze({
-    sys: sys as unknown as Tokenized<TSys>,
+    sys: sys as unknown as TokenizedSys<TSys>,
     themes: Object.freeze({ ...themes }) as Readonly<Record<string, SysPatch<TSys>>>,
     schemes: Object.freeze(schemes),
   }) as ThemeDefinition<TSys>

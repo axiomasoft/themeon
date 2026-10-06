@@ -50,6 +50,8 @@ export type {
   AutoComplete,
   CssVarName,
   CssVarRef,
+  GroupTokenType,
+  InferLeafTokenType,
   ResolvedTheme,
   ResolvedToken,
   SysPatch,
@@ -58,9 +60,11 @@ export type {
   Token,
   ThemeDefinition,
   Tokenized,
+  TokenizedSys,
   TokenLeafInput,
   TokenTreeInput,
   TokenType,
+  WellKnownGroupTypes,
   WellKnownSys,
 } from './types'
 export type { ThemeConfig } from './define'
