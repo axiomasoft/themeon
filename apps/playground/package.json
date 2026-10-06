@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@themeon/nuxt": "workspace:*",
-    "nuxt": "4.4.8"
+    "nuxt": "4.5.2"
   },
   "devDependencies": {
     "@themeon/colors": "workspace:*",
