@@ -9,6 +9,7 @@ import { fromDTCG } from './dtcg/from-dtcg'
 import { ThemeonError } from './errors'
 import { resolveTheme } from './resolve'
 import { serializeThemeCss } from './serialize'
+import { compileTheme } from './pipeline/compile'
 
 function codeOf(fn: () => unknown): string | undefined {
   try {
@@ -27,6 +28,10 @@ describe('assertSafeDeclarationValue', () => {
     "'Font; With Semicolon', serif",
     'url("data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22/>")',
     'url(data:image/png;base64,AAAA)',
+    'URL( data:image/png;base64,AAAA )',
+    String.raw`u\72l(data:image/png;base64,AAAA)`,
+    String.raw`url(a\"b.png)`,
+    String.raw`url(a\29 b.png)`,
     'linear-gradient(90deg, var(--color-a) 0%, color-mix(in oklch, red 20%, blue) 100%)',
     '0 1px 2px rgb(0 0 0 / 0.1), inset 0 0 0 1px #fff',
     'cubic-bezier(0.4, 0, 0.2, 1)',
@@ -52,6 +57,12 @@ describe('assertSafeDeclarationValue', () => {
     ['newline', 'red\n}'],
     ['html end tag', 'red</style><script>alert(1)</script>'],
     ['html comment', '<!--'],
+    ['bad-url recovery', 'url(a" ); color:red; } body { display:none } /* ")'],
+    ['case-insensitive bad-url', 'URL(a" ); color:red; } body { display:none } /* ")'],
+    ['escaped bad-url', String.raw`u\72l(a" ); color:red; } body { display:none } /* ")`],
+    ['hex-escaped bad-url', String.raw`\75\72\6c(a" ); color:red; } body { display:none } /* ")`],
+    ['bad-url whitespace', 'url(a b)'],
+    ['bad-url opening parenthesis', 'url(a(b))'],
   ])('rejects %s', (_label, value) => {
     expect(codeOf(() => assertSafeDeclarationValue(value, 'v'))).toBe('UNSAFE_CSS_TOKEN')
   })
@@ -127,5 +138,36 @@ describe('resolveTheme is the choke point for every emitter', () => {
       themes: { dark: { color: { bg: 'oklch(0.15 0 0)' } } },
     })
     expect(serializeThemeCss(resolveTheme(def))).toContain('--gradient-hero: url("data:image/svg+xml;utf8,<svg/>");')
+  })
+
+  test('untyped color-scheme values cannot inject a declaration or rule', () => {
+    const def = defineTheme({ base: { color: { a: 'red' } }, schemes: {
+      // @ts-expect-error — hostile JS configuration
+      base: 'light; } body { display:none } :root {',
+    } })
+    expect(codeOf(() => resolveTheme(def))).toBe('BAD_VALUE')
+  })
+
+  test('public resolved data is checked again at serialization', () => {
+    const resolved = resolveTheme(defineTheme({ base: { color: { a: 'red' } } }))
+    expect(codeOf(() => serializeThemeCss({ ...resolved, vars: {
+      '--color-a': 'red; } body { display:none } :root {',
+    } }))).toBe('UNSAFE_CSS_TOKEN')
+    expect(codeOf(() => serializeThemeCss({ ...resolved, aliases: [
+      { alias: '--x; color:red', target: '--color-a' },
+    ] }))).toBe('UNSAFE_CSS_TOKEN')
+    expect(codeOf(() => serializeThemeCss({ ...resolved, schemes: {
+      // @ts-expect-error — hostile JS configuration
+      base: 'light; color:red',
+    } }))).toBe('BAD_VALUE')
+  })
+
+  test('compiler transforms cannot bypass the output guard', () => {
+    const def = defineTheme({ base: { color: { a: 'red' } } })
+    expect(codeOf(() => compileTheme(def, { extensions: [{
+      name: 'unsafe-transform', version: '1', apiVersion: 1, stage: 'transform',
+      capability: 'transform', cacheKey: '1', deterministic: true,
+      transform: (resolved) => ({ ...resolved, vars: { '--color-a': 'red; color:blue' } }),
+    }] }))).toBe('UNSAFE_CSS_TOKEN')
   })
 })

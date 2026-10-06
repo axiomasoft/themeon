@@ -50,4 +50,6 @@ declare module '@themeon/vue' {
 ```
 
 `'system'` (follow the OS) is always accepted as a preference. The registry is a compile-time
-contract only: persisted values are still validated at runtime against `themes`.
+contract only: persisted values are still validated at runtime against `themes`. `default`
+also accepts only a registered preference (or `''` to use the system fallback). Configure
+`themes` and `system` to match the registered names when using names other than `light`/`dark`.

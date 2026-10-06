@@ -43,6 +43,10 @@ declare module '@themeon/vue' {
 
 export function switcher(): void {
   const state = useTheme({ themes: ['light', 'dark', 'sepia'] })
+  useTheme({ default: 'sepia' })
+  useTheme({ default: '' })
+  // @ts-expect-error — the initial preference must also belong to the registered names
+  useTheme({ default: 'blue' })
   state.set('sepia')
   state.set('system')
   // @ts-expect-error — 'blue' is not a registered theme

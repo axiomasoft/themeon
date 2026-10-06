@@ -58,7 +58,7 @@ export interface UseThemeOptions {
    * unset `runtimeConfig` value to `''` — and treating it as a theme name would kill the
    * `prefers-color-scheme` fallback.
    */
-  default?: string | undefined
+  default?: ThemePreference | '' | undefined
   /** Ключ localStorage; `null` отключает персист. Default `'themeon-theme'`. */
   storageKey?: string | null | undefined
   /** DOM-атрибут переключения. Default `'data-theme'` (D6). */

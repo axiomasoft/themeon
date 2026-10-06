@@ -47,14 +47,21 @@ emitted declaration once, with the token path in the error (`UNSAFE_CSS_TOKEN`):
 - values are scanned by a small tokenizer: no top-level `;`, no `{`/`}` outside strings, no
   comments, balanced quotes/brackets, no dangling escape, no control characters, no `</`/`<!--`
   (the CSS may be inlined into `<style>`); `;` inside `url(…)`/strings stays legal;
-- theme names must be safe inside `[data-theme="…"]`.
+- theme names must be safe inside `[data-theme="…"]`;
+- unquoted `url()` follows CSS URL-token rules, including escaped names; malformed URL
+  recovery cannot turn apparent quoted text into additional declarations or rules;
+- color schemes must be exactly `light` or `dark`, including for JavaScript callers.
+
+`serializeThemeCss` validates resolved declarations again at the output boundary, because the
+public structural `ResolvedTheme` and compiler transforms can supply data without the resolver.
 
 This is a structural guard, not a CSS validator (`--x: banana` is still accepted).
 
 ## Out of scope (explicit)
 
 - General-purpose CSS sanitizer or HTML rewriter.
-- Fetching or validating external resources behind `url()` (those values are rejected, not fetched).
+- Fetching external resources behind `url()` (tenant patches reject URLs; the authoring channel
+  allows structurally safe URLs without fetching them).
 - Tenant storage, authentication, or tenancy routing.
 - Applying one tenant’s output as another tenant’s `base` (caller must keep bases separate).
 - Canonical IR / compiler pipeline (P1).

@@ -42,7 +42,8 @@
       "fixture": "positive-typed-themes",
       "dependencies": {
         "@themeon/core": "workspace-placeholder",
-        "@themeon/vue": "workspace-placeholder"
+        "@themeon/vue": "workspace-placeholder",
+        "typescript": "5.4.5"
       }
     },
     {

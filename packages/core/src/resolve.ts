@@ -14,6 +14,7 @@ import {
   assertSafeAttributeValue,
   assertSafeCustomPropertyName,
   assertSafeDeclarationValue,
+  assertSafeColorScheme,
 } from './css-safety'
 import { GRAPH_MAX_DEPTH, buildGraph, comparePath } from './graph/build'
 import { walkTree } from './internal/walk'
@@ -116,6 +117,9 @@ export function resolveTheme<TTheme extends string = string>(
   def: ThemeDefinition<SysTreeInput, TTheme>,
   opts: ResolveOptions = {},
 ): ResolvedTheme<TTheme> {
+  for (const [name, scheme] of Object.entries(def.schemes)) {
+    assertSafeColorScheme(scheme, `Color scheme of '${name}'`)
+  }
   const graph = buildGraph(irFromDefinition(def, { kind: 'dsl' }))
   const depthIssue = graph.issues.find((issue) => issue.code === 'DEPTH')
   if (depthIssue) {

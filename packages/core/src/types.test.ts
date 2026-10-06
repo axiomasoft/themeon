@@ -87,6 +87,13 @@ describe('точные типы токенов (группа → TokenType)', ()
     expect([custom.ref.type, custom.n.type, custom.t.type]).toEqual(['color', 'number', 'text'])
   })
 
+  test('динамическая группа может навязать тип независимо от значения листа', () => {
+    const group: string = 'color'
+    const tree = defineTokens(group, { a: 2 })
+    expectTypeOf(tree.a).toEqualTypeOf<Token>()
+    expect(tree.a.type).toBe('color')
+  })
+
   test('defineTheme: sys-группы типизированы, ссылка в well-known группе получает тип группы', () => {
     const palette = defineTokens('color', { forest: { 600: '#0a0' } })
     const theme = defineTheme({

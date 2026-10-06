@@ -9,7 +9,12 @@
  */
 
 import { ThemeonError } from './errors'
-import { assertSafeAttributeValue } from './css-safety'
+import {
+  assertSafeAttributeValue,
+  assertSafeColorScheme,
+  assertSafeCustomPropertyName,
+  assertSafeDeclarationValue,
+} from './css-safety'
 import type { ResolvedTheme } from './types'
 
 /** Опции сериализатора. Все значения по умолчанию воспроизводят канон D6/D8/D14. */
@@ -124,6 +129,26 @@ export function serializeThemeCss(resolved: ResolvedTheme, opts: SerializeCssOpt
   if (banner !== false) assertSafeCssToken(banner, 'banner', { statementContext: false })
   for (const themeName of Object.keys(resolved.themes)) assertSafeAttributeValue(themeName, 'theme name')
   for (const name of Object.keys(resolved.breakpoints)) assertSafeCssToken(name, 'breakpoint name')
+  // ResolvedTheme is a public structural type, and compiler transforms can replace its data.
+  // Validate at the output boundary as well as in the resolver.
+  for (const token of [...resolved.tokens, ...Object.values(resolved.themes).flat()]) {
+    assertSafeCustomPropertyName(token.varName, 'CSS variable name')
+    assertSafeDeclarationValue(token.value, `Value of '${token.varName}'`)
+  }
+  for (const [name, value] of Object.entries(resolved.vars)) {
+    assertSafeCustomPropertyName(name, 'CSS variable name')
+    assertSafeDeclarationValue(value, `Value of '${name}'`)
+  }
+  for (const { alias, target } of resolved.aliases) {
+    assertSafeCustomPropertyName(alias, 'CSS alias')
+    assertSafeCustomPropertyName(target, 'CSS alias target')
+  }
+  for (const [name, breakpoint] of Object.entries(resolved.breakpoints)) {
+    assertSafeDeclarationValue(breakpoint.value, `Breakpoint '${name}'`)
+  }
+  for (const [name, scheme] of Object.entries(resolved.schemes)) {
+    assertSafeColorScheme(scheme, `Color scheme of '${name}'`)
+  }
 
   const useLayer = layer !== false
   // При наличии @layer селекторы вложены на +2 пробела, их содержимое — на +4.

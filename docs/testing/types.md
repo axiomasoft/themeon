@@ -21,7 +21,7 @@ Source of truth: `tests/types/matrix.manifest.json`
 | `positive-colors` | `@themeon/colors` public API |
 | `positive-vue-subpaths` | `@themeon/vue` and `./anti-fouc` |
 | `positive-vite` | `@themeon/vite` plugin factory + options type |
-| `positive-typed-themes` | Strict consumer (`exactOptionalPropertyTypes`): precise `Token<'color'>`, typed theme names, `ThemeonRegister` augmentation |
+| `positive-typed-themes` | Minimum TypeScript 5.4.5, `skipLibCheck: false`, `exactOptionalPropertyTypes`: precise token types, theme names and `ThemeonRegister` augmentation |
 | `negative-unexported-subpath` | `@ts-expect-error` on a path outside `exports` |
 
 ## Gate self-check

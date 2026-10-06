@@ -84,9 +84,9 @@ export interface WellKnownGroupTypes {
  * Token type a group forces on its leaves, or `undefined` when the group is not well-known and
  * the type is inferred per leaf ({@link InferLeafTokenType}).
  */
-export type GroupTokenType<G extends string> = G extends keyof WellKnownGroupTypes
-  ? WellKnownGroupTypes[G]
-  : undefined
+export type GroupTokenType<G extends string> = string extends G
+  ? TokenType
+  : G extends keyof WellKnownGroupTypes ? WellKnownGroupTypes[G] : undefined
 
 /**
  * Static counterpart of the runtime value heuristic for groups outside the table: a reference

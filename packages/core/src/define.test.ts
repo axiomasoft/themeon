@@ -3,7 +3,7 @@ import { defineTheme, defineTokens } from './define'
 import { ThemeonError } from './errors'
 import { isToken } from './types'
 import { isLeaf, walkTree } from './internal/walk'
-import type { Token } from './types'
+import type { TextStyleValue, Token } from './types'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -313,5 +313,23 @@ describe('fail-loud: невалидные листья (undefined/null/boolean/N
       themes: { dark: { color: { a: bad } } },
     } as unknown as Parameters<typeof defineTheme>[0]
     expect(() => defineTheme(config)).toThrow(/Theme "dark" value 'color\.a' has invalid value/)
+  })
+
+  test.each([true, null, Number.NaN, Number.POSITIVE_INFINITY])('text lineHeight %j is invalid', (lineHeight) => {
+    const text = { size: '1rem', lineHeight } as unknown as TextStyleValue
+    expect(() => defineTokens('text', { body: text })).toThrow(/lineHeight.*finite number/)
+    expect(() => defineTheme({
+      base: { text: { body: { size: '1rem' } } },
+      themes: { dark: { text: { body: text } } },
+    })).toThrow(/lineHeight.*finite number/)
+  })
+})
+
+describe('color inference consumes the whole literal', () => {
+  test.each(['#12345', '#abcd-not-color', '#abcdef0', 'rgb(1) trailing', 'rgb(1) trailing()', 'rgb('])('%s is not inferred as color', (value) => {
+    expect(defineTokens('custom', { a: value }).a.type).not.toBe('color')
+  })
+  test.each(['#abc', '#abcd', '#abcdef', '#abcdef01', 'rgb(1 2 3)', 'color-mix(in srgb, rgb(1 2 3), blue)'])('%s is inferred as color', (value) => {
+    expect(defineTokens('custom', { a: value }).a.type).toBe('color')
   })
 })

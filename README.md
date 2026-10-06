@@ -22,6 +22,9 @@ is pinned by snapshot tests but not yet stable. Pilot migrations of real apps ar
 **Architecture (durable):** [`docs/architecture/`](docs/architecture/index.md) — compiler
 map, package graph, machine contracts, ADR index. Drift gate: `pnpm check:docs-architecture`.
 
+**TypeScript consumers:** TypeScript 5.4 or newer is required (`NoInfer` in the public types).
+The packed compatibility matrix checks 5.4.5 with library checking enabled.
+
 ## Packages
 
 | Package | What it does |

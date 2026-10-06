@@ -33,6 +33,62 @@ function unsafe(label: string, reason: string, value: string): never {
   )
 }
 
+function consumeEscape(value: string, start: number): { character: string; end: number } {
+  let end = start + 1
+  const hex = /^[\da-f]{1,6}/i.exec(value.slice(end, end + 6))?.[0]
+  if (hex === undefined) return { character: value[end]!, end: end + 1 }
+  const point = Number.parseInt(hex, 16)
+  const character = point === 0 || point > 0x10ffff ? '\uFFFD' : String.fromCodePoint(point)
+  end += hex.length
+  if (value[end] === ' ' || value[end] === '\t') end++
+  return { character, end }
+}
+
+/** Consume a CSS name, including hex escapes (e.g. `u\\72l` is `url`). */
+function consumeName(value: string, start: number): { name: string; end: number } {
+  let name = ''
+  let i = start
+  while (i < value.length) {
+    const ch = value[i]!
+    if (/[\w\-\u0080-\uFFFF]/.test(ch)) {
+      name += ch
+      i++
+    } else if (ch === '\\' && i + 1 < value.length) {
+      const escape = consumeEscape(value, i)
+      name += escape.character
+      i = escape.end
+    } else {
+      break
+    }
+  }
+  return { name, end: i }
+}
+
+/**
+ * An unquoted URL is a token, not a parenthesized block. A quote inside it produces a bad-url
+ * token; CSS then discards input through the next `)`, regardless of apparent string quotes.
+ * Reject that recovery path rather than letting our quote state disagree with the browser.
+ */
+function consumeUnquotedUrl(value: string, start: number, label: string): number {
+  for (let i = start; i < value.length; i++) {
+    const ch = value[i]!
+    if (ch === ')') return i
+    if (ch === '\\') {
+      if (i + 1 === value.length) unsafe(label, 'has an unterminated URL escape', value)
+      i = consumeEscape(value, i).end - 1
+      continue
+    }
+    if (ch === ' ' || ch === '\t') {
+      while (value[i + 1] === ' ' || value[i + 1] === '\t') i++
+      if (value[i + 1] !== ')') unsafe(label, 'has whitespace inside an unquoted URL', value)
+    }
+    if (/['"({}]/.test(ch) || (ch === '/' && value[i + 1] === '*')) {
+      unsafe(label, 'has an unsafe unquoted URL', value)
+    }
+  }
+  return unsafe(label, 'has an unterminated URL', value)
+}
+
 /** Throws `UNSAFE_CSS_TOKEN` unless `name` is a well-formed custom property name. */
 export function assertSafeCustomPropertyName(name: string, label: string): void {
   if (!CUSTOM_PROPERTY_NAME_RE.test(name)) {
@@ -55,6 +111,21 @@ export function assertSafeDeclarationValue(value: string, label: string): void {
   const closers: string[] = []
   for (let i = 0; i < value.length; i++) {
     const ch = value[i]!
+    if (quote === null && /[\w\-\\\u0080-\uFFFF]/.test(ch)) {
+      const { name, end } = consumeName(value, i)
+      if (end > i) {
+        if (name.toLowerCase() === 'url' && value[end] === '(') {
+          let content = end + 1
+          while (value[content] === ' ' || value[content] === '\t') content++
+          if (value[content] !== '"' && value[content] !== "'") {
+            i = consumeUnquotedUrl(value, content, label)
+            continue
+          }
+        }
+        i = end - 1
+        continue
+      }
+    }
     if (ch === '\\') {
       if (i === value.length - 1) unsafe(label, 'must not end with a backslash', value)
       i++ // escaped code point is inert
@@ -94,6 +165,13 @@ export function assertSafeDeclarationValue(value: string, label: string): void {
   }
   if (quote !== null) unsafe(label, 'has an unterminated string', value)
   if (closers.length > 0) unsafe(label, `has an unclosed "${closers.at(-1) === ')' ? '(' : '['}"`, value)
+}
+
+/** Color schemes are interpolated as declaration values, including for JS callers. */
+export function assertSafeColorScheme(value: unknown, label: string): asserts value is 'light' | 'dark' {
+  if (value !== 'light' && value !== 'dark') {
+    throw new ThemeonError('BAD_VALUE', `${label} must be 'light' or 'dark'`)
+  }
 }
 
 /**

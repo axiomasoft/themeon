@@ -97,11 +97,19 @@ const DURATION_RE = new RegExp(`^${CSS_NUMBER}m?s$`, 'i')
 
 /** Hex colour (3/4/6/8 digits) or a CSS colour function call. */
 const COLOR_RE =
-  /^(?:#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})|(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\()/i
+  /^(?:#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})|(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\(.*\))$/i
 
 /** Строка похожа на цвет: hex или цветовая функция CSS Color 4/5. */
 function looksLikeColor(s: string): boolean {
-  return COLOR_RE.test(s)
+  if (!COLOR_RE.test(s)) return false
+  if (s.startsWith('#')) return true
+  let depth = 0
+  for (let i = s.indexOf('('); i < s.length; i++) {
+    if (s[i] === '(') depth++
+    if (s[i] === ')') depth--
+    if (depth === 0) return i === s.length - 1
+  }
+  return false
 }
 
 /**
@@ -155,6 +163,13 @@ function describeInvalidLeaf(value: unknown): string {
  * non-finite numbers flowed through and were emitted as literal `--x: undefined;` / `NaN` CSS.
  */
 function assertValidLeaf(value: unknown, path: readonly string[], context: string): asserts value is TokenLeafInput {
+  if (typeof value === 'object' && value !== null && isTextStyleValue(value as TokenLeafInput)) {
+    const lineHeight: unknown = (value as TextStyleValue).lineHeight
+    if (lineHeight !== undefined && typeof lineHeight !== 'string' &&
+      !(typeof lineHeight === 'number' && Number.isFinite(lineHeight))) {
+      throw new ThemeonError('BAD_VALUE', `${context} '${path.join('.')}.lineHeight' must be a string or finite number`)
+    }
+  }
   const valid =
     typeof value === 'string' ||
     (typeof value === 'number' && Number.isFinite(value)) ||
