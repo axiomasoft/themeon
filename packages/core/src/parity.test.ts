@@ -94,7 +94,8 @@ function assertParity(opts: ResolveOptions): void {
   expect(buildBase).toEqual(el.calls)
 
   // Каждая тема.
-  for (const themeName of Object.keys(resolved.themes)) {
+  // Object.keys widens to string[]; iterate the typed theme names explicitly.
+  for (const themeName of Object.keys(resolved.themes) as Array<keyof typeof resolved.themes>) {
     const buildTheme = blockVars(css, `[data-theme="${themeName}"]`)
     const themeEl = fakeEl()
     applyTheme(themeEl, themeVars(resolved, themeName))

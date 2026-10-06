@@ -242,13 +242,18 @@ export function defineTokens<const G extends GroupName, const T extends TokenTre
 }
 
 /** Configuration for {@link defineTheme}. */
-export interface ThemeConfig<TSys extends SysTreeInput> {
+export interface ThemeConfig<TSys extends SysTreeInput, TTheme extends string = string> {
   /** Base sys-contract: the full set of tokens every theme shares. */
   base: TSys
   /** Named partial patches; each key must exist in `base` (checked at runtime). */
-  themes?: Record<string, SysPatch<TSys>>
-  /** Overrides the color-scheme convention (P-D16); a theme named `dark` defaults to `dark`. */
-  schemes?: Record<string, 'light' | 'dark'>
+  themes?: Record<TTheme, SysPatch<TSys>>
+  /**
+   * Overrides the color-scheme convention (P-D16); a theme named `dark` defaults to `dark`.
+   * Keys are the declared theme names plus the reserved `base` (the `:root` block), so a typo
+   * such as `{ drak: 'dark' }` is a compile-time error. `NoInfer` keeps these keys from widening
+   * the inferred theme names.
+   */
+  schemes?: Partial<Record<NoInfer<TTheme> | 'base', 'light' | 'dark'>>
 }
 
 /**
@@ -270,9 +275,9 @@ export interface ThemeConfig<TSys extends SysTreeInput> {
  * theme.schemes.dark // 'dark' (convention P-D16)
  * ```
  */
-export function defineTheme<const TSys extends SysTreeInput>(
-  config: ThemeConfig<TSys>,
-): ThemeDefinition<TSys> {
+export function defineTheme<const TSys extends SysTreeInput, const TTheme extends string = never>(
+  config: ThemeConfig<TSys, TTheme>,
+): ThemeDefinition<TSys, TTheme> {
   // 1) обернуть base по группам (Token-листья не переоборачиваются — ссылка остаётся ссылкой).
   const sys: Record<string, unknown> = {}
   for (const [group, subtree] of Object.entries(config.base)) {
@@ -282,20 +287,20 @@ export function defineTheme<const TSys extends SysTreeInput>(
   Object.freeze(sys)
 
   // 2) валидация патчей тем: каждый путь патча обязан существовать в base.
-  const themes = config.themes ?? {}
+  const themes: Readonly<Record<string, SysPatch<TSys>>> = config.themes ?? {}
   for (const [themeName, patch] of Object.entries(themes)) {
     validatePatchPaths(patch as TokenTreeInput, config.base as Record<string, unknown>, themeName)
   }
 
   // 3) schemes: конвенция «тема dark → color-scheme dark», если не переопределено.
   const schemes: Record<string, 'light' | 'dark'> = { ...config.schemes }
-  if ('dark' in themes && !('dark' in schemes)) schemes.dark = 'dark'
+  if (Object.hasOwn(themes, 'dark') && !Object.hasOwn(schemes, 'dark')) schemes['dark'] = 'dark'
 
   return Object.freeze({
     sys: sys as unknown as TokenizedSys<TSys>,
-    themes: Object.freeze({ ...themes }) as Readonly<Record<string, SysPatch<TSys>>>,
+    themes: Object.freeze({ ...themes }) as Readonly<Record<TTheme, SysPatch<TSys>>>,
     schemes: Object.freeze(schemes),
-  }) as ThemeDefinition<TSys>
+  }) as ThemeDefinition<TSys, TTheme>
 }
 
 /**

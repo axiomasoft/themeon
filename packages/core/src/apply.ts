@@ -12,7 +12,7 @@
  */
 
 import { ThemeonError } from './errors'
-import type { ResolvedTheme } from './types'
+import type { ResolvedTheme, ResolvedToken } from './types'
 
 /**
  * Structural minimum of a DOM element the applier writes to. A real `HTMLElement`
@@ -60,7 +60,10 @@ function patchedAliasEntries(
  *
  * @throws {ThemeonError} `UNKNOWN_PATH` if `theme` is not present in `resolved`.
  */
-export function themeVars(resolved: ResolvedTheme, theme?: string): Record<string, string> {
+export function themeVars<TTheme extends string>(
+  resolved: ResolvedTheme<TTheme>,
+  theme?: NoInfer<TTheme>,
+): Record<string, string> {
   if (theme === undefined) return { ...resolved.vars }
 
   if (!Object.hasOwn(resolved.themes, theme)) {
@@ -71,7 +74,7 @@ export function themeVars(resolved: ResolvedTheme, theme?: string): Record<strin
     )
   }
   // Object.hasOwn выше гарантирует наличие ключа; index signature TS не сужает через hasOwn.
-  const patch = resolved.themes[theme]!
+  const patch: readonly ResolvedToken[] = resolved.themes[theme]
 
   const out: Record<string, string> = {}
   for (const token of patch) out[token.varName] = token.value

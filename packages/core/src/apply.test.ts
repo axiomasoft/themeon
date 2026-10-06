@@ -3,6 +3,7 @@ import { applyTheme, clearTheme, themeVars, type ElementLike } from './apply'
 import { defineTheme, defineTokens } from './define'
 import { ThemeonError } from './errors'
 import { resolveTheme } from './resolve'
+import type { ResolvedTheme } from './types'
 
 /**
  * Фейковый элемент: пишет вызовы `setProperty`/`removeProperty` в массивы — applier
@@ -78,6 +79,12 @@ describe('themeVars', () => {
     })
   })
 
+  test('имя темы проверяется типами: опечатка — ошибка компиляции', () => {
+    const r = resolveTheme(fullTheme())
+    // @ts-expect-error — 'drak' не объявлена в defineTheme({ themes })
+    expect(() => themeVars(r, 'drak')).toThrowError(ThemeonError)
+  })
+
   test('именованная тема без алиасов — только патченные переменные', () => {
     const r = resolveTheme(fullTheme())
     const vars = themeVars(r, 'dark')
@@ -85,7 +92,8 @@ describe('themeVars', () => {
   })
 
   test('неизвестная тема → ThemeonError UNKNOWN_PATH', () => {
-    const r = resolveTheme(fullTheme())
+    // Widened on purpose: the runtime guard serves untyped callers (JS, names from storage/URL).
+    const r: ResolvedTheme = resolveTheme(fullTheme())
     expect(() => themeVars(r, 'sepia')).toThrowError(ThemeonError)
     try {
       themeVars(r, 'sepia')
@@ -96,7 +104,7 @@ describe('themeVars', () => {
   })
 
   test('имя темы = член Object.prototype → ThemeonError UNKNOWN_PATH, а не TypeError (code-review P1.6, MED)', () => {
-    const r = resolveTheme(fullTheme())
+    const r: ResolvedTheme = resolveTheme(fullTheme())
     for (const collidingName of ['toString', 'constructor', 'valueOf', 'hasOwnProperty']) {
       expect(() => themeVars(r, collidingName)).toThrowError(ThemeonError)
       try {

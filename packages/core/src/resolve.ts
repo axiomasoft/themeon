@@ -27,6 +27,8 @@ import type {
   CssVarName,
   ResolvedTheme,
   ResolvedToken,
+  SysPatch,
+  SysTreeInput,
   TextStyleValue,
   ThemeDefinition,
   Token,
@@ -110,7 +112,10 @@ function resolveChain(start: Token): ChainResult {
  * resolved.vars['--color-bg-page'] // 'oklch(0.99 0 0)'
  * ```
  */
-export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): ResolvedTheme {
+export function resolveTheme<TTheme extends string = string>(
+  def: ThemeDefinition<SysTreeInput, TTheme>,
+  opts: ResolveOptions = {},
+): ResolvedTheme<TTheme> {
   const graph = buildGraph(irFromDefinition(def, { kind: 'dsl' }))
   const depthIssue = graph.issues.find((issue) => issue.code === 'DEPTH')
   if (depthIssue) {
@@ -275,7 +280,7 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
 
   // ── 4. Темы: патчи резолвятся тем же кодом; значения инлайнятся (без var-chain в блоке темы) ──
   const themesOut: Record<string, readonly ResolvedToken[]> = {}
-  for (const [themeName, patch] of Object.entries(def.themes)) {
+  for (const [themeName, patch] of Object.entries<SysPatch<SysTreeInput>>(def.themes)) {
     // Theme names end up in `[data-theme="…"]` selectors and in the runtime attribute.
     assertSafeAttributeValue(themeName, 'Theme name')
     const list: ResolvedToken[] = []
@@ -314,5 +319,5 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
     breakpoints: Object.freeze(breakpoints),
     vars: Object.freeze(vars),
     schemes: def.schemes,
-  }) as ResolvedTheme
+  }) as ResolvedTheme<TTheme>
 }

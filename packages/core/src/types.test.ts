@@ -1,7 +1,10 @@
 import { describe, expect, expectTypeOf, test } from 'vitest'
+import { themeVars } from './apply'
 import { defineTheme, defineTokens } from './define'
+import { ThemeonError } from './errors'
+import { resolveTheme } from './resolve'
 import { TOKEN_BRAND, isToken } from './types'
-import type { SysPatch, ThemeDefinition, Token, Tokenized, WellKnownSys } from './types'
+import type { ResolvedTheme, SysPatch, ThemeDefinition, Token, Tokenized, WellKnownSys } from './types'
 
 describe('Tokenized<T>', () => {
   test('оборачивает листья в Token, сохраняя форму дерева', () => {
@@ -104,5 +107,41 @@ describe('точные типы токенов (группа → TokenType)', ()
     expectTypeOf(theme).toExtend<ThemeDefinition>()
     expectTypeOf<Token<'color'>>().toExtend<Token>()
     expectTypeOf<Token>().not.toExtend<Token<'color'>>()
+  })
+})
+
+describe('типизированные имена тем (defineTheme → resolveTheme → themeVars)', () => {
+  const base = { color: { bg: '#fff' } }
+
+  test('имена тем выводятся из ключей `themes`', () => {
+    const def = defineTheme({ base, themes: { dark: { color: { bg: '#000' } }, hc: {} } })
+    expectTypeOf<keyof typeof def.themes>().toEqualTypeOf<'dark' | 'hc'>()
+    const resolved = resolveTheme(def)
+    expectTypeOf(resolved).toEqualTypeOf<ResolvedTheme<'dark' | 'hc'>>()
+    expectTypeOf(themeVars<'dark' | 'hc'>).parameter(1).toEqualTypeOf<'dark' | 'hc' | undefined>()
+  })
+
+  test('без `themes` набор пуст (never), а не произвольная строка', () => {
+    const def = defineTheme({ base })
+    expectTypeOf<keyof typeof def.themes>().toEqualTypeOf<never>()
+  })
+
+  test('schemes: ключи ⊆ объявленные темы ∪ base; опечатка — ошибка', () => {
+    defineTheme({ base, themes: { dark: {} }, schemes: { base: 'light', dark: 'dark' } })
+    // @ts-expect-error — 'drak' не объявлена в themes
+    defineTheme({ base, themes: { dark: {} }, schemes: { drak: 'dark' } })
+  })
+
+  test('контекстная типизация патча сохраняется: неизвестный ключ — ошибка', () => {
+    expect(() =>
+      // @ts-expect-error — 'TYPO' нет в base.color
+      defineTheme({ base, themes: { dark: { color: { TYPO: '#000' } } } }),
+    ).toThrow(ThemeonError)
+  })
+
+  test('точные типы совместимы с широкими контрактами адаптеров', () => {
+    const def = defineTheme({ base, themes: { dark: {} } })
+    expectTypeOf(def).toExtend<ThemeDefinition>()
+    expectTypeOf(resolveTheme(def)).toExtend<ResolvedTheme>()
   })
 })

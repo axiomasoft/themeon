@@ -137,10 +137,16 @@ export type SysPatch<T> = {
 }
 
 /** Определение темы (выход defineTheme — P1.2). */
-export interface ThemeDefinition<TSys extends SysTreeInput = SysTreeInput> {
+export interface ThemeDefinition<
+  TSys extends SysTreeInput = SysTreeInput,
+  TTheme extends string = string,
+> {
   readonly sys: TokenizedSys<TSys>
-  /** Сырые патчи тем; резолвятся в resolveTheme (P1.4). */
-  readonly themes: Readonly<Record<string, SysPatch<TSys>>>
+  /**
+   * Сырые патчи тем; резолвятся в resolveTheme (P1.4). Keyed by the literal theme names
+   * inferred by `defineTheme`, so `themeVars(resolved, 'drak')` is a compile-time error.
+   */
+  readonly themes: Readonly<Record<TTheme, SysPatch<TSys>>>
   /** color-scheme per тема; конвенция: тема 'dark' → 'dark' автоматически (P-D16). */
   readonly schemes: Readonly<Record<string, 'light' | 'dark'>>
 }
@@ -159,9 +165,9 @@ export interface ResolvedToken {
   /** varName непосредственной цели ссылки — для var-chain эмита (P-D13). */
   readonly ref?: CssVarName
 }
-export interface ResolvedTheme {
+export interface ResolvedTheme<TTheme extends string = string> {
   readonly tokens: readonly ResolvedToken[] // база (:root)
-  readonly themes: Readonly<Record<string, readonly ResolvedToken[]>> // патчи
+  readonly themes: Readonly<Record<TTheme, readonly ResolvedToken[]>> // патчи
   readonly aliases: ReadonlyArray<{ alias: CssVarName; target: CssVarName }>
   readonly breakpoints: Readonly<Record<string, { value: string; px: number | null }>>
   /** Плоский словарь базы varName→value — вход applier'а и адаптеров. */
