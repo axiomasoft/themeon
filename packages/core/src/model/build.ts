@@ -57,7 +57,7 @@ export function irDocument(input: {
     tokens: Object.freeze([...input.tokens]),
     sysIds: Object.freeze([...input.sysIds]),
     themes: Object.freeze(themes),
-    schemes: Object.freeze({ ...(input.schemes ?? {}) }),
+    schemes: Object.freeze({ ...input.schemes }),
   })
 }
 

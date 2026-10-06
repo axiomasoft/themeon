@@ -1,4 +1,4 @@
-import { defineTheme, defineTokens } from '@themeon/core'
+import { defineTheme } from '@themeon/core'
 
 /** @param {number} leafCount */
 export function flatColorLeaves(leafCount) {

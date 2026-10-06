@@ -13,7 +13,6 @@ const summaryPath = join(root, 'coverage', 'coverage-summary.json')
 test('gate fails when a critical file floor is raised above measured report', () => {
   const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
   const summary = JSON.parse(readFileSync(summaryPath, 'utf8'))
-  const rootSlash = root.replaceAll('\\', '/') + '/'
   const samplePath = Object.keys(baseline.files)[0]
   const stats = Object.entries(summary).find(([key]) => key.replaceAll('\\', '/').endsWith(samplePath))?.[1]
   assert.ok(stats, `no coverage summary for ${samplePath}`)

@@ -3,7 +3,6 @@ import { join } from 'node:path'
 import { runCommand } from '../../../internal/pack-harness/command.js'
 import { packDigests } from '../../../internal/pack-harness/digests.js'
 import { themeonInstallSpec } from '../../../internal/pack-harness/install.js'
-import { loadPackManifest } from '../../../internal/pack-harness/load-manifest.js'
 import type { PackManifest, TypesCellRunResult, TypesMatrixCell } from './types.js'
 import { FIXTURES_ROOT, TMP_CELLS_ROOT } from './paths.js'
 
