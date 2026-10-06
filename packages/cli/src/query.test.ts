@@ -128,4 +128,28 @@ describe('query commands (P3.1)', () => {
     expect(parsed.order.length).toBeGreaterThan(0)
     expect(parsed.edges.some((e) => e.from.includes('color') && e.to.includes('neutral'))).toBe(true)
   })
+
+  it('graph json caps order together with nodes (bounded payload)', async () => {
+    const count = 4200
+    writeFileSync(
+      join(cwd, 'big.config.ts'),
+      `import { defineTheme } from '@themeon/core'
+export default defineTheme({
+  base: { color: Object.fromEntries(Array.from({ length: ${count} }, (_, i) => ['c' + i, '#ffffff'])) },
+})
+`,
+      'utf8',
+    )
+    const { output } = await mod.runGraph({ cwd, config: 'big.config.ts', format: 'json' })
+    const parsed = JSON.parse(output) as {
+      nodes: unknown[]
+      order: string[]
+      truncated: boolean
+      diagnostics: { code: string }[]
+    }
+    expect(parsed.truncated).toBe(true)
+    expect(parsed.nodes.length).toBe(4096)
+    expect(parsed.order.length).toBe(4096)
+    expect(parsed.diagnostics.some((d) => d.code === 'THEMEON_QUERY_GRAPH_TRUNCATED')).toBe(true)
+  })
 })

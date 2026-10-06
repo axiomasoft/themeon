@@ -23,6 +23,12 @@ function capGraphPayload(
     truncated = true
     edges.length = GRAPH_OUTPUT_MAX_EDGES
   }
+  // `order` lists one id per node; without the same cap the "bounded" payload still grew
+  // linearly with the theme (the parameter was accepted but never used).
+  if (order.length > GRAPH_OUTPUT_MAX_NODES) {
+    truncated = true
+    order.length = GRAPH_OUTPUT_MAX_NODES
+  }
 
   if (truncated) {
     extra.push({
