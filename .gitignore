@@ -1,6 +1,19 @@
-# Cursor IDE — local session churn (project hooks stay tracked under .cursor/hooks/)
+# AI-agent tooling — machine-local state and per-developer harness wiring.
+# Hooks are shims into an absolute path on one workstation (fail-closed for
+# everyone else), memory/state/lease files are per-session churn. Shared,
+# portable agent config (CLAUDE.md, .serena/project.yml, .swissknife.json)
+# stays tracked.
 .cursor/logs/
 .cursor/state/
+.cursor/hooks.json
+.cursor/hooks/
+.cursor/memory.env.ini
+.claude/memory.env.ini
+.claude/settings.local.json
+.codex/hooks.json
+.codex/hooks/
+.codex/state/
+.swissknifeman/
 
 node_modules
 dist
