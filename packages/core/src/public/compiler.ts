@@ -53,7 +53,10 @@ export type {
   BuildCspArtifactInput,
   BuildViteManifestInput,
   ThemeonCspArtifactV1,
+  ThemeonViteManifestCssBaseV1,
   ThemeonViteManifestCssV1,
+  ThemeonViteManifestFileCssV1,
+  ThemeonViteManifestVirtualCssV1,
   ThemeonViteManifestDeprecatedVarV1,
   ThemeonViteManifestV1,
 } from '../formats/vite-delivery'

@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineTheme } from '@themeon/core'
 import { themeInitScript } from '@themeon/vue/anti-fouc'
 import { themeon } from './index'
+import { toPosixPath } from './artifacts'
 
 function makeTheme() {
   return defineTheme({
@@ -88,5 +89,12 @@ describe('delivery artifacts (P3.3)', () => {
     await callWith(plugin.hotUpdate, { environment }, { file: tokenPath, server: {} })
     const second = readFingerprint()
     expect(second).not.toBe(first)
+  })
+})
+
+describe('toPosixPath', () => {
+  it('converts Windows separators so the manifest is platform independent', () => {
+    expect(toPosixPath('.themeon\\theme.css', '\\')).toBe('.themeon/theme.css')
+    expect(toPosixPath('.themeon/theme.css', '/')).toBe('.themeon/theme.css')
   })
 })

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, expectTypeOf, test } from 'vitest'
 import { defineTheme } from '../define'
 import { compileTheme } from '../pipeline/compile'
 import { irDocument, withMetadata } from '../model/build'
@@ -12,6 +12,7 @@ import {
   sha256Hex,
   THEMEON_VITE_ARTIFACT_OWNER,
   THEMEON_VITE_MANIFEST_SCHEMA_VERSION,
+  type ThemeonViteManifestCssV1,
 } from './vite-delivery'
 
 const theme = defineTheme({
@@ -32,8 +33,7 @@ describe('vite delivery manifest (P3.3)', () => {
     })
     expect(manifest.schemaVersion).toBe(THEMEON_VITE_MANIFEST_SCHEMA_VERSION)
     expect(manifest.owner).toBe(THEMEON_VITE_ARTIFACT_OWNER)
-    expect(manifest.css.delivery).toBe('virtual')
-    expect(manifest.css.virtualModuleId).toBe('virtual:themeon.css')
+    expect(manifest.css).toMatchObject({ delivery: 'virtual', virtualModuleId: 'virtual:themeon.css' })
     expect(manifest.css.sha256).toBe(sha256Hex(compiled.css))
     expect(manifest.css.integrity).toBe(`sha256-${cspSha256Base64(compiled.css)}`)
     expect(manifest.themes).toEqual(['dark'])
@@ -52,8 +52,30 @@ describe('vite delivery manifest (P3.3)', () => {
       cssRelativePath: '.themeon/theme.css',
     })
     expect(manifest.css.delivery).toBe('file')
+    if (manifest.css.delivery !== 'file') throw new Error('unreachable')
     expect(manifest.css.relativePath).toBe('.themeon/theme.css')
-    expect(manifest.css.virtualModuleId).toBeUndefined()
+    expect('virtualModuleId' in manifest.css).toBe(false)
+  })
+
+  test('file delivery without a path is a type error and a runtime BAD_VALUE', () => {
+    const compiled = compileTheme(theme)
+    const common = { fingerprint: compiled.fingerprint, css: compiled.css, resolved: compiled.resolved }
+    // @ts-expect-error — delivery 'file' requires cssRelativePath
+    expect(() => buildViteManifest({ ...common, delivery: 'file' })).toThrow(/cssRelativePath/)
+    expect(() => buildViteManifest({ ...common, delivery: 'file', cssRelativePath: '' })).toThrow(
+      /cssRelativePath/,
+    )
+  })
+
+  test('manifest css block is a discriminated union', () => {
+    expectTypeOf<ThemeonViteManifestCssV1>()
+      .extract<{ delivery: 'file' }>()
+      .toHaveProperty('relativePath')
+      .toEqualTypeOf<string>()
+    expectTypeOf<ThemeonViteManifestCssV1>()
+      .extract<{ delivery: 'virtual' }>()
+      .toHaveProperty('virtualModuleId')
+      .toEqualTypeOf<string>()
   })
   test('manifest includes deprecatedCssVariables from IR metadata', () => {
     const compiled = compileTheme(theme)

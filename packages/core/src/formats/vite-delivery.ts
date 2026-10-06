@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { ThemeonError } from '../errors'
 import type { IrDocument, IrToken } from '../model/ir'
 import { COMPILER_VERSION } from '../pipeline/types'
 import type { CssVarName, ResolvedTheme } from '../types'
@@ -11,18 +12,34 @@ export const THEMEON_VITE_ARTIFACT_OWNER = '@themeon/vite'
 
 export const THEMEON_CSP_ARTIFACT_SCHEMA_VERSION = 1 as const
 
-export interface ThemeonViteManifestCssV1 {
-  /** How the CSS is delivered to the app. */
-  readonly delivery: 'virtual' | 'file'
-  /** Public virtual module id when `delivery` is `virtual`. */
-  readonly virtualModuleId?: string
-  /** Project-root-relative path when `delivery` is `file`. */
-  readonly relativePath?: string
+/** Fields shared by every CSS delivery mode of the manifest. */
+export interface ThemeonViteManifestCssBaseV1 {
   readonly sha256: string
   readonly bytes: number
   /** Subresource-integrity form (`sha256-<base64>`). */
   readonly integrity: string
 }
+
+/** CSS served by the Vite virtual module (`import 'virtual:themeon.css'`). */
+export interface ThemeonViteManifestVirtualCssV1 extends ThemeonViteManifestCssBaseV1 {
+  readonly delivery: 'virtual'
+  /** Public virtual module id. */
+  readonly virtualModuleId: string
+}
+
+/** CSS written to disk (`cssImport`), e.g. for Laravel/Blade `@vite` or a `<link>`. */
+export interface ThemeonViteManifestFileCssV1 extends ThemeonViteManifestCssBaseV1 {
+  readonly delivery: 'file'
+  /** Project-root-relative POSIX path. */
+  readonly relativePath: string
+}
+
+/**
+ * CSS block of the manifest — a discriminated union on `delivery`, so a reader that checks
+ * `delivery === 'file'` is guaranteed a `relativePath` (it used to be optional on both modes, and
+ * a file delivery without a path produced a manifest PHP consumers could not use).
+ */
+export type ThemeonViteManifestCssV1 = ThemeonViteManifestVirtualCssV1 | ThemeonViteManifestFileCssV1
 
 export interface ThemeonViteManifestDeprecatedVarV1 {
   readonly name: CssVarName
@@ -125,37 +142,48 @@ export function deprecatedCssVariablesFromIr(
   return Object.freeze(out.sort((a, b) => a.name.localeCompare(b.name)))
 }
 
-export interface BuildViteManifestInput {
+interface BuildViteManifestCommonInput {
   readonly owner?: string
   readonly compilerVersion?: string
   readonly fingerprint: string
   readonly css: string
   readonly resolved: ResolvedTheme
   readonly document?: IrDocument
-  readonly delivery: 'virtual' | 'file'
-  readonly virtualModuleId?: string
-  readonly cssRelativePath?: string
 }
+
+/** Input of {@link buildViteManifest}; the delivery mode decides which locator is required. */
+export type BuildViteManifestInput = BuildViteManifestCommonInput &
+  (
+    | { readonly delivery: 'virtual'; readonly virtualModuleId?: string }
+    | { readonly delivery: 'file'; readonly cssRelativePath: string }
+  )
 
 /** Deterministic manifest object (stable field order for JSON.stringify). */
 export function buildViteManifest(input: BuildViteManifestInput): ThemeonViteManifestV1 {
   const css = input.css
-  const cssBlock: ThemeonViteManifestCssV1 =
-    input.delivery === 'virtual'
-      ? Object.freeze({
-          delivery: 'virtual',
-          virtualModuleId: input.virtualModuleId ?? 'virtual:themeon.css',
-          sha256: sha256Hex(css),
-          bytes: Buffer.byteLength(css, 'utf8'),
-          integrity: sha256Integrity(css),
-        })
-      : Object.freeze({
-          delivery: 'file',
-          relativePath: input.cssRelativePath,
-          sha256: sha256Hex(css),
-          bytes: Buffer.byteLength(css, 'utf8'),
-          integrity: sha256Integrity(css),
-        })
+  const integrityFields = {
+    sha256: sha256Hex(css),
+    bytes: Buffer.byteLength(css, 'utf8'),
+    integrity: sha256Integrity(css),
+  }
+  let cssBlock: ThemeonViteManifestCssV1
+  if (input.delivery === 'virtual') {
+    cssBlock = Object.freeze({
+      delivery: 'virtual',
+      virtualModuleId: input.virtualModuleId ?? 'virtual:themeon.css',
+      ...integrityFields,
+    })
+  } else {
+    // Runtime guard for untyped (JS) callers: a file manifest without a path is unusable.
+    if (typeof input.cssRelativePath !== 'string' || input.cssRelativePath === '') {
+      throw new ThemeonError('BAD_VALUE', "buildViteManifest: delivery 'file' requires a non-empty cssRelativePath")
+    }
+    cssBlock = Object.freeze({
+      delivery: 'file',
+      relativePath: input.cssRelativePath,
+      ...integrityFields,
+    })
+  }
 
   const deprecated =
     input.document !== undefined

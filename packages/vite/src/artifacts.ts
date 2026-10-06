@@ -1,4 +1,4 @@
-import { relative, resolve as resolvePath } from 'node:path'
+import { relative, resolve as resolvePath, sep } from 'node:path'
 import {
   buildCspArtifact,
   buildViteManifest,
@@ -10,6 +10,11 @@ import { themeInitScript } from '@themeon/vue/anti-fouc'
 import type { ThemeInitScriptOptions } from '@themeon/vue/anti-fouc'
 import { atomicWriteText, removeIfOwned } from './fs'
 import type { ThemeonArtifactsOptions } from './types'
+
+/** `path.relative` uses `\\` on Windows; manifests always carry `/`. */
+export function toPosixPath(path: string, separator: string = sep): string {
+  return separator === '/' ? path : path.split(separator).join('/')
+}
 
 export interface ArtifactPaths {
   readonly dir: string
@@ -43,18 +48,18 @@ export interface WriteArtifactsInput {
 }
 
 export function writeDeliveryArtifacts(input: WriteArtifactsInput): void {
-  const cssRelative =
-    input.paths.css !== undefined ? relative(input.root, input.paths.css) : undefined
-  const delivery = cssRelative !== undefined ? 'file' : 'virtual'
-  const manifest = buildViteManifest({
+  const common = {
     fingerprint: input.compiled.fingerprint,
     css: input.compiled.css,
     resolved: input.compiled.resolved,
     document: input.compiled.document,
-    delivery,
-    virtualModuleId: input.virtualModuleId,
-    ...(cssRelative !== undefined ? { cssRelativePath: cssRelative } : {}),
-  })
+  }
+  const manifest = buildViteManifest(
+    input.paths.css !== undefined
+      ? // POSIX separators: the manifest is a cross-platform machine contract read by PHP.
+        { ...common, delivery: 'file', cssRelativePath: toPosixPath(relative(input.root, input.paths.css)) }
+      : { ...common, delivery: 'virtual', virtualModuleId: input.virtualModuleId },
+  )
   atomicWriteText(input.paths.manifest, serializeViteManifest(manifest))
 
   if (input.fouc !== undefined && input.fouc !== false) {
