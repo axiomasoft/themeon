@@ -36,6 +36,21 @@ consumed by the envelope inspector, JSON Schema (`maxLength`, `maxProperties`,
 | Cross-tenant bleed | I | Pure function, no module cache; each call starts from the caller-supplied `base` |
 | Diagnostic exfiltration | I | Stable `code` + `path` + `hint`; messages do not include the payload |
 
+## Build channel (authoring, DTCG import)
+
+Authoring code is trusted, but token trees also arrive through interchange (`fromDTCG` on a
+design-tool export, generated files). `resolveTheme` — the single source every emitter reads
+(serializer, Tailwind bridge, runtime applier, UI-kit adapters) — therefore validates each
+emitted declaration once, with the token path in the error (`UNSAFE_CSS_TOKEN`):
+
+- variable names must be CSS custom-property idents (`--` + ident code points);
+- values are scanned by a small tokenizer: no top-level `;`, no `{`/`}` outside strings, no
+  comments, balanced quotes/brackets, no dangling escape, no control characters, no `</`/`<!--`
+  (the CSS may be inlined into `<style>`); `;` inside `url(…)`/strings stays legal;
+- theme names must be safe inside `[data-theme="…"]`.
+
+This is a structural guard, not a CSS validator (`--x: banana` is still accepted).
+
 ## Out of scope (explicit)
 
 - General-purpose CSS sanitizer or HTML rewriter.

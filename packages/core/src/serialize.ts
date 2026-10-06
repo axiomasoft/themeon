@@ -9,6 +9,7 @@
  */
 
 import { ThemeonError } from './errors'
+import { assertSafeAttributeValue } from './css-safety'
 import type { ResolvedTheme } from './types'
 
 /** Опции сериализатора. Все значения по умолчанию воспроизводят канон D6/D8/D14. */
@@ -121,7 +122,7 @@ export function serializeThemeCss(resolved: ResolvedTheme, opts: SerializeCssOpt
   assertSafeCssToken(customMediaPrefix, 'customMediaPrefix')
   if (layer !== false) assertSafeCssToken(layer, 'layer')
   if (banner !== false) assertSafeCssToken(banner, 'banner', { statementContext: false })
-  for (const themeName of Object.keys(resolved.themes)) assertSafeCssToken(themeName, 'theme name')
+  for (const themeName of Object.keys(resolved.themes)) assertSafeAttributeValue(themeName, 'theme name')
   for (const name of Object.keys(resolved.breakpoints)) assertSafeCssToken(name, 'breakpoint name')
 
   const useLayer = layer !== false

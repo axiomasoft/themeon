@@ -10,6 +10,11 @@
  */
 
 import { ThemeonError } from './errors'
+import {
+  assertSafeAttributeValue,
+  assertSafeCustomPropertyName,
+  assertSafeDeclarationValue,
+} from './css-safety'
 import { GRAPH_MAX_DEPTH, buildGraph, comparePath } from './graph/build'
 import { walkTree } from './internal/walk'
 import { irFromDefinition } from './model/from-definition'
@@ -126,6 +131,7 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
   // varName → идентичность пути-владельца: повтор с другим путём = NAME_COLLISION.
   const nameOwners = new Map<string, string>()
   function claim(varName: string, path: readonly string[]): void {
+    assertSafeCustomPropertyName(varName, `CSS variable name of token '${path.join('.')}'`)
     const pk = pathKey(path)
     const prev = nameOwners.get(varName)
     if (prev !== undefined && prev !== pk) {
@@ -162,11 +168,13 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
         )
       }
       const names = formatTextVarNames(path, opts)
+      assertSafeDeclarationValue(finalValue.size, `Value of token '${path.join('.')}'`)
       claim(names.size, path)
       into.push({ path, varName: names.size, type, value: finalValue.size })
       if (emitVars) vars[names.size] = finalValue.size
       if (finalValue.lineHeight !== undefined) {
         const lh = String(finalValue.lineHeight)
+        assertSafeDeclarationValue(lh, `Line height of token '${path.join('.')}'`)
         claim(names.lineHeight, path)
         into.push({ path, varName: names.lineHeight, type, value: lh })
         if (emitVars) vars[names.lineHeight] = lh
@@ -186,6 +194,7 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
     }
 
     const valueStr = typeof finalValue === 'number' ? String(finalValue) : finalValue
+    assertSafeDeclarationValue(valueStr, `Value of token '${path.join('.')}'`)
     const varName = formatVarName(path, opts)
     claim(varName, path)
     into.push(
@@ -268,6 +277,8 @@ export function resolveTheme(def: ThemeDefinition, opts: ResolveOptions = {}): R
   // ── 4. Темы: патчи резолвятся тем же кодом; значения инлайнятся (без var-chain в блоке темы) ──
   const themesOut: Record<string, readonly ResolvedToken[]> = {}
   for (const [themeName, patch] of Object.entries(def.themes)) {
+    // Theme names end up in `[data-theme="…"]` selectors and in the runtime attribute.
+    assertSafeAttributeValue(themeName, 'Theme name')
     const list: ResolvedToken[] = []
     const patchLeaves = [...walkTree(patch as unknown as TokenTreeInput)].sort((a, b) =>
       comparePath(a.path, b.path),
