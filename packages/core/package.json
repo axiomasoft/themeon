@@ -1,6 +1,6 @@
 {
   "name": "@themeon/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Typed design-token engine: TS tokens → CSS custom properties (build + runtime), naming engine and DTCG interchange. Zero runtime dependencies.",
   "keywords": [
     "design-tokens",
@@ -22,7 +22,9 @@
     "registry": "https://registry.npmjs.org"
   },
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -51,11 +53,21 @@
   },
   "typesVersions": {
     "*": {
-      "authoring": ["./dist/public/authoring.d.ts"],
-      "compiler": ["./dist/public/compiler.d.ts"],
-      "runtime": ["./dist/public/runtime.d.ts"],
-      "dtcg": ["./dist/public/dtcg.d.ts"],
-      "tenant": ["./dist/public/tenant.d.ts"]
+      "authoring": [
+        "./dist/public/authoring.d.ts"
+      ],
+      "compiler": [
+        "./dist/public/compiler.d.ts"
+      ],
+      "runtime": [
+        "./dist/public/runtime.d.ts"
+      ],
+      "dtcg": [
+        "./dist/public/dtcg.d.ts"
+      ],
+      "tenant": [
+        "./dist/public/tenant.d.ts"
+      ]
     }
   },
   "scripts": {

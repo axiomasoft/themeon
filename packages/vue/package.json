@@ -1,6 +1,6 @@
 {
   "name": "@themeon/vue",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Reactive theme switching for Vue: useTheme() (persist, prefers-color-scheme, N themes), a Vue plugin and a generated anti-FOUC script — on top of @themeon/core.",
   "keywords": [
     "design-tokens",
@@ -22,7 +22,9 @@
     "registry": "https://registry.npmjs.org"
   },
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
