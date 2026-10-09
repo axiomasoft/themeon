@@ -18,6 +18,12 @@
       },
       "codex": {
         "enabled": true
+      },
+      "cursor": {
+        "enabled": true
+      },
+      "grok": {
+        "enabled": true
       }
     },
     "contract_version": "1.0.0"

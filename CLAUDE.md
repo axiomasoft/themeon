@@ -1,19 +1,21 @@
-<!-- maind:healthcheck hash=managed (managed by maind — не редактировать вручную) -->
-## ⚠ ПРИОРИТЕТ №1 — связь с mAInd (общая память + граф)
+<!-- maind:healthcheck hash=be8c12e35895 (managed by maind — do not edit manually) -->
+## mAInd — temporary project context and graph
 
-Перед началом работы убедись, что проект подключён к хабу **mAInd**. Это критично:
-без связи изменения этой сессии **не попадут** в общую память и граф.
+Memory defaults to this project's private scope `project:themeon`. Read `ns:*` or `global`
+only for an explicit cross-project request and when the scope is authorized.
 
-1. Проверь связь: `maind health --cwd`
-2. Если статус `partial` / `standalone` — почини: `maind health --cwd --fix`
-3. Приступай к задаче только при статусе `connected`.
+Store only short useful temporary context: 48-hour default TTL, 72-hour maximum,
+800 characters, at most 8 live entries per scope. Use one replaceable `active-handoff`
+for continuity, then forget it when work finishes. Keep plans, decisions, progress,
+commit history and durable rules in repository artifacts. Empty memory is normal.
 
-Память **общая** (демон mAInd); scope этого проекта — `project:themeon`.
+Use `maind health --cwd` for connection symptoms or setup changes; repair with
+`maind health --cwd --fix`. A memory outage does not block ordinary repository work.
+Project connections: `maind graph --project themeon`.
 <!-- /maind:healthcheck -->
 
 <!-- swissknifeman:hub:start -->
-# Swissknifeman: хаб скиллов
-
-Подключение: `skiller connect . --hub --yes` (Claude marketplace + Codex `.agents/plugins`).
-Полный индекс: `skiller status` или `scripts/generate-hub.sh --target . --full-index --dry-run` из репозитория swissknifeman.
+<!-- swissknifeman hub: stub — skills and task-commands are connected natively; index and priority rules are not duplicated here. -->
+<!-- swissknifeman:registry sha=273bdbe54ab3 skills=232 -->
+<!-- Full index: `skiller status` or generate-hub.sh --target <dir> --full-index. -->
 <!-- swissknifeman:hub:end -->
