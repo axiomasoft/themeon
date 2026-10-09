@@ -1,6 +1,6 @@
 {
   "name": "@themeon/naive",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Naive UI adapter: toNative(resolved) builds a GlobalThemeOverrides object (hex/rgba colours, self-derived hover/pressed/suppl states) plus a deep-merge and breakpoint-aware overrides resolver — on top of @themeon/core.",
   "keywords": [
     "design-tokens",
@@ -21,7 +21,9 @@
     "registry": "https://registry.npmjs.org"
   },
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

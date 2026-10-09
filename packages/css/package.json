@@ -1,6 +1,6 @@
 {
   "name": "@themeon/css",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "CSS foundation for ThemeOn: @layer cascade, reset, base typography, layout composition, site blueprints and component skeletons on CSS custom properties.",
   "keywords": [
     "design-tokens",
@@ -21,8 +21,12 @@
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "sideEffects": ["**/*.css"],
-  "files": ["dist"],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/contract.d.ts",
