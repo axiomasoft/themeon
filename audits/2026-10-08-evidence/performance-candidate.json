@@ -1,0 +1,47 @@
+{
+  "schema_version": "themeon/benchmark-report/v1",
+  "recordedAt": "2026-10-08T17:15:35.067Z",
+  "nodeVersion": "v24.12.0",
+  "platform": "linux",
+  "arch": "x64",
+  "warmIterations": 7,
+  "scenarios": {
+    "small.compileWarmMs": {
+      "medianMs": 5.477914999999996
+    },
+    "small.applyRuntimeMs": {
+      "medianMs": 0.015172542000000021
+    },
+    "small.dtcgRoundTripMs": {
+      "medianMs": 1.4925049999999942
+    },
+    "medium.compileWarmMs": {
+      "medianMs": 51.022332000000006
+    },
+    "large.compileWarmMs": {
+      "medianMs": 259.20077100000026
+    },
+    "wideComponent.compileWarmMs": {
+      "medianMs": 103.25336599999991
+    },
+    "tenantPatch.compileWarmMs": {
+      "medianMs": 52.78527699999995
+    },
+    "vitePlugin.loadWarmMs": {
+      "medianMs": 0.012772999999469903
+    }
+  },
+  "correctness": {
+    "small": {
+      "fingerprint": "6c5f23f45f918c89",
+      "cssSha256": "57c8c501624d132dde024cbb596ba95d82ec3dfa420f51bfce3c74b077015743",
+      "cssBytes": 27647,
+      "cssGzipBytes": 3190
+    }
+  },
+  "informational": {
+    "largeCompileColdMs": 271.620228,
+    "largeHeapDeltaMb": 73.73505401611328
+  },
+  "timingOrigin": 1791479730148.393
+}

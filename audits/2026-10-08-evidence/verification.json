@@ -1,0 +1,158 @@
+{
+  "date": "2026-10-08",
+  "commit": "7588ba6d77118fc777e544a2f5ce1e32bdc41959",
+  "environment": {
+    "node": "v24.12.0",
+    "pnpm": "11.10.0",
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "build": {
+    "packages": 9,
+    "passed": true
+  },
+  "typecheck": {
+    "passed": true
+  },
+  "unit": {
+    "passed": 1589,
+    "skipped": 1,
+    "filesPassed": 76,
+    "filesSkipped": 1
+  },
+  "coverage": {
+    "scope": "12 critical files only",
+    "statementsPercent": 84.18,
+    "linesPercent": 84.92,
+    "branchesPercent": 74.52,
+    "gatePassed": true
+  },
+  "lint": {
+    "workspacePassed": false,
+    "productScopePassed": true,
+    "workspaceFailure": "Existing untracked .agents plugin snippets: duplicate expect declaration and unused parameters"
+  },
+  "integration": {
+    "fastAndChromium": {
+      "passed": 66,
+      "skipped": 1
+    },
+    "nuxtE2e": {
+      "passed": 3
+    },
+    "firefoxSmoke": {
+      "passed": 1
+    },
+    "webkitSmoke": {
+      "passed": 1
+    }
+  },
+  "packedTypes": {
+    "passed": 7,
+    "cells": 6,
+    "minimumTypeScript": "5.4.5"
+  },
+  "packedConsumers": {
+    "passed": 10,
+    "cells": 8,
+    "durationSeconds": 133.28
+  },
+  "internalStylelint": {
+    "passed": 5
+  },
+  "packageContracts": {
+    "passed": true
+  },
+  "apiReports": {
+    "packages": 9,
+    "passed": true
+  },
+  "architectureDocs": {
+    "passed": true
+  },
+  "docsBuild": {
+    "passed": true
+  },
+  "mutation": {
+    "mutants": 1096,
+    "killed": 695,
+    "timeout": 17,
+    "survived": 263,
+    "noCoverage": 121,
+    "coveredMSI": 73.03,
+    "overallScore": 64.96,
+    "coveredFloor": 69.5,
+    "gatePassed": true
+  },
+  "performance": {
+    "referenceCommit": "4604eda5cf59c49cd6041300e9d43100d07d0778",
+    "sameRunner": true,
+    "scenarios": 8,
+    "budgetRatio": 0.3,
+    "gatePassed": true,
+    "correctnessMatches": true
+  },
+  "dependencyAudit": {
+    "critical": 5,
+    "high": 41,
+    "moderate": 30,
+    "low": 4,
+    "info": 0,
+    "totalAdvisoryRecords": 80
+  },
+  "registry": {
+    "@themeon/core": 404,
+    "@themeon/css": 404,
+    "@themeon/colors": 404,
+    "@themeon/vue": 404,
+    "@themeon/nuxt": 404,
+    "@themeon/vite": 404,
+    "@themeon/naive": 404,
+    "@themeon/tailwind": 404,
+    "@themeon/cli": 404
+  },
+  "remote": {
+    "ci": {
+      "conclusion": "success",
+      "url": "https://github.com/axiomasoft/themeon/actions/runs/37506474903"
+    },
+    "release": {
+      "conclusion": "success",
+      "url": "https://github.com/axiomasoft/themeon/actions/runs/37506474923",
+      "publicationConfirmed": false
+    },
+    "browser": {
+      "conclusion": "success",
+      "url": "https://github.com/axiomasoft/themeon/actions/runs/37622916223"
+    },
+    "docs": {
+      "conclusion": "failure",
+      "url": "https://github.com/axiomasoft/themeon/actions/runs/37506474466",
+      "build": "success",
+      "deploy": "failure",
+      "deployStatus": 404
+    },
+    "pagesAPIStatus": 404,
+    "docsSites": {
+      "https://axioma-studio.github.io/themeon/": 404,
+      "https://axiomasoft.github.io/themeon/": 404
+    },
+    "releaseEnvironment": {
+      "protection_rules": [],
+      "deployment_branch_policy": null
+    },
+    "effectiveMainRules": [],
+    "repositoryRulesets": []
+  },
+  "repositorySourceChanges": false,
+  "externalWrites": false,
+  "limitations": [
+    "No new secret-history scan",
+    "No exhaustive review of every commit",
+    "No external consumer app audit",
+    "Cross-browser coverage is smoke only",
+    "No server platform exists to test",
+    "Package publication and OIDC were not executed"
+  ],
+  "environmentCleanup": "Removed detached performance reference checkout and browser versions downloaded for this audit after completed checks; rerunning browser checks requires playwright install."
+}
