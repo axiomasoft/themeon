@@ -35,3 +35,26 @@ docs/.vitepress/dist/
 .mcp.json
 .cursor/mcp.json
 .codex/config.toml
+.grok/config.toml
+.claude/.maind-feature-log.last
+.claude/maind-*.sh
+.claude/scheduled_tasks.lock
+.codex/state/
+.swissknifeman/terminal-admission/
+.claude/settings.local.json
+.claude/settings.json
+.agents/**/*.bak
+.claude/**/*.bak
+.codex/**/*.bak
+.cursor/**/*.bak
+.mcp.json.bak
+
+# Whole local harness trees. Nothing here is tracked.
+# Shared config stays in git: CLAUDE.md, .serena/, .swissknife.json.
+.agents/
+.claude/
+.cursor/
+.grok/
+.codex/
+.mcp.json.example
+.swissknife.json.bak
