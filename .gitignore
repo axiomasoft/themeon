@@ -56,5 +56,4 @@ docs/.vitepress/dist/
 .cursor/
 .grok/
 .codex/
-.mcp.json.example
 .swissknife.json.bak
