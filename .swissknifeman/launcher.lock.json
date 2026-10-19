@@ -1,0 +1,8 @@
+{
+  "$schema": "urn:swissknifeman:aicore:project-launcher-lock:v1",
+  "protocol": 1,
+  "template_sha256": "87242043c67cdfd5aeb8d58ce8201402f0b84b41fb66997a7af50b555bc92339",
+  "managed_files": [
+    ".swissknifeman/launcher.py"
+  ]
+}
