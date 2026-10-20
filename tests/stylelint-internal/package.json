@@ -11,7 +11,7 @@
     "@themeon/core": "workspace:*",
     "@types/node": "catalog:",
     "postcss": "8.5.6",
-    "stylelint": "16.26.1",
+    "stylelint": "17.15.0",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
