@@ -1,6 +1,6 @@
 {
   "name": "@themeon/vite",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Vite plugin for ThemeOn: a virtual:themeon.css module with HMR (hotUpdate) and an optional generated anti-FOUC script — for Laravel/plain (non-Nuxt) projects.",
   "keywords": [
     "design-tokens",
@@ -23,7 +23,10 @@
     "registry": "https://registry.npmjs.org"
   },
   "sideEffects": false,
-  "files": ["dist", "client.d.ts"],
+  "files": [
+    "dist",
+    "client.d.ts"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
