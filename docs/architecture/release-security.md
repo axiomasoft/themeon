@@ -54,8 +54,8 @@ Workflow-level `permissions` are empty. Jobs raise only what they need:
 
 ## Action pins
 
-Third-party actions use a full commit SHA and a version comment. Dependabot's
-`github-actions` ecosystem opens weekly PRs that refresh those pins.
+Third-party actions use a full commit SHA and a version comment. Those pins are
+updated manually.
 
 ## Token fallback (current) versus trusted publishing (gated)
 
