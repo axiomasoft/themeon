@@ -1,6 +1,6 @@
 {
   "name": "@themeon/tailwind",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Tailwind v4 CSS-first bridge: generates a self-referential `@theme inline` block from a resolved ThemeOn theme, so runtime `[data-theme]` swaps reach generated Tailwind utilities.",
   "keywords": [
     "design-tokens",
@@ -21,7 +21,9 @@
     "registry": "https://registry.npmjs.org"
   },
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

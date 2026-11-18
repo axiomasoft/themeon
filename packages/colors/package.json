@@ -1,6 +1,6 @@
 {
   "name": "@themeon/colors",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Seed → 12-step OKLCH scale (Radix-shaped) and APCA contrast gate for ThemeOn",
   "keywords": [
     "design-tokens",
@@ -23,7 +23,9 @@
     "registry": "https://registry.npmjs.org"
   },
   "sideEffects": false,
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
